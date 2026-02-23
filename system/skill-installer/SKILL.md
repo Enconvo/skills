@@ -26,7 +26,7 @@ Available skills from Enconvo:
 Which ones would you like installed?
 """
 
-After installing a skill, tell the user: "Restart to pick up new skills."
+After installing a skill, tell the user: "Use / to select and use the installed skill."
 
 ## Scripts
 
