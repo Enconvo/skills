@@ -56,6 +56,7 @@ def _ensure_cli(cmd: str) -> None:
 class Args(argparse.Namespace):
     search: str | None
     format: str
+    all: bool
 
 
 def _request(url: str) -> bytes:
@@ -169,6 +170,12 @@ def _parse_args(argv: list[str]) -> Args:
         default="text",
         help="Output format",
     )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        default=False,
+        help="Search all sources (Enconvo, Skills.sh, ClawHub) and show combined results",
+    )
     return parser.parse_args(argv, namespace=Args())
 
 
@@ -179,10 +186,16 @@ def main(argv: list[str]) -> int:
         skills_sh_skills: list[dict] = []
         clawdhub_skills: list[dict] = []
 
-        # When searching, query all sources and show combined results
         if args.search:
-            skills_sh_skills = _search_skills_sh(args.search)
-            clawdhub_skills = _search_clawdhub(args.search)
+            if args.all:
+                # --all: search all sources and show combined results
+                skills_sh_skills = _search_skills_sh(args.search)
+                clawdhub_skills = _search_clawdhub(args.search)
+            elif not skills:
+                # Fallback chain: Enconvo empty -> Skills.sh -> ClawHub
+                skills_sh_skills = _search_skills_sh(args.search)
+                if not skills_sh_skills:
+                    clawdhub_skills = _search_clawdhub(args.search)
 
         if args.format == "json":
             payload = [

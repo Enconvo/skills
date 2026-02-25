@@ -27,14 +27,16 @@ Use the helper scripts based on the task:
 4. **From ClawHub** (by slug): Install directly from ClawHub by skill slug.
    - Example: `scripts/install-skill.py --slug nano-pdf`
 
-## Search Fallback Chain
+## Search Modes
 
-When searching for skills (`list-skills.py --search <keyword>`):
+**Fallback chain** (default): `list-skills.py --search <keyword>`
 1. **Enconvo store** is searched first.
 2. If no results, **Skills.sh** (`skills find`) is searched.
 3. If still no results, **ClawHub** (`clawdhub search`) is searched.
 
-Results from each source are displayed under separate sections.
+**All sources**: `list-skills.py --search <keyword> --all`
+- Searches **all three sources simultaneously** and shows combined results.
+- Use this when the user wants to browse and compare skills across all sources before choosing which one to install.
 
 ## Communication
 
@@ -64,7 +66,8 @@ After installing a skill, tell the user: "Use / to select and use the installed 
 All of these scripts use network, so when running in the sandbox, request escalation when running them.
 
 - `scripts/list-skills.py` (prints skills list with installed annotations)
-- `scripts/list-skills.py --search <keyword>` (search/filter skills; falls back to Skills.sh then ClawHub)
+- `scripts/list-skills.py --search <keyword>` (search with fallback chain: Enconvo -> Skills.sh -> ClawHub)
+- `scripts/list-skills.py --search <keyword> --all` (search all three sources and show combined results)
 - `scripts/list-skills.py --format json` (JSON output with name, title, description, source, etc.)
 - `scripts/installed-skills.py` (prints all installed skills)
 - `scripts/installed-skills.py --format json` (JSON output of installed skills)
