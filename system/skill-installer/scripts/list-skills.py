@@ -16,9 +16,41 @@ import urllib.request
 
 API_BASE = "http://localhost:54535/command/call/skills_manager/api_skills_list"
 
+# npm package names for CLI dependencies
+_CLI_PACKAGES = {
+    "skills": "skills",
+    "clawdhub": "clawdhub",
+}
+
 
 class ListError(Exception):
     pass
+
+
+def _ensure_cli(cmd: str) -> None:
+    """Ensure a CLI tool is installed, auto-install via npm if missing."""
+    if shutil.which(cmd):
+        return
+    pkg = _CLI_PACKAGES.get(cmd, cmd)
+    print(f"'{cmd}' CLI not found. Installing via: npm i -g {pkg} ...")
+    try:
+        result = subprocess.run(
+            ["npm", "i", "-g", pkg],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+    except FileNotFoundError:
+        raise ListError(
+            f"npm not found. Please install Node.js first, then run: npm i -g {pkg}"
+        )
+    except subprocess.TimeoutExpired:
+        raise ListError(f"Timed out installing {pkg}.")
+    if result.returncode != 0:
+        raise ListError(f"Failed to install {pkg}: {result.stderr.strip()}")
+    if not shutil.which(cmd):
+        raise ListError(f"Installed {pkg} but '{cmd}' command still not found.")
+    print(f"'{cmd}' installed successfully.")
 
 
 class Args(argparse.Namespace):
@@ -54,8 +86,7 @@ def _list_skills(search: str | None) -> list[dict]:
 
 def _search_skills_sh(query: str) -> list[dict]:
     """Search Skills.sh for skills. Returns list of dicts with slug, name, installs, url."""
-    if not shutil.which("skills"):
-        return []
+    _ensure_cli("skills")
     try:
         result = subprocess.run(
             ["skills", "find", query],
@@ -99,8 +130,7 @@ def _search_skills_sh(query: str) -> list[dict]:
 
 def _search_clawdhub(query: str) -> list[dict]:
     """Search ClawHub for skills. Returns a list of dicts with slug, version, title, score."""
-    if not shutil.which("clawdhub"):
-        return []
+    _ensure_cli("clawdhub")
     try:
         result = subprocess.run(
             ["clawdhub", "search", query],
@@ -149,11 +179,10 @@ def main(argv: list[str]) -> int:
         skills_sh_skills: list[dict] = []
         clawdhub_skills: list[dict] = []
 
-        # Fallback chain: Enconvo -> Skills.sh -> ClawHub
-        if not skills and args.search:
+        # When searching, query all sources and show combined results
+        if args.search:
             skills_sh_skills = _search_skills_sh(args.search)
-            if not skills_sh_skills:
-                clawdhub_skills = _search_clawdhub(args.search)
+            clawdhub_skills = _search_clawdhub(args.search)
 
         if args.format == "json":
             payload = [

@@ -16,6 +16,11 @@ import urllib.request
 
 CLAWDHUB_INSTALL_DIR = os.path.expanduser("~/.agents")
 
+# npm package names for CLI dependencies
+_CLI_PACKAGES = {
+    "skills": "skills",
+    "clawdhub": "clawdhub",
+}
 
 API_INSTALL = "http://localhost:54535/command/call/skills_manager/api_install_skill"
 API_LIST = "http://localhost:54535/command/call/skills_manager/api_skills_list"
@@ -23,6 +28,32 @@ API_LIST = "http://localhost:54535/command/call/skills_manager/api_skills_list"
 
 class InstallError(Exception):
     pass
+
+
+def _ensure_cli(cmd: str) -> None:
+    """Ensure a CLI tool is installed, auto-install via npm if missing."""
+    if shutil.which(cmd):
+        return
+    pkg = _CLI_PACKAGES.get(cmd, cmd)
+    print(f"'{cmd}' CLI not found. Installing via: npm i -g {pkg} ...")
+    try:
+        result = subprocess.run(
+            ["npm", "i", "-g", pkg],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+    except FileNotFoundError:
+        raise InstallError(
+            f"npm not found. Please install Node.js first, then run: npm i -g {pkg}"
+        )
+    except subprocess.TimeoutExpired:
+        raise InstallError(f"Timed out installing {pkg}.")
+    if result.returncode != 0:
+        raise InstallError(f"Failed to install {pkg}: {result.stderr.strip()}")
+    if not shutil.which(cmd):
+        raise InstallError(f"Installed {pkg} but '{cmd}' command still not found.")
+    print(f"'{cmd}' installed successfully.")
 
 
 class Args(argparse.Namespace):
@@ -93,8 +124,7 @@ def _install_from_github(github_url: str) -> dict:
 
 def _search_skills_sh(query: str) -> list[dict]:
     """Search Skills.sh for skills. Returns list of dicts with slug, name, installs, url."""
-    if not shutil.which("skills"):
-        return []
+    _ensure_cli("skills")
     try:
         result = subprocess.run(
             ["skills", "find", query],
@@ -137,10 +167,7 @@ def _search_skills_sh(query: str) -> list[dict]:
 
 def _install_from_skills_sh(slug: str) -> None:
     """Install a skill from Skills.sh via the skills CLI."""
-    if not shutil.which("skills"):
-        raise InstallError(
-            "skills CLI not found. Install it with: npm i -g @anthropic-ai/skills"
-        )
+    _ensure_cli("skills")
     cmd = ["skills", "add", slug, "--agent", "universal", "-g", "-y"]
     try:
         result = subprocess.run(
@@ -160,10 +187,7 @@ def _install_from_skills_sh(slug: str) -> None:
 
 def _search_clawdhub(query: str) -> list[dict]:
     """Search ClawHub for skills. Returns list of dicts with slug, version, title, score."""
-    if not shutil.which("clawdhub"):
-        raise InstallError(
-            "clawdhub CLI not found. Install it with: npm i -g clawdhub"
-        )
+    _ensure_cli("clawdhub")
     try:
         result = subprocess.run(
             ["clawdhub", "search", query],
@@ -190,10 +214,7 @@ def _search_clawdhub(query: str) -> list[dict]:
 
 def _install_from_clawdhub(slug: str, version: str | None = None) -> None:
     """Install a skill from ClawHub via the clawdhub CLI into ~/.agents/skills/."""
-    if not shutil.which("clawdhub"):
-        raise InstallError(
-            "clawdhub CLI not found. Install it with: npm i -g clawdhub"
-        )
+    _ensure_cli("clawdhub")
     os.makedirs(CLAWDHUB_INSTALL_DIR, exist_ok=True)
     cmd = ["clawdhub", "install", slug]
     if version:
