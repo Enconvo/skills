@@ -90,6 +90,7 @@ Skills.sh CLI (second fallback):
 ClawHub CLI (third fallback):
 - Search: `clawdhub search <query>`
 - Install: `clawdhub install <slug> [--version <version>]`
+- **Install directory**: `clawdhub install` defaults to `<cwd>/skills/<slug>`. The installer runs it with `cwd=~/.agents` so skills are installed to `~/.agents/skills/<slug>`.
 - Prerequisite: `npm i -g clawdhub`
 
 ## Behavior and Options
@@ -101,7 +102,8 @@ ClawHub CLI (third fallback):
 - When installing by ClawHub slug (`--slug`), the skill is installed directly from ClawHub.
 - When installing by URL (`--url`), the skill name is derived automatically from the URL.
 - GitHub URLs support both full repo (`https://github.com/owner/repo`) and subdirectory (`https://github.com/owner/repo/tree/branch/path/to/skill`).
-- Skills are installed into `.agents/skills` via the Enconvo skills manager service, Skills.sh CLI, or ClawHub CLI.
+- Skills are installed into `~/.agents/skills` via the Enconvo skills manager service, Skills.sh CLI, or ClawHub CLI.
+- ClawHub CLI installs to `<cwd>/skills/<slug>` by default. The installer sets `cwd=~/.agents` to ensure skills land in `~/.agents/skills/<slug>`.
 
 ## Notes
 

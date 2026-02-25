@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -12,6 +13,8 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+
+CLAWDHUB_INSTALL_DIR = os.path.expanduser("~/.agents")
 
 
 API_INSTALL = "http://localhost:54535/command/call/skills_manager/api_install_skill"
@@ -186,11 +189,12 @@ def _search_clawdhub(query: str) -> list[dict]:
 
 
 def _install_from_clawdhub(slug: str, version: str | None = None) -> None:
-    """Install a skill from ClawHub via the clawdhub CLI."""
+    """Install a skill from ClawHub via the clawdhub CLI into ~/.agents/skills/."""
     if not shutil.which("clawdhub"):
         raise InstallError(
             "clawdhub CLI not found. Install it with: npm i -g clawdhub"
         )
+    os.makedirs(CLAWDHUB_INSTALL_DIR, exist_ok=True)
     cmd = ["clawdhub", "install", slug]
     if version:
         cmd += ["--version", version]
@@ -200,6 +204,7 @@ def _install_from_clawdhub(slug: str, version: str | None = None) -> None:
             capture_output=True,
             text=True,
             timeout=120,
+            cwd=CLAWDHUB_INSTALL_DIR,
         )
     except subprocess.TimeoutExpired as exc:
         raise InstallError("ClawHub install timed out.") from exc
