@@ -130,7 +130,11 @@ LANG_MAP = {
 def load_profiles():
     if not PROFILES_FILE.exists():
         return {"profiles": []}
-    return json.loads(PROFILES_FILE.read_text())
+    try:
+        return json.loads(PROFILES_FILE.read_text())
+    except (json.JSONDecodeError, KeyError):
+        click.echo(f"Warning: {PROFILES_FILE} is corrupted. Starting fresh.", err=True)
+        return {"profiles": []}
 
 
 def save_profiles(data):

@@ -55,9 +55,9 @@ Three model categories with quality tiers:
 | Custom Voice | `Qwen3-TTS-12Hz-0.6B-CustomVoice-bf16` | `Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16` | 9 preset premium speakers with style control |
 | ASR (Transcription) | `Qwen/Qwen3-ASR-0.6B` | `Qwen/Qwen3-ASR-1.7B` | Speech-to-text |
 
-All commands accept `--quality standard` (default) or `--quality high` to select model tier.
+All commands accept `--quality standard` or `--quality high` (default) to select model tier.
 
-All state is in `~/.claude/skills/voicebox/data/`:
+All state is in the skill's `data/` directory (default: `~/.claude/skills/voicebox/data/`):
 - `profiles.json` — profile registry
 - `samples/` — WAV files for reference audio
 
@@ -332,7 +332,7 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
    - `lines` — Array of dialogue lines, each with:
      - `profile` — Name of an existing voice profile (must match exactly or partially)
      - `text` — The text to speak
-     - `instruct` — (Optional) Style/emotion override, only works for "designed" profiles
+     - `instruct` — (Optional) Style/emotion override for "designed" and "custom" profiles
 
 2. **Save the script** to a temp file:
    ```bash
