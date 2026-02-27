@@ -67,14 +67,6 @@ if [ -n "$VOICE_PROFILE" ] && [ "$VOICE_PROFILE" != "none" ]; then
         TTS_ENGINE="edge-tts"
         VOICE_PROFILE="none"
     fi
-elif [ "$TARGET_LANG" = "chinese" ] || [ "$TARGET_LANG" = "zh" ]; then
-    if [ -f "$HOME/miniconda3/envs/kokoro/bin/python3" ]; then
-        TTS_ENGINE="kokoro"
-        echo "Using: Kokoro TTS (local)"
-    else
-        TTS_ENGINE="edge-tts"
-        echo "Using: edge-tts (cloud, parallel)"
-    fi
 else
     TTS_ENGINE="edge-tts"
     echo "Using: edge-tts (cloud, parallel)"
