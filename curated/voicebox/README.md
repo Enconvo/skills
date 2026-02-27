@@ -1,15 +1,19 @@
 # Voicebox
 
 All-in-one voice toolkit for Claude Code on Apple Silicon Macs.
+Apple Silicon Mac 上的一站式语音工具包，适用于 Claude Code。
 
-## Features
+## Features / 功能
 
-- **Voice Design** — Create custom voices from text descriptions
-- **Voice Cloning** — Clone any voice from a 10s audio sample
-- **CustomVoice** — 9 preset premium speakers with per-line emotion control via `--instruct`
-- **Text-to-Speech** — Generate speech in 10 languages
-- **Multi-Speaker Conversations** — Generate dialogues, dramas, news broadcasts
-- **Transcription** — Speech-to-text for audio & video, 52 languages with auto-detection
+- **TTS** — Generate speech from text using mlx-audio (local, no cloud) / 本地文字转语音，无需云端
+- **Voice Design** — Create custom voices from text descriptions / 通过文字描述创建自定义语音
+- **Voice Cloning** — Clone any voice from a 10s audio sample / 10秒音频即可克隆任意声音
+- **9 Preset Speakers** — CustomVoice with per-line emotion control / 9个预置音色，支持逐句情感控制
+- **Multi-Speaker** — Conversations, dramas, news broadcasts, audiobooks / 多角色对话、戏剧、新闻播报、有声书
+- **Transcription** — Speech-to-text, 52 languages, audio & video / 语音转文字，支持52种语言及音视频
+- **15 profiles** included out of the box (6 designed, 9 custom) / 开箱即用15个语音配置
+- **10 languages** — EN, ZH, JA, KO, DE, FR, RU, PT, ES, IT / 支持10种语言
+- Quality tiers: high (1.7B, default) / standard (0.6B, faster) — 高质量(1.7B)与标准(0.6B)双模式
 
 ## Install
 
