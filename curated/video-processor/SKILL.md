@@ -53,12 +53,12 @@ Transcribe + translate to target language (no TTS, subtitles only).
 
 **Pipeline:**
 1. Run: `python3 scripts/transcriber.py <video_file_or_url> [groq_api_key]`
-2. Agent: Clean up filler words in SRT (see Agent Transcript Cleanup Protocol)
-3. Run: `python3 scripts/translate_srt.py <cleaned_srt> <target_lang> [groq_api_key]`
+2. Run: `python3 scripts/clean_srt.py {name}_original.srt --in-place` (removes filler words)
+3. Run: `python3 scripts/translate_srt.py {name}_original.srt <target_lang> [groq_api_key]`
 4. Agent: Show side-by-side review to user
 
 **Output:**
-- `{name}_original.srt` - Original transcript
+- `{name}_original.srt` - Original transcript (cleaned)
 - `{name}_{target_lang}.srt` - Translated subtitles
 
 ### 3. Dubbing (Full Pipeline)
@@ -68,8 +68,8 @@ Transcribe, translate, review, TTS, create dubbed video.
 
 **Pipeline:**
 1. Run: `python3 scripts/transcriber.py <video_file_or_url> [groq_api_key]` → `{name}_original.srt`
-2. Agent: Clean up filler words in SRT (see Agent Transcript Cleanup Protocol)
-3. Run: `python3 scripts/translate_srt.py <cleaned_srt> <target_lang> [groq_api_key]` → `{name}_{lang}.srt`
+2. Run: `python3 scripts/clean_srt.py {name}_original.srt --in-place` (removes filler words)
+3. Run: `python3 scripts/translate_srt.py {name}_original.srt <target_lang> [groq_api_key]` → `{name}_{lang}.srt`
 4. Agent: Show translation review to user, apply any corrections
 5. Run: `bash scripts/generate_tts_and_dub.sh <video> <orig.srt> <trans.srt> <lang> [voice] [voice_name]`
 6. Agent: Read `{name}_timing_report.json` (see Agent Condensation Protocol)
@@ -93,20 +93,23 @@ Transcribe video and generate comprehensive summary.
 
 ## Agent Protocols
 
-### Agent Transcript Cleanup Protocol
+### Transcript Cleanup (Filler Removal)
 
-After transcription, the agent reads the original SRT and cleans up verbal noise before any further processing:
+After transcription, run the cleanup script to remove filler words and verbal tics BEFORE translation:
 
-1. Read `{name}_original.srt`
-2. Clean up each segment's text:
-   - Remove excessive filler words: "you know", "um", "uh", "like" (when used as filler), "I mean", "sort of", "kind of" (when repeated/excessive)
-   - Remove stutters and false starts (e.g., "I was- I was going to" → "I was going to")
-   - Collapse repeated phrases (e.g., "you know... you know... you know..." → single instance or remove)
-   - Fix obvious speech-to-text artifacts
-3. Preserve: meaning, tone, natural phrasing, intentional emphasis
-4. Write cleaned SRT back to `{name}_original.srt` (same timestamps, cleaned text)
+```bash
+python3 scripts/clean_srt.py {name}_original.srt --in-place
+```
 
-**Important:** This happens BEFORE translation so filler words don't propagate into the target language.
+This removes:
+- Filler words: "you know", "um", "uh", "like" (filler), "I mean", "basically", "actually" (filler)
+- Repeated phrases: "you know... you know... you know..." → removed
+- Stutters: "I- I was going" → "I was going"
+- Excessive "sort of", "kind of", "right" (when repeated)
+
+Preserves meaning, tone, and natural phrasing. Same timestamps, cleaned text.
+
+**Important:** This happens BEFORE translation so filler words don't propagate into the target language (e.g., "you know" → "你知道"). The translation prompt also drops any remaining fillers as a second safety net.
 
 ### Script Translation (Groq Llama 3.3 70B)
 

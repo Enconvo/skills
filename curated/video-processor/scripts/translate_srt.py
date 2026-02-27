@@ -76,6 +76,7 @@ CRITICAL RULES:
 4. Preserve the RHYTHM and FLOW for speech - translate for listening, not reading
 5. Use colloquial expressions when appropriate - sound like a native speaker
 6. Keep numbers, dates, and measurements in their original format
+7. DROP any remaining filler words entirely — do NOT translate them. Examples: "you know", "um", "uh", "like" (filler), "I mean", "basically", "actually" (filler), "sort of", "kind of" (when used as verbal tics). These must be silently removed, never rendered in {target_lang}.
 
 EXAMPLE (English to Chinese):
 - Bad: "我想到了你，在我看到这个以后。" (machine translation)
