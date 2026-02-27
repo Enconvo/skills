@@ -1,23 +1,22 @@
-# Video/Audio Processor Skill
+# Video/Audio Processor
 
-Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS.
+Comprehensive media processing for Claude Code: transcribe, translate, summarize, and dub videos/audio with professional TTS.
+Claude Code 上的全能媒体处理工具：转录、翻译、摘要、配音，支持专业 TTS。
 
-## Features
+## Features / 功能
 
-✅ **Audio + Video support** (MP4, MP3, WAV, M4A, and more)
-✅ **URL download** (YouTube, Twitter, TikTok, 1000+ sites via yt-dlp)
-✅ Ultra-fast transcription (Groq Whisper Large V3)
-✅ Natural translation (context-aware, preserves technical terms)
-✅ **Segment-by-segment TTS** (precise timing per subtitle)
-✅ **Smart condensation** (shortens overlong translations instead of speeding up audio)
-✅ **Perfect audio sync** (natural speed with conservative adjustment)
-✅ **Voice cloning support** (use any voicebox profile)
-✅ Translation review (edit before TTS generation)
-✅ **Auto subtitle embedding** (always adds original language subs)
-✅ Dual subtitle support (original + translated)
-✅ Multi-language TTS (Kokoro + edge-tts + voicebox)
-✅ Intelligent summaries (with timestamps and key points)
-✅ **Language-aware detection** (auto-detects request language)
+- **Transcription** — Ultra-fast via Groq Whisper Large V3, SRT + plain text output / 极速转录，Groq Whisper Large V3，输出 SRT 及纯文本
+- **Translation** — Context-aware natural translation, preserves technical terms / 上下文感知自然翻译，保留专业术语
+- **Dubbing** — Full pipeline: transcribe → translate → review → TTS → dubbed video / 完整配音流水线：转录→翻译→审核→TTS→配音视频
+- **Summary** — Intelligent summaries with timestamps and key points / 智能摘要，含时间戳和要点提取
+- **Smart Condensation** — LLM shortens overlong translations instead of speeding up audio / 智能压缩过长翻译，避免加速失真
+- **3 TTS Engines** — edge-tts (default, 50+ langs), Kokoro (local, offline), voicebox (voice cloning) / 三引擎：edge-tts（默认）、Kokoro（本地离线）、voicebox（声音克隆）
+- **Voice Cloning** — Use any voicebox profile (cloned, designed, or preset voices) / 支持 voicebox 声音克隆配置文件
+- **URL Support** — YouTube, Twitter/X, TikTok, Instagram, 1000+ sites via yt-dlp / 支持 YouTube、Twitter、TikTok 等 1000+ 网站
+- **Audio + Video** — MP4, MKV, MOV, MP3, M4A, WAV, FLAC, and more / 支持 MP4、MKV、MOV、MP3、M4A、WAV、FLAC 等格式
+- **Dual Subtitles** — Auto-embeds original + translated soft subtitle tracks / 自动嵌入原文+译文双字幕轨
+- **Language Detection** — Auto-detects request language, responds in same language / 自动检测请求语言，以相同语言回复
+- **No Re-encoding** — Uses `-c:v copy` for fast export, preserves original video quality / 无需重新编码，保留原始画质
 
 ## Supported Formats
 
