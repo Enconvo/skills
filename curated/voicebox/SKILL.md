@@ -323,8 +323,8 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
      "gap": 0.25,
      "lines": [
        {"profile": "News Anchor", "text": "Good evening and welcome to the six o'clock news."},
-       {"profile": "Young Reporter", "text": "Thanks, Tom! I'm here live at the scene.", "instruct": "excited field reporting tone"},
-       {"profile": "Expert Guest", "text": "Well, this is actually quite common in my experience."}
+       {"profile": "Cheerful Girl", "text": "Thanks, Tom! I'm here live at the scene.", "instruct": "excited field reporting tone"},
+       {"profile": "Aiden", "text": "Well, this is actually quite common in my experience."}
      ]
    }
    ```
