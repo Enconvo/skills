@@ -36,5 +36,4 @@ The obsidian skill includes detailed references for each area:
 | [obsidian-markdown](skills/obsidian/references/obsidian-markdown.md) | [Obsidian Flavored Markdown](https://help.obsidian.md/obsidian-flavored-markdown) (`.md`) — wikilinks, embeds, callouts, properties, and Obsidian-specific syntax |
 | [obsidian-bases](skills/obsidian/references/obsidian-bases.md) | [Obsidian Bases](https://help.obsidian.md/bases/syntax) (`.base`) — views, filters, formulas, and summaries |
 | [json-canvas](skills/obsidian/references/json-canvas.md) | [JSON Canvas](https://jsoncanvas.org/) files (`.canvas`) — nodes, edges, groups, and connections |
-| [obsidian-cli](skills/obsidian/references/obsidian-cli.md) | [Obsidian CLI](https://help.obsidian.md/cli) — vault interaction, plugin and theme development |
 | [defuddle](skills/obsidian/references/defuddle.md) | [Defuddle](https://github.com/kepano/defuddle-cli) — extract clean markdown from web pages |
