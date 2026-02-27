@@ -16,7 +16,7 @@
       "description": "Young adult female with a crisp energetic soprano voice, fast lively pace, cheerful and bubbly tone, suitable for upbeat narration and enthusiastic announcements",
       "language": "en",
       "sample_audio": "samples/cheerful-girl.wav",
-      "sample_text": "Hey everyone, welcome back\\! I have some amazing news to share with you today, and I just can't wait to get started\\!"
+      "sample_text": "Hey everyone, welcome back! I have some amazing news to share with you today, and I just can't wait to get started!"
     },
     {
       "id": "shakespeare",
@@ -34,7 +34,7 @@
       "description": "Mature deep male voice with rich theatrical baritone resonance, dramatic gravitas and passionate intensity, slow commanding pace with deliberate pauses, powerful projection like a seasoned stage actor performing a patriotic war poem with fierce emotion",
       "language": "zh",
       "sample_audio": "samples/shakespeare-chinese.wav",
-      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+      "sample_text": "晨光初照，静谧的村庄缓缓苏醒，金色的光芒洒满鹅卵石铺就的街道。鸟儿唱着晨歌，万物渐渐苏醒。"
     },
     {
       "id": "panic-granny",
@@ -55,28 +55,20 @@
       "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
     },
     {
-      "id": "panic-granny-locked",
-      "name": "Panic Granny Locked",
-      "type": "cloned",
-      "ref_audio": "samples/panic-granny-locked.wav",
-      "ref_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life.",
-      "language": "en"
+      "id": "serena",
+      "name": "Serena",
+      "type": "custom",
+      "speaker": "serena",
+      "language": "zh",
+      "description": "Chinese female, warm and expressive"
     },
     {
-      "id": "sir-david-attenborough",
-      "name": "Sir-David-Attenborough",
-      "type": "cloned",
-      "ref_audio": "samples/sir-david-attenborough.wav",
-      "ref_text": "Well, it's a very fortunate thing to have as a subject matter for you. I mean, I chose it because that's what interests me most. But if you have a subject where",
-      "language": "en"
-    },
-    {
-      "id": "trump",
-      "name": "Trump",
-      "type": "cloned",
-      "ref_audio": "samples/trump.wav",
-      "ref_text": "Every week, you know, when FC was alive, nobody cared about him. When he's dead, they care about him. But it's really a Democrat problem. It's not a Republican, it's a Democrat.",
-      "language": "en"
+      "id": "uncle-fu",
+      "name": "Uncle Fu",
+      "type": "custom",
+      "speaker": "uncle_fu",
+      "language": "zh",
+      "description": "Chinese male, mature and authoritative"
     },
     {
       "id": "dylan",
@@ -85,6 +77,14 @@
       "speaker": "dylan",
       "language": "zh",
       "description": "Chinese male, young and energetic"
+    },
+    {
+      "id": "eric",
+      "name": "Eric",
+      "type": "custom",
+      "speaker": "eric",
+      "language": "zh",
+      "description": "Chinese male, calm and steady"
     },
     {
       "id": "ryan",
@@ -117,6 +117,14 @@
       "speaker": "ono_anna",
       "language": "ja",
       "description": "Japanese female, soft and expressive"
+    },
+    {
+      "id": "sohee",
+      "name": "Sohee",
+      "type": "custom",
+      "speaker": "sohee",
+      "language": "ko",
+      "description": "Korean female, bright and clear"
     }
   ]
 }

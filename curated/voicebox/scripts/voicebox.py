@@ -145,12 +145,19 @@ def save_profiles(data):
 def find_profile(name):
     data = load_profiles()
     name_lower = name.lower()
+    # 1. Exact match
     for p in data["profiles"]:
         if p["name"].lower() == name_lower:
             return p
+    # 2. Starts-with match
     for p in data["profiles"]:
-        if name_lower in p["name"].lower():
+        if p["name"].lower().startswith(name_lower):
             return p
+    # 3. Contains match (only if query is 3+ chars to avoid false positives)
+    if len(name_lower) >= 3:
+        for p in data["profiles"]:
+            if name_lower in p["name"].lower():
+                return p
     return None
 
 
@@ -211,25 +218,25 @@ def list_models():
     """List available models and quality tiers."""
     click.echo("Available models:\n")
     click.echo("Voice Design (create-designed):")
-    click.echo(f"  standard (default): {MODELS['voice_design']['standard']}")
+    click.echo(f"  high (default): {MODELS['voice_design']['standard']}")
     click.echo(f"  (Only 1.7B available — always best quality)\n")
     click.echo("Voice Clone (generate with cloned profiles, create-cloned, record):")
     for q, m in MODELS["voice_clone"].items():
-        default = " (default)" if q == "standard" else ""
+        default = " (default)" if q == "high" else ""
         click.echo(f"  {q}{default}: {m}")
     click.echo()
     click.echo("Custom Voice (9 preset premium speakers with style control):")
     for q, m in MODELS["custom_voice"].items():
-        default = " (default)" if q == "standard" else ""
+        default = " (default)" if q == "high" else ""
         click.echo(f"  {q}{default}: {m}")
     click.echo(f"  Speakers: {', '.join(CUSTOM_VOICE_SPEAKERS.keys())}")
     click.echo()
     click.echo("Speech Recognition / Transcription (record auto-transcribe, transcribe):")
     for q, m in MODELS["asr"].items():
-        default = " (default)" if q == "standard" else ""
+        default = " (default)" if q == "high" else ""
         click.echo(f"  {q}{default}: {m}")
     click.echo()
-    click.echo("Use --quality high on any command to upgrade to 1.7B models.")
+    click.echo("All commands default to --quality high (1.7B). Use --quality standard for faster 0.6B models.")
     click.echo("Note: 'high' models need ~8GB+ RAM and download ~3GB on first use.")
 
 

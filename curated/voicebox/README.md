@@ -56,7 +56,7 @@ That's it. Dependencies and models auto-download on first use.
 | **Cloned** | Audio sample | Limited | Reproducing real voices |
 | **CustomVoice** | 9 preset speakers | Per-line `--instruct` | Emotional delivery, dramas |
 
-28 profiles are included out of the box — ready to use immediately.
+15 profiles are included out of the box (6 designed, 9 custom) — ready to use immediately.
 
 ## CustomVoice Speakers
 

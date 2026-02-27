@@ -1,5 +1,8 @@
 ---
 name: voicebox
+version: 1.0.0
+author: zanearcher
+category: audio
 description: "All-in-one voice toolkit: TTS (voice design + cloning), multi-speaker conversations/dramas/audiobooks, speech recording, and transcription. Activates on: /voicebox commands, \"clone my voice\", \"record my voice\", \"transcribe this\", \"create a conversation\", \"make a drama\", or any audio transcription request."
 user_invocable: true
 ---
@@ -48,12 +51,12 @@ Standalone text-to-speech using mlx-audio. Supports custom voice design (from te
 
 Three model categories with quality tiers:
 
-| Category | Standard (default) | High | Use Case |
-|----------|-------------------|------|----------|
+| Category | High (default) | Standard | Use Case |
+|----------|---------------|----------|----------|
 | Voice Design | `Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16` | (same — only 1.7B exists) | Custom voices from description |
-| Voice Clone | `Qwen3-TTS-12Hz-0.6B-Base-bf16` | `Qwen3-TTS-12Hz-1.7B-Base-bf16` | Clone a real voice |
-| Custom Voice | `Qwen3-TTS-12Hz-0.6B-CustomVoice-bf16` | `Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16` | 9 preset premium speakers with style control |
-| ASR (Transcription) | `Qwen/Qwen3-ASR-0.6B` | `Qwen/Qwen3-ASR-1.7B` | Speech-to-text |
+| Voice Clone | `Qwen3-TTS-12Hz-1.7B-Base-bf16` | `Qwen3-TTS-12Hz-0.6B-Base-bf16` | Clone a real voice |
+| Custom Voice | `Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16` | `Qwen3-TTS-12Hz-0.6B-CustomVoice-bf16` | 9 preset premium speakers with style control |
+| ASR (Transcription) | `Qwen/Qwen3-ASR-1.7B` | `Qwen/Qwen3-ASR-0.6B` | Speech-to-text |
 
 All commands accept `--quality standard` or `--quality high` (default) to select model tier.
 
@@ -61,7 +64,7 @@ All state is in the skill's `data/` directory (default: `~/.claude/skills/voiceb
 - `profiles.json` — profile registry
 - `samples/` — WAV files for reference audio
 
-Script: `~/.claude/skills/voicebox/scripts/voicebox.py`
+Script: `scripts/voicebox.py` (relative to skill root)
 
 ---
 
@@ -372,8 +375,8 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
   "gap": 0.3,
   "lines": [
     {"profile": "News Anchor", "text": "Good evening. Tonight's top story: a breakthrough in renewable energy."},
-    {"profile": "Young Reporter", "text": "Thanks, Tom. I'm here at the research lab where scientists made the announcement earlier today."},
-    {"profile": "Expert Guest", "text": "This discovery could fundamentally change how we think about solar power. The efficiency gains are remarkable."},
+    {"profile": "Cheerful Girl", "text": "Thanks, Tom! I'm here at the research lab where scientists made the announcement earlier today.", "instruct": "excited field reporting tone"},
+    {"profile": "Aiden", "text": "This discovery could fundamentally change how we think about solar power. The efficiency gains are remarkable."},
     {"profile": "News Anchor", "text": "Fascinating. We'll have more on this story after the break."}
   ]
 }
