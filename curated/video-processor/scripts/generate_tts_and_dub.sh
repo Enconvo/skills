@@ -120,25 +120,54 @@ echo "  Creating Dubbed Video"
 echo "========================================"
 echo ""
 
-# Try with dual subtitle tracks first
-echo "Muxing audio + subtitles onto video..."
-ffmpeg -y \
-    -i "$VIDEO_FILE" \
-    -i "${BASE_NAME}_${TARGET_LANG}_audio.wav" \
-    -i "$ORIGINAL_SRT" \
-    -i "$TRANSLATED_SRT" \
-    -map 0:v:0 -map 1:a:0 -map 2:0 -map 3:0 \
-    -c:v copy \
-    -c:a aac -b:a 192k \
-    -c:s mov_text \
-    -metadata:s:s:0 language=eng -metadata:s:s:0 title="Original" \
-    -metadata:s:s:1 language="${TARGET_LANG}" -metadata:s:s:1 title="${TARGET_LANG}" \
-    -shortest \
-    "${BASE_NAME}_dubbed.mp4" 2>/dev/null
+# Verify SRT files exist before muxing
+HAVE_ORIG_SRT=false
+HAVE_TRANS_SRT=false
+if [ -f "$ORIGINAL_SRT" ]; then
+    HAVE_ORIG_SRT=true
+    echo "Original SRT: $ORIGINAL_SRT ($(wc -l < "$ORIGINAL_SRT") lines)"
+else
+    echo "WARNING: Original SRT not found: $ORIGINAL_SRT"
+fi
+if [ -f "$TRANSLATED_SRT" ]; then
+    HAVE_TRANS_SRT=true
+    echo "Translated SRT: $TRANSLATED_SRT ($(wc -l < "$TRANSLATED_SRT") lines)"
+else
+    echo "WARNING: Translated SRT not found: $TRANSLATED_SRT"
+fi
+echo ""
 
-if [ $? -ne 0 ]; then
-    echo "Dual subs failed, trying with single subtitle track..."
-    ffmpeg -y \
+MUX_LOG="$WORK_DIR/mux.log"
+MUX_OK=false
+
+# Try with dual subtitle tracks first
+if $HAVE_ORIG_SRT && $HAVE_TRANS_SRT; then
+    echo "Muxing audio + dual subtitles onto video..."
+    if ffmpeg -y \
+        -i "$VIDEO_FILE" \
+        -i "${BASE_NAME}_${TARGET_LANG}_audio.wav" \
+        -i "$ORIGINAL_SRT" \
+        -i "$TRANSLATED_SRT" \
+        -map 0:v:0 -map 1:a:0 -map 2:0 -map 3:0 \
+        -c:v copy \
+        -c:a aac -b:a 192k \
+        -c:s mov_text \
+        -metadata:s:s:0 language=eng -metadata:s:s:0 title="Original" \
+        -metadata:s:s:1 language="${TARGET_LANG}" -metadata:s:s:1 title="${TARGET_LANG}" \
+        -shortest \
+        "${BASE_NAME}_dubbed.mp4" > "$MUX_LOG" 2>&1; then
+        MUX_OK=true
+        echo "  Dual subtitle mux succeeded."
+    else
+        echo "  Dual subtitle mux failed:"
+        tail -3 "$MUX_LOG"
+    fi
+fi
+
+# Fallback: single translated subtitle track
+if ! $MUX_OK && $HAVE_TRANS_SRT; then
+    echo "Trying single subtitle track..."
+    if ffmpeg -y \
         -i "$VIDEO_FILE" \
         -i "${BASE_NAME}_${TARGET_LANG}_audio.wav" \
         -i "$TRANSLATED_SRT" \
@@ -147,19 +176,29 @@ if [ $? -ne 0 ]; then
         -c:a aac -b:a 192k \
         -c:s mov_text -metadata:s:s:0 language="${TARGET_LANG}" \
         -shortest \
-        "${BASE_NAME}_dubbed.mp4" 2>/dev/null
-
-    if [ $? -ne 0 ]; then
-        echo "Subtitle mux failed, creating video without subs..."
-        ffmpeg -y \
-            -i "$VIDEO_FILE" \
-            -i "${BASE_NAME}_${TARGET_LANG}_audio.wav" \
-            -map 0:v:0 -map 1:a:0 \
-            -c:v copy \
-            -c:a aac -b:a 192k \
-            -shortest \
-            "${BASE_NAME}_dubbed.mp4" 2>/dev/null
+        "${BASE_NAME}_dubbed.mp4" > "$MUX_LOG" 2>&1; then
+        MUX_OK=true
+        echo "  Single subtitle mux succeeded."
+    else
+        echo "  Single subtitle mux failed:"
+        tail -3 "$MUX_LOG"
     fi
+fi
+
+# Last resort: no subtitles
+if ! $MUX_OK; then
+    echo ""
+    echo "WARNING: All subtitle muxing failed — creating video WITHOUT subtitles."
+    echo "   SRT files are still available separately."
+    echo "   Full ffmpeg log: $MUX_LOG"
+    ffmpeg -y \
+        -i "$VIDEO_FILE" \
+        -i "${BASE_NAME}_${TARGET_LANG}_audio.wav" \
+        -map 0:v:0 -map 1:a:0 \
+        -c:v copy \
+        -c:a aac -b:a 192k \
+        -shortest \
+        "${BASE_NAME}_dubbed.mp4" > "$MUX_LOG" 2>&1
 fi
 
 echo ""
