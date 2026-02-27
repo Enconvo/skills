@@ -1,3 +1,12 @@
+---
+name: video-processor
+version: 1.0.0
+author: zanearcher
+category: media
+description: "Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS. Supports local files (MP4, MP3, WAV, M4A, etc.) and URLs (YouTube, Twitter, TikTok, 1000+ sites). Use when user says /video-transcribe, /video-translate, /video-dub, /video-summary, or asks to transcribe, translate, dub, or summarize any video/audio."
+user_invocable: true
+---
+
 # Video/Audio Processor Skill
 
 Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS.
