@@ -6,7 +6,7 @@ Claude Code 上的全能媒体处理工具：转录、翻译、摘要、配音�
 ## Features / 功能
 
 - **Transcription** — Ultra-fast via Groq Whisper Large V3, SRT + plain text output / 极速转录，Groq Whisper Large V3，输出 SRT 及纯文本
-- **Translation** — Agent-native (any language the host LLM supports) / 代理原生翻译（支持宿主 LLM 的所有语言）
+- **Translation** — Natural translation via Groq Llama 3.3 70B, context-aware / 自然翻译，Groq Llama 3.3 70B，上下文感知
 - **Dubbing** — Full pipeline: transcribe → clean → translate → review → TTS → dubbed video / 完整配音流水线：转录→清理→翻译→审核→TTS→配音视频
 - **Summary** — Intelligent summaries with timestamps and key points / 智能摘要，含时间戳和要点提取
 - **Transcript Cleanup** — Removes filler words and verbal tics before translation / 翻译前清除填充词和口语习惯
@@ -128,7 +128,7 @@ export GROQ_API_KEY=gsk_xxx
 # Or add to .env file in the skill root directory
 ```
 
-Groq API key is needed for **Whisper Large V3 transcription only**. All text intelligence (translation, summarization, condensation, filler cleanup) is handled by the host agent — no external LLM API needed.
+Groq provides **Whisper Large V3** for transcription and **Llama 3.3 70B** for translation — both fast and free. Summarization, condensation, and filler cleanup are handled by the host agent.
 
 ### Optional: Kokoro TTS (Local, Offline)
 
@@ -204,7 +204,7 @@ Available when voicebox skill is installed with cloned voice profiles.
 **Default:** Brian Multilingual handles all languages natively. Chinese defaults to YunxiNeural for better quality.
 Users can always override with any edge-tts voice via the `voice_name` parameter.
 
-**Translation:** Any language the host agent supports (no external LLM API needed)
+**Translation:** 50+ languages via Groq Llama 3.3 70B
 
 ## Example Sessions
 
@@ -250,7 +250,7 @@ Claude: Downloads → Transcribes → Clean filler → Translates → TTS → Du
 ## Performance
 
 - **Transcription**: ~3 seconds for 1-minute video (Groq Whisper)
-- **Translation**: Near-instant (host agent, no API round-trips per segment)
+- **Translation**: ~10 seconds for 14 segments (Groq Llama 3.3 70B)
 - **TTS Generation**: ~30-60 seconds for 1-minute video (segment-by-segment)
 - **Video Export**: ~2 seconds (no re-encoding)
 
@@ -262,7 +262,7 @@ Claude: Downloads → Transcribes → Clean filler → Translates → TTS → Du
 ```
 Error: GROQ_API_KEY not provided
 ```
-**Fix**: Get free API key from [console.groq.com](https://console.groq.com) (needed for Whisper ASR only)
+**Fix**: Get free API key from [console.groq.com](https://console.groq.com) (needed for Whisper ASR + Llama translation)
 
 ### YouTube Download Error
 ```

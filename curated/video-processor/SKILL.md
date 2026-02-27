@@ -11,7 +11,7 @@ user_invocable: true
 
 Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS.
 
-**Architecture:** Groq Whisper for ASR only. All text intelligence (translation, condensation, summarization, filler cleanup) is handled by the host agent — no external LLM API needed.
+**Architecture:** Groq Whisper for ASR + Groq Llama 3.3 70B for translation. Condensation, summarization, and filler cleanup are handled by the host agent.
 
 **Supports:**
 - **Video files**: MP4, MKV, AVI, MOV, WebM, FLV
@@ -54,7 +54,7 @@ Transcribe + translate to target language (no TTS, subtitles only).
 **Pipeline:**
 1. Run: `python3 scripts/transcriber.py <video_file_or_url> [groq_api_key]`
 2. Agent: Clean up filler words in SRT (see Agent Transcript Cleanup Protocol)
-3. Agent: Translate all segments (see Agent Translation Protocol)
+3. Run: `python3 scripts/translate_srt.py <cleaned_srt> <target_lang> [groq_api_key]`
 4. Agent: Show side-by-side review to user
 
 **Output:**
@@ -69,7 +69,7 @@ Transcribe, translate, review, TTS, create dubbed video.
 **Pipeline:**
 1. Run: `python3 scripts/transcriber.py <video_file_or_url> [groq_api_key]` → `{name}_original.srt`
 2. Agent: Clean up filler words in SRT (see Agent Transcript Cleanup Protocol)
-3. Agent: Translate all segments → write `{name}_{lang}.srt` (see Agent Translation Protocol)
+3. Run: `python3 scripts/translate_srt.py <cleaned_srt> <target_lang> [groq_api_key]` → `{name}_{lang}.srt`
 4. Agent: Show translation review to user, apply any corrections
 5. Run: `bash scripts/generate_tts_and_dub.sh <video> <orig.srt> <trans.srt> <lang> [voice] [voice_name]`
 6. Agent: Read `{name}_timing_report.json` (see Agent Condensation Protocol)
@@ -108,21 +108,19 @@ After transcription, the agent reads the original SRT and cleans up verbal noise
 
 **Important:** This happens BEFORE translation so filler words don't propagate into the target language.
 
-### Agent Translation Protocol
+### Script Translation (Groq Llama 3.3 70B)
 
-The agent translates all SRT segments directly (no external LLM API needed):
+Translation is handled by `scripts/translate_srt.py` using Groq Llama 3.3 70B:
 
-1. Read the cleaned SRT file
-2. Translate all segments to the target language
-3. Write translated SRT to `{name}_{target_lang}.srt`
+```bash
+python3 scripts/translate_srt.py <srt_file> <target_lang> [groq_api_key]
+```
 
-**Quality rules:**
-- Use NATURAL target language phrasing — avoid word-for-word translation
-- Match the TONE and STYLE of the original (casual, formal, enthusiastic, etc.)
-- Keep technical terms, brand names, and proper nouns in English (e.g., "Google Gemini", "ChatGPT", "YouTube")
-- Preserve RHYTHM and FLOW for speech — translate for LISTENING, not reading
-- Use colloquial expressions when appropriate — sound like a native speaker
-- Keep numbers, dates, and measurements in their original format
+The script translates segment-by-segment with quality rules baked in:
+- Natural target language phrasing (not word-for-word)
+- Preserves tone, style, brand names, and technical terms
+- Optimized for listening, not reading
+- Outputs `{name}_{target_lang}.srt` + review preview
 
 ### Agent Condensation Protocol
 
@@ -172,7 +170,7 @@ The agent reads the transcript and generates a structured summary:
 - **Audio + Video support** (MP4, MP3, WAV, M4A, and more)
 - **URL download** (YouTube, Twitter, TikTok, 1000+ sites)
 - Ultra-fast transcription (Groq Whisper Large V3)
-- Agent-native translation (any language the host LLM supports)
+- Natural translation via Groq Llama 3.3 70B (context-aware, preserves technical terms)
 - **Transcript cleanup** (removes filler words and verbal tics before translation)
 - **Segment-by-segment TTS** (precise timing per subtitle)
 - **Agent-driven condensation** (shortens overlong translations via agent instead of external LLM)
@@ -190,9 +188,9 @@ The agent reads the transcript and generates a structured summary:
 ### Required
 - **ffmpeg** (video/audio processing): `brew install ffmpeg`
 - **yt-dlp** (URL downloads): `brew install yt-dlp`
-- **Groq API key** (Whisper ASR only): Free at [console.groq.com](https://console.groq.com)
-  - Used for Whisper Large V3 transcription only — fast, free, supports SRT output, stable for long videos
-  - All text intelligence (translation, summarization, condensation) handled by host agent
+- **Groq API key** (Whisper ASR + Llama translation): Free at [console.groq.com](https://console.groq.com)
+  - Whisper Large V3 for transcription — fast, free, supports SRT output, stable for long videos
+  - Llama 3.3 70B for subtitle translation — natural, context-aware
   - Set: `export GROQ_API_KEY=gsk_xxx` or add to `.env` file in skill root
 - **edge-tts** (default TTS engine): `pip install edge-tts`
 - **Python packages**: `pip install groq numpy soundfile`
@@ -362,7 +360,7 @@ generate_tts_and_dub.sh video.mp4 transcript.srt transcript.srt english none en-
 ## Notes
 
 - All modes start with transcription (Groq Whisper ASR)
-- Translation handled natively by host agent (any language the LLM supports)
+- Translation via Groq Llama 3.3 70B (natural, context-aware phrasing)
 - Transcript cleanup removes filler words before translation
 - Dubbing includes perfect audio-subtitle sync (segment-by-segment)
 - **Always embeds original language subtitles** in output video (soft subs)
