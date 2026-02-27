@@ -6,10 +6,11 @@ Claude Code 上的全能媒体处理工具：转录、翻译、摘要、配音�
 ## Features / 功能
 
 - **Transcription** — Ultra-fast via Groq Whisper Large V3, SRT + plain text output / 极速转录，Groq Whisper Large V3，输出 SRT 及纯文本
-- **Translation** — Context-aware natural translation, preserves technical terms / 上下文感知自然翻译，保留专业术语
-- **Dubbing** — Full pipeline: transcribe → translate → review → TTS → dubbed video / 完整配音流水线：转录→翻译→审核→TTS→配音视频
+- **Translation** — Agent-native (any language the host LLM supports) / 代理原生翻译（支持宿主 LLM 的所有语言）
+- **Dubbing** — Full pipeline: transcribe → clean → translate → review → TTS → dubbed video / 完整配音流水线：转录→清理→翻译→审核→TTS→配音视频
 - **Summary** — Intelligent summaries with timestamps and key points / 智能摘要，含时间戳和要点提取
-- **Smart Condensation** — LLM shortens overlong translations instead of speeding up audio / 智能压缩过长翻译，避免加速失真
+- **Transcript Cleanup** — Removes filler words and verbal tics before translation / 翻译前清除填充词和口语习惯
+- **Agent-Driven Condensation** — Host agent shortens overlong translations for natural timing / 代理驱动压缩过长翻译，确保自然时间
 - **3 TTS Engines** — edge-tts (default, 50+ langs), Kokoro (local, offline), voicebox (voice cloning) / 三引擎：edge-tts（默认）、Kokoro（本地离线）、voicebox（声音克隆）
 - **Voice Cloning** — Use any voicebox profile (cloned, designed, or preset voices) / 支持 voicebox 声音克隆配置文件
 - **URL Support** — YouTube, Twitter/X, TikTok, Instagram, 1000+ sites via yt-dlp / 支持 YouTube、Twitter、TikTok 等 1000+ 网站
@@ -42,7 +43,7 @@ Extract transcript with timestamps from video/audio.
 ```
 
 **Output:**
-- `{name}_transcript.srt` - Transcript with timestamps
+- `{name}_original.srt` - Transcript with timestamps
 - `{name}_transcript.txt` - Plain text transcript
 
 ### 2. Translation
@@ -60,7 +61,7 @@ Transcribe + translate to target language (subtitles only, no TTS).
 - Side-by-side review before saving
 
 ### 3. Dubbing (Full Pipeline)
-Transcribe, translate, review, TTS, create dubbed video.
+Transcribe, clean, translate, review, TTS, create dubbed video.
 
 **Usage:**
 ```
@@ -75,7 +76,6 @@ Transcribe, translate, review, TTS, create dubbed video.
 **Output:**
 - `{name}_original.srt` - Original transcript
 - `{name}_{target_lang}.srt` - Translated subtitles
-- `{name}_{target_lang}_audio.wav` - Synced TTS audio (intermediate, cleaned up after muxing)
 - `{name}_dubbed.mp4` - Final dubbed video with dual subs
 
 ### 4. Summary
@@ -128,7 +128,7 @@ export GROQ_API_KEY=gsk_xxx
 # Or add to .env file in the skill root directory
 ```
 
-Groq provides **Whisper Large V3** for transcription — it's fast, free, outputs SRT format natively, and is stable for long video ASR (tested on 2h+ videos with 1500+ segments).
+Groq API key is needed for **Whisper Large V3 transcription only**. All text intelligence (translation, summarization, condensation, filler cleanup) is handled by the host agent — no external LLM API needed.
 
 ### Optional: Kokoro TTS (Local, Offline)
 
@@ -159,12 +159,12 @@ If not installed, the skill automatically falls back to edge-tts with a helpful 
 
 ### Segment-by-Segment TTS Processing
 
-The dubbing system uses a 4-step pipeline for natural-sounding dubbed audio:
+The dubbing system uses a pipeline for natural-sounding dubbed audio:
 
 1. **TTS Generation** - Each subtitle entry gets its own TTS audio file
-2. **Smart Condensation** - Measures each segment's spoken duration against its time window.
-   Overlong segments (>1.3x) get their translation condensed via LLM to fit naturally,
-   then TTS is regenerated. This eliminates unnatural speedup artifacts.
+2. **Timing Analysis** - Measures each segment's spoken duration against its time window.
+   Overlong segments (>1.3x) are flagged in a timing report. The host agent condenses
+   the translated text and re-runs TTS for those segments.
 3. **Speed Adjustment** - Conservative tempo tuning for remaining mismatches:
    - Never slows down (silence fills gaps instead)
    - Mild speedup only, capped at 2.0x (rare after condensation)
@@ -184,7 +184,7 @@ Use any voicebox profile for dubbing:
 
 ```bash
 # Dub with cloned voice
-video_dubber.py video.mp4 chinese --voice "Trump_Voice"
+generate_tts_and_dub.sh video.mp4 original.srt translated.srt chinese "Trump"
 ```
 
 Available when voicebox skill is installed with cloned voice profiles.
@@ -204,17 +204,17 @@ Available when voicebox skill is installed with cloned voice profiles.
 **Default:** Brian Multilingual handles all languages natively. Chinese defaults to YunxiNeural for better quality.
 Users can always override with any edge-tts voice via the `voice_name` parameter.
 
-**Translation:** 50+ languages via Groq Llama 3.3 70B
+**Translation:** Any language the host agent supports (no external LLM API needed)
 
 ## Example Sessions
 
 ### Transcription (Video/Audio/URL)
 ```
 User: "Transcribe this video"
-Claude: Extracts transcript → video_transcript.srt + video_transcript.txt
+Claude: Extracts transcript → video_original.srt + video_transcript.txt
 
 User: "Transcribe podcast.mp3"
-Claude: Extracts audio transcript → podcast_transcript.srt + podcast_transcript.txt
+Claude: Extracts audio transcript → podcast_original.srt + podcast_transcript.txt
 
 User: "Transcribe https://youtube.com/watch?v=xxx"
 Claude: Downloads video → Transcribes → transcript files
@@ -238,19 +238,19 @@ Claude: Downloads → Transcribes → Detects Chinese → Generates Chinese summ
 ### Dubbing (Audio Support)
 ```
 User: "Dub this to Chinese"
-Claude: Transcribe → Translate → Review → TTS → Dubbed video
+Claude: Transcribe → Clean filler → Translate → Review → TTS → Dubbed video
 
 User: "把这个音频配音成中文" (podcast.mp3)
-Claude: Transcribe audio → Translate to Chinese → Review → TTS
+Claude: Transcribe audio → Clean filler → Translate to Chinese → Review → TTS
 
 User: "Dub this YouTube video to Spanish: https://youtube.com/watch?v=xxx"
-Claude: Downloads → Transcribes → Translates → TTS → Dubbed video
+Claude: Downloads → Transcribes → Clean filler → Translates → TTS → Dubbed video
 ```
 
 ## Performance
 
 - **Transcription**: ~3 seconds for 1-minute video (Groq Whisper)
-- **Translation**: ~10 seconds for 14 segments (Groq Llama 3.3)
+- **Translation**: Near-instant (host agent, no API round-trips per segment)
 - **TTS Generation**: ~30-60 seconds for 1-minute video (segment-by-segment)
 - **Video Export**: ~2 seconds (no re-encoding)
 
@@ -260,13 +260,13 @@ Claude: Downloads → Transcribes → Translates → TTS → Dubbed video
 
 ### Groq API Error
 ```
-❌ Error: GROQ_API_KEY not provided
+Error: GROQ_API_KEY not provided
 ```
-**Fix**: Get free API key from [console.groq.com](https://console.groq.com)
+**Fix**: Get free API key from [console.groq.com](https://console.groq.com) (needed for Whisper ASR only)
 
 ### YouTube Download Error
 ```
-❌ Error downloading video
+Error downloading video
 ```
 **Fix**: Update yt-dlp: `pip install -U yt-dlp`
 
@@ -282,8 +282,9 @@ ModuleNotFoundError: No module named 'kokoro'
 
 ## Notes
 
-- All modes start with transcription
-- Translation uses natural phrasing (not machine translation)
+- All modes start with transcription (Groq Whisper ASR)
+- Translation handled natively by host agent (no external LLM API)
+- Transcript cleanup removes filler words before translation
 - Dubbing includes perfect audio-subtitle sync (segment-by-segment)
 - **Always embeds original language subtitles** in output video
 - Summaries are comprehensive but concise

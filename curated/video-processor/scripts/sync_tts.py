@@ -9,7 +9,7 @@ Supports:
   - voicebox: Voice cloning via mlx-audio Qwen3-TTS
 
 Timeline assembly uses numpy array placement (scales to 1500+ segments).
-Smart condensation: overlong segments get re-translated shorter instead of sped up.
+Timing analysis identifies overlong segments for agent-driven condensation.
 """
 import sys
 import os
@@ -23,20 +23,7 @@ import numpy as np
 import soundfile as sf
 
 SAMPLE_RATE = 24000
-MAX_NATURAL_RATIO = 1.3  # Above this, condense text instead of speeding up
-MAX_CONDENSE_PASSES = 2
-
-# Load .env from project root if present (for GROQ_API_KEY)
-_env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env')
-if os.path.exists(_env_file):
-    with open(_env_file) as _f:
-        for _line in _f:
-            _line = _line.strip()
-            if _line and not _line.startswith('#') and '=' in _line:
-                _k, _, _v = _line.partition('=')
-                _k, _v = _k.strip(), _v.strip().strip('"').strip("'")
-                if _k and not os.getenv(_k):
-                    os.environ[_k] = _v
+MAX_NATURAL_RATIO = 1.3  # Above this, agent should condense text
 
 
 def parse_srt(srt_file):
@@ -135,7 +122,7 @@ def generate_kokoro_tts(segments, work_dir, voice='am_michael'):
     kokoro_py = os.path.expanduser("~/miniconda3/envs/kokoro/bin/python3")
 
     if not is_kokoro_available():
-        print("❌ Kokoro TTS is not installed.")
+        print("Kokoro TTS is not installed.")
         print("   Kokoro provides fast, local, offline TTS (no internet needed).")
         print("")
         print("   To install Kokoro:")
@@ -212,26 +199,17 @@ print(f"Total Kokoro generation: {{time.time()-start_all:.1f}}s")
 
 
 def generate_voicebox_tts(segments, work_dir, voice_profile):
-    """Generate all segments with voicebox voice cloning.
-
-    Voicebox supports three voice profile types:
-      - Qwen-TTS Clone: cloned from reference audio (e.g., celebrity voice)
-      - Descriptional Designed: designed from text description (e.g., "calm male narrator")
-      - Custom_Voice: preset profiles with customizable emotions
-
-    NOTE: Voicebox generates segments sequentially (voice cloning is compute-intensive).
-    Best for short videos (1-5 minutes). For long videos (30+ min), use edge-tts instead.
-    """
+    """Generate all segments with voicebox voice cloning."""
     voicebox_script = os.path.expanduser("~/.claude/skills/voicebox/scripts/voicebox.py")
 
     if not is_voicebox_available():
-        print("❌ Voicebox skill is not installed.")
+        print("Voicebox skill is not installed.")
         print("   Voicebox provides voice cloning, voice design, and preset voice profiles")
         print("   with customizable emotions (Qwen-TTS Clone, Designed, Custom_Voice).")
         print("")
         print("   Install from: https://github.com/EnConvo/skill/tree/main/curated/voicebox")
         print("")
-        print("   ⚠️  Note: Voicebox is best for short videos (1-5 min).")
+        print("   Note: Voicebox is best for short videos (1-5 min).")
         print("   For longer videos, use edge-tts instead (much faster, parallel generation).")
         print("")
         print("   Falling back to edge-tts (cloud)...")
@@ -243,7 +221,7 @@ def generate_voicebox_tts(segments, work_dir, voice_profile):
     total_duration = segments[-1]['end'] if segments else 0
     if total_duration > 300:  # 5 minutes
         mins = total_duration / 60
-        print(f"  ⚠️  Video is {mins:.0f} min long with {total} segments.")
+        print(f"  Video is {mins:.0f} min long with {total} segments.")
         print(f"     Voicebox generates sequentially — this may take a while.")
         print(f"     For faster results on long videos, consider edge-tts instead.")
 
@@ -271,7 +249,7 @@ def generate_voicebox_tts(segments, work_dir, voice_profile):
 
 
 # ============================================================
-# Timing Analysis & Smart Condensation
+# Timing Analysis
 # ============================================================
 
 def get_raw_duration(idx, work_dir):
@@ -309,60 +287,29 @@ def analyze_timing(segments, work_dir):
     return overlong
 
 
-def condense_translations(overlong_segments, target_lang, groq_api_key):
-    """Use Groq LLM to condense translations that are too long for their time window.
-    Returns set of segment indices that were successfully condensed.
+def write_timing_report(overlong, work_dir):
+    """Write timing report JSON for agent-driven condensation.
+
+    Each entry includes the segment index, text, ratio, and suggested
+    target percentage for condensation.
     """
-    from groq import Groq
-    client = Groq(api_key=groq_api_key)
-
-    condensed_indices = set()
-    total = len(overlong_segments)
-
-    for i, (seg, ratio) in enumerate(overlong_segments):
-        # target_pct: ratio=1.5 → ~57%, ratio=2.0 → ~42%, ratio=3.0 → ~28%
+    report = []
+    for seg, ratio in overlong:
         target_pct = max(int((1.0 / ratio) * 85), 25)
+        report.append({
+            'index': seg['index'],
+            'text': seg['text'],
+            'duration': round(seg['duration'], 2),
+            'tts_duration': round(seg['duration'] * ratio, 2),
+            'ratio': round(ratio, 2),
+            'target_pct': target_pct
+        })
 
-        prompt = f"""Condense this subtitle to ~{target_pct}% of its length. It must fit a {seg['duration']:.1f}s spoken window.
+    report_path = os.path.join(work_dir, 'timing_report.json')
+    with open(report_path, 'w', encoding='utf-8') as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
 
-RULES:
-1. Keep the CORE MESSAGE - preserve essential meaning
-2. Cut filler, qualifiers, repetition, unnecessary detail
-3. Use shorter words and simpler structures
-4. Must sound natural when spoken aloud in {target_lang}
-5. Output ONLY the condensed text, nothing else
-
-Text:
-{seg['text']}"""
-
-        try:
-            response = client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": f"You condense {target_lang} subtitles to fit time windows. Be concise. Preserve core meaning. Output only the condensed text."},
-                    {"role": "user", "content": prompt}
-                ],
-                model="llama-3.3-70b-versatile",
-                temperature=0.3,
-                max_tokens=200
-            )
-            condensed = response.choices[0].message.content.strip()
-            # Strip quotes if LLM wrapped the response
-            if condensed.startswith('"') and condensed.endswith('"'):
-                condensed = condensed[1:-1]
-            if condensed and len(condensed) < len(seg['text']):
-                seg['text'] = condensed
-                condensed_indices.add(seg['index'])
-        except Exception as e:
-            print(f"    Warning: condensation failed for seg {seg['index']+1}: {e}")
-
-        if (i + 1) % 20 == 0 or i == total - 1:
-            print(f"    Condensing: {i+1}/{total}")
-
-        # Rate limiting: avoid hitting Groq API limits with many segments
-        if i < total - 1:
-            time.sleep(0.1)
-
-    return condensed_indices
+    return report_path
 
 
 def update_srt_file(srt_file, segments):
@@ -383,71 +330,6 @@ def update_srt_file(srt_file, segments):
         f.write('\n\n'.join(blocks) + '\n')
 
 
-def condense_and_regenerate(segments, srt_file, work_dir, target_lang,
-                            tts_engine, voice, voice_profile):
-    """Analyze timing, condense overlong translations, and regenerate TTS.
-
-    Segments with TTS audio exceeding MAX_NATURAL_RATIO of their time window
-    get their translation condensed via LLM and TTS regenerated, so the final
-    audio fits naturally without extreme speed adjustment.
-    """
-    groq_api_key = os.getenv('GROQ_API_KEY')
-    if not groq_api_key:
-        print("  GROQ_API_KEY not set - skipping condensation (speed adjustment only)")
-        return
-
-    any_condensed = False
-
-    for pass_num in range(1, MAX_CONDENSE_PASSES + 1):
-        overlong = analyze_timing(segments, work_dir)
-        if not overlong:
-            if pass_num == 1:
-                print(f"  All segments within {MAX_NATURAL_RATIO}x ratio - no condensation needed")
-            break
-
-        print(f"\n  Pass {pass_num}: {len(overlong)} segments exceed {MAX_NATURAL_RATIO}x ratio")
-        for seg, ratio in overlong[:5]:
-            print(f"    Seg {seg['index']+1}: {ratio:.1f}x (need {seg['duration']:.1f}s, TTS is {seg['duration']*ratio:.1f}s)")
-        if len(overlong) > 5:
-            print(f"    ... and {len(overlong)-5} more")
-
-        # Condense via LLM
-        condensed_indices = condense_translations(overlong, target_lang, groq_api_key)
-        print(f"  Condensed {len(condensed_indices)}/{len(overlong)} segments")
-
-        if not condensed_indices:
-            print("  No further condensation possible")
-            break
-
-        any_condensed = True
-
-        # Delete old raw + adj files ONLY for actually condensed segments
-        for seg, _ in overlong:
-            if seg['index'] not in condensed_indices:
-                continue
-            idx = seg['index']
-            for ext in ['mp3', 'wav']:
-                path = os.path.join(work_dir, f"raw_{idx:04d}.{ext}")
-                if os.path.exists(path):
-                    os.remove(path)
-            adj = os.path.join(work_dir, f"adj_{idx:04d}.wav")
-            if os.path.exists(adj):
-                os.remove(adj)
-
-        # Regenerate TTS (resume logic in generators skips existing files)
-        print(f"  Regenerating TTS for {len(condensed_indices)} condensed segments...")
-        if tts_engine == 'edge-tts':
-            generate_edge_tts(segments, work_dir, voice)
-        elif tts_engine == 'kokoro':
-            generate_kokoro_tts(segments, work_dir, voice)
-        elif tts_engine == 'voicebox':
-            generate_voicebox_tts(segments, work_dir, voice_profile)
-
-    if any_condensed:
-        update_srt_file(srt_file, segments)
-        print(f"  Updated SRT: {srt_file}")
-
-
 # ============================================================
 # Speed Adjustment
 # ============================================================
@@ -455,7 +337,6 @@ def condense_and_regenerate(segments, srt_file, work_dir, target_lang,
 def speed_adjust_all(segments, work_dir):
     """Speed-adjust all segments to match SRT duration.
 
-    After condensation, most segments should be near 1:1 ratio.
     - Never slows down (ratio < 1.0 -> play at natural speed, silence fills gap)
     - Mild speedup for remaining cases (capped at 2.0x)
     """
@@ -509,7 +390,7 @@ def speed_adjust_all(segments, work_dir):
             # Never slow down - play at natural speed, silence fills the gap
             if ratio < 1.0:
                 ratio = 1.0
-            # Cap speedup at 2.0x (rare after condensation)
+            # Cap speedup at 2.0x
             elif ratio > 2.0:
                 ratio = 2.0
 
@@ -601,11 +482,7 @@ EDGE_VOICE_MAP = {
 
 
 def get_edge_voice(target_lang, gender=None):
-    """Get the best edge-tts voice for a target language.
-
-    Uses language-specific voice if available (e.g., YunxiNeural for Chinese),
-    otherwise uses Brian/Emma Multilingual which handle all languages natively.
-    """
+    """Get the best edge-tts voice for a target language."""
     # Check for language-specific override
     voice = EDGE_VOICE_MAP.get(target_lang)
     if voice:
@@ -650,7 +527,7 @@ def main():
     total = len(segments)
     print(f"Found {total} segments\n")
 
-    # Determine voice for TTS (needed for both initial gen and condensation regen)
+    # Determine voice for TTS
     if tts_engine == 'edge-tts':
         voice = voice_name or get_edge_voice(target_lang)
     elif tts_engine == 'kokoro':
@@ -700,16 +577,25 @@ def main():
     if missing:
         print(f"WARNING: {len(missing)} missing segments: {missing[:10]}...")
 
-    # Step 2: Smart Condensation
-    # Condense overlong translations via LLM instead of speeding up audio
-    print(f"\n=== Step 2: Smart Condensation ===")
+    # Step 2: Timing Analysis
+    # Identify overlong segments for agent-driven condensation
+    print(f"\n=== Step 2: Timing Analysis ===")
     t2 = time.time()
-    condense_and_regenerate(segments, srt_file, work_dir, target_lang,
-                            tts_engine, voice, voice_profile)
-    condense_time = time.time() - t2
-    print(f"Condensation: {condense_time:.1f}s\n")
+    overlong = analyze_timing(segments, work_dir)
+    if overlong:
+        print(f"  {len(overlong)} segments exceed {MAX_NATURAL_RATIO}x ratio")
+        for seg, ratio in overlong[:5]:
+            print(f"    Seg {seg['index']+1}: {ratio:.1f}x (need {seg['duration']:.1f}s, TTS is {seg['duration']*ratio:.1f}s)")
+        if len(overlong) > 5:
+            print(f"    ... and {len(overlong)-5} more")
+        report_path = write_timing_report(overlong, work_dir)
+        print(f"  Timing report: {report_path}")
+    else:
+        print(f"  All segments within {MAX_NATURAL_RATIO}x ratio — no condensation needed")
+    timing_time = time.time() - t2
+    print(f"Timing analysis: {timing_time:.1f}s\n")
 
-    # Step 3: Speed adjustment (now conservative: never slow down, max 2x speedup)
+    # Step 3: Speed adjustment (conservative: never slow down, max 2x speedup)
     print(f"=== Step 3: Speed Adjustment ===")
     t3 = time.time()
     speed_adjust_all(segments, work_dir)
@@ -726,7 +612,7 @@ def main():
     total_time = time.time() - t_global
     print(f"=== Sync Complete ===")
     print(f"  TTS generation:    {gen_time:.1f}s ({gen_time/60:.1f} min)")
-    print(f"  Condensation:      {condense_time:.1f}s")
+    print(f"  Timing analysis:   {timing_time:.1f}s")
     print(f"  Speed adjustment:  {adj_time:.1f}s")
     print(f"  Timeline building: {build_time:.1f}s")
     print(f"  TOTAL:             {total_time:.1f}s ({total_time/60:.1f} min)")
