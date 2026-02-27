@@ -4,6 +4,9 @@
 #
 # Uses numpy timeline assembly (scales to 1500+ segments).
 # edge-tts runs async parallel (batches of 10) for speed.
+# Timing analysis identifies overlong segments for agent-driven condensation.
+#
+# Set WORK_DIR env var to reuse a previous work directory (for condensation re-runs).
 
 set -e
 
@@ -18,11 +21,13 @@ if [ -z "$VIDEO_FILE" ] || [ -z "$ORIGINAL_SRT" ] || [ -z "$TRANSLATED_SRT" ] ||
     echo "Usage: generate_tts_and_dub.sh <video_file> <original_srt> <translated_srt> <target_lang> [voice_profile] [voice_name]"
     echo "  voice_profile: voicebox profile name, or omit for auto-select"
     echo "  voice_name: specific voice ID (e.g. en-US-BrianNeural, am_michael)"
+    echo ""
+    echo "  Set WORK_DIR env var to reuse a previous work directory (for re-runs after condensation)"
     exit 1
 fi
 
 BASE_NAME=$(basename "$VIDEO_FILE" | sed 's/\.[^.]*$//')
-WORK_DIR="/tmp/tts_work_$$"
+WORK_DIR="${WORK_DIR:-/tmp/tts_work_$$}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "========================================"
@@ -31,6 +36,7 @@ echo "========================================"
 echo ""
 echo "Video: $VIDEO_FILE"
 echo "Target: $TARGET_LANG"
+echo "Work dir: $WORK_DIR"
 echo ""
 
 # Create working directory
@@ -47,12 +53,12 @@ if [ -n "$VOICE_PROFILE" ] && [ "$VOICE_PROFILE" != "none" ]; then
         VIDEO_MINS=$(echo "$VIDEO_DUR_CHECK / 60" | bc 2>/dev/null || echo "0")
         if [ "$VIDEO_MINS" -gt 5 ] 2>/dev/null; then
             echo ""
-            echo "⚠️  Video is ~${VIDEO_MINS} min long."
+            echo "Video is ~${VIDEO_MINS} min long."
             echo "   Voicebox generates sequentially — best for short videos (1-5 min)."
             echo "   For long videos, edge-tts is much faster (parallel generation)."
         fi
     else
-        echo "⚠️  Voicebox skill not installed. Voice profile '$VOICE_PROFILE' cannot be used."
+        echo "Voicebox skill not installed. Voice profile '$VOICE_PROFILE' cannot be used."
         echo "   Install from: https://github.com/EnConvo/skill/tree/main/curated/voicebox"
         echo "   Voicebox supports: Qwen-TTS Clone, Designed voices, Custom_Voice presets."
         echo "   Note: Best for short videos (1-5 min). Long videos take too long."
@@ -92,6 +98,12 @@ fi
 python3 "$SCRIPT_DIR/sync_tts.py" "${SYNC_ARGS[@]}"
 
 echo ""
+
+# Copy timing report to CWD if it exists
+if [ -f "$WORK_DIR/timing_report.json" ]; then
+    cp "$WORK_DIR/timing_report.json" "${BASE_NAME}_timing_report.json"
+    echo "Timing report: ${BASE_NAME}_timing_report.json"
+fi
 
 # The combined WAV is already built by sync_tts.py using numpy timeline
 COMBINED_WAV="$WORK_DIR/combined.wav"
@@ -160,10 +172,23 @@ fi
 
 echo ""
 
-# Cleanup
-echo "Cleaning up temporary files..."
-rm -rf "$WORK_DIR"
-rm -f "${BASE_NAME}_${TARGET_LANG}_audio.wav"
+# Conditional cleanup: if overlong segments exist, keep work dir for potential re-run
+if [ -f "${BASE_NAME}_timing_report.json" ]; then
+    OVERLONG_COUNT=$(python3 -c "import json; print(len(json.load(open('${BASE_NAME}_timing_report.json'))))" 2>/dev/null || echo "0")
+    if [ "$OVERLONG_COUNT" -gt 0 ]; then
+        echo "Keeping work dir for potential condensation re-run: $WORK_DIR"
+        echo "(${OVERLONG_COUNT} overlong segments detected — agent may condense and re-run)"
+        rm -f "${BASE_NAME}_${TARGET_LANG}_audio.wav"
+    else
+        echo "Cleaning up temporary files..."
+        rm -rf "$WORK_DIR"
+        rm -f "${BASE_NAME}_${TARGET_LANG}_audio.wav"
+    fi
+else
+    echo "Cleaning up temporary files..."
+    rm -rf "$WORK_DIR"
+    rm -f "${BASE_NAME}_${TARGET_LANG}_audio.wav"
+fi
 
 echo ""
 echo "========================================"
