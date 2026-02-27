@@ -120,7 +120,6 @@ python3 ${SKILL_DIR}/scripts/generate.py --prompt "Mountain range" --output pano
 | `--model`, `-m` | `pro` or `flash` | `pro` |
 | `--reference`, `--ref` | Reference image path(s) for vision input | — |
 | `--api-key` | Gemini API key (overrides env var) | — |
-| `--verify` | Print actual dimensions and AR after generation | `true` |
 | `--json` | Output result as JSON | `false` |
 
 ### Output

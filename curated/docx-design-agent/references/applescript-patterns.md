@@ -466,7 +466,7 @@ end tell
 ```applescript
 -- Export to PDF
 tell application "Microsoft Word"
-    save as active document file name "/Users/me/Desktop/output.pdf" file format format PDF
+    save as active document file name "~/Desktop/output.pdf" file format format PDF
 end tell
 
 -- Print document

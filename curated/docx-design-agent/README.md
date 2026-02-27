@@ -49,9 +49,12 @@ docx-design-agent/
 ├── README.md                              # This file
 ├── SKILL.md                               # Main skill configuration & critical rules
 └── references/
-    ├── python-docx-reference.md           # python-docx API reference & helper functions
     ├── applescript-patterns.md            # AppleScript live IPC patterns & decision matrix
-    └── design-system.md                   # Typography, palettes, layout rules, decorative elements
+    ├── audit-system.md                    # Document audit & quality checking system
+    ├── design-styles-catalog.md           # Catalog of design styles & templates
+    ├── design-system.md                   # Typography, palettes, layout rules, decorative elements
+    ├── python-docx-reference.md           # python-docx API reference & helper functions
+    └── style-docx-mapping.md             # Style-to-docx property mapping reference
 ```
 
 ## Workflows

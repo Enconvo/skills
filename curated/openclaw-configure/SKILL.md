@@ -226,8 +226,8 @@ openclaw models fallbacks add "fallback2/model"
 #    Session files: ~/.openclaw/agents/<agent>/sessions/
 #    Session index: ~/.openclaw/agents/<agent>/sessions/sessions.json
 python3 -c "
-import json
-path = '$HOME/.openclaw/agents/main/sessions/sessions.json'
+import json, os
+path = os.path.expanduser('~/.openclaw/agents/main/sessions/sessions.json')
 with open(path) as f: data = json.load(f)
 sid = data.pop('agent:main:main', {}).get('sessionId','')
 with open(path, 'w') as f: json.dump(data, f, indent=2)
@@ -236,7 +236,7 @@ print(f'Removed session {sid}')
 rm ~/.openclaw/agents/main/sessions/<session-id>.jsonl
 
 # 4. Restart gateway to pick up config
-openclaw gateway stop && sleep 2 && openclaw gateway install
+openclaw gateway stop && sleep 2 && openclaw gateway
 
 # 5. Verify
 openclaw agent --agent main --message "What model are you?" --json --local 2>&1 | grep '"model"'

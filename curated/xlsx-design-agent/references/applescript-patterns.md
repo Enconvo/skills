@@ -466,7 +466,7 @@ end tell
 ```applescript
 -- Export to PDF
 tell application "Microsoft Excel"
-    save active workbook in "/Users/me/Desktop/output.pdf" as PDF file format
+    save active workbook in "~/Desktop/output.pdf" as PDF file format
 end tell
 
 -- Alternative PDF export via print
