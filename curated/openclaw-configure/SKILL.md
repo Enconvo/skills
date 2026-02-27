@@ -1,7 +1,7 @@
 ---
 name: openclaw-configure
 description: "Expert-level OpenClaw CLI configuration skill. Covers channels, models, plugins, gateway, agents, hooks, cron, security, sandbox, memory, browser, nodes, DNS, webhooks, approvals, ClawHub skill registry, and more. Self-evolving: updates itself after learning new patterns."
-version: 1.3.0
+version: 1.4.0
 author: zanearcher
 category: infrastructure
 ---
@@ -201,6 +201,15 @@ channels logs         --channel <name> --lines <n> --json
 - Enable: `openclaw plugins enable minimax-portal-auth`
 - Run: `openclaw configure` or `openclaw models auth login --provider minimax-portal`
 - api: `"anthropic-messages"` (Anthropic-compatible)
+
+**Kilo Code Gateway (v2026.2.23+):**
+- Run: `openclaw configure` → Kilo Gateway → follow onboarding auth flow
+- Default model: `kilocode/anthropic/claude-opus-4.6`
+- api: `"anthropic-messages"` (Anthropic-compatible routing)
+
+**Vercel AI Gateway (v2026.2.23+):**
+- Accepts Claude shorthand refs: `vercel-ai-gateway/claude-*` (auto-normalized to canonical Anthropic IDs)
+- Configure like any OpenAI-compatible provider
 
 ### Model Switching — Full Workflow
 Switching the default model requires more than `models set`:
@@ -594,6 +603,17 @@ Major security overhaul with 40+ fixes:
 - TTS model-driven provider switching now opt-in by default
 - Sandbox browser containers default to dedicated Docker network
 
+### Multi-User / Shared Runtime Hardening (v2026.2.24+)
+For shared-user setups (multiple people using one OpenClaw instance):
+```json
+"security": {
+  "trust_model": {
+    "multi_user_heuristic": true
+  }
+}
+```
+When enabled, flags likely shared-user ingress and provides hardening guidance. For intentional multi-user deployments: `sandbox.mode="all"`, workspace-scoped FS, reduced tool surface, avoid personal/private identities on shared runtimes.
+
 ---
 
 ## Sandbox
@@ -611,7 +631,7 @@ Config: `tools.sandbox.tools.allow` / `tools.sandbox.tools.deny`
 ## Memory
 
 ```
-memory search <query> [--max-results <n>] Search memory
+memory search <query> [--query <text>] [--max-results <n>]  Search memory (positional or --query)
 memory index [--force]                    Reindex files
 memory status [--json]                    Index status
 ```
@@ -762,6 +782,7 @@ logs [--follow] [--limit <n>]            Tail gateway logs
 dashboard                                Open Control UI
 tui [--session <key>]                    Terminal UI
 sessions [--active <min>]               List sessions
+sessions cleanup [--agent <id>] [--max-disk-bytes <n>]  Clean up old sessions (v2026.2.23+)
 agent --to <num> --message <text> [--deliver] [--thinking <level>]  Run agent turn
 onboard [--flow quickstart|advanced]     Onboarding wizard
 setup [--mode local|remote]              Init config + workspace
@@ -953,6 +974,10 @@ clawhub update --all
 | `sessions_spawn` works from main but not between other agents | Only main has `subagents.allowAgents` | Add `subagents.allowAgents` to ALL agents that need to spawn others |
 | `openclaw gateway stop` doesn't kill old process | PID still holding port | `kill -9 <pid>` then `openclaw gateway install --force` |
 | Config changes not taking effect after restart | Old gateway process still running on port | Check `lsof -i :18789`, kill stale PID, then restart |
+| Heartbeat sending to DMs (v2026.2.24+) | **BREAKING**: Heartbeat now blocks DM targets | Use channel/group targets only; DM delivery is silently skipped |
+| Browser `network: "container:<id>"` blocked | **BREAKING**: Docker container-namespace join blocked by default | Set `agents.defaults.sandbox.docker.dangerouslyAllowContainerNamespaceJoin: true` to re-enable |
+| Browser SSRF private network errors (v2026.2.23+) | **BREAKING**: `browser.ssrfPolicy.allowPrivateNetwork` renamed | Use `browser.ssrfPolicy.dangerouslyAllowPrivateNetwork`; run `openclaw doctor --fix` to auto-migrate |
+| `memory search "query"` errors | v2026.2.24+ accepts both positional and `--query <text>` | Both forms work: `memory search "text"` or `memory search --query "text"` |
 
 ---
 
@@ -976,7 +1001,7 @@ This skill grows with every use. Never let hard-won knowledge be lost.
 
 ## Version Check & Auto-Update Protocol
 
-**This skill was last updated for:** `v2026.2.21-2`
+**This skill was last updated for:** `v2026.2.24`
 
 ### Version Check (MANDATORY — run at start of every OpenClaw session)
 
@@ -987,7 +1012,7 @@ Before answering any OpenClaw question, Claude MUST:
 INSTALLED=$(openclaw --version 2>&1 | head -1)
 
 # 2. Check what this skill documents
-SKILL_VERSION="v2026.2.21-2"
+SKILL_VERSION="v2026.2.24"
 ```
 
 Compare the installed version against `SKILL_VERSION` above. If the installed version is NEWER than the skill version, trigger the **Skill Refresh** procedure below.

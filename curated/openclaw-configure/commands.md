@@ -1,6 +1,6 @@
 # OpenClaw CLI Commands (Condensed Reference)
 
-Generated from openclaw v2026.2.21-2. One line per command, key flags only.
+Generated from openclaw v2026.2.24. One line per command, key flags only.
 
 ---
 
