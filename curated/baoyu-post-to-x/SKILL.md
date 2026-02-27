@@ -106,7 +106,7 @@ npx -y bun ${SKILL_DIR}/scripts/x-video.ts "Amazing content" --video ./demo.mp4 
 | `--submit` | Post (default: preview) |
 | `--profile <dir>` | Custom Chrome profile |
 
-**Limits**: Regular 140s max, Premium 60min. Processing: 30-60s.
+**Limits**: Regular 140s max, Premium 60min. Processing: 30-60s. The script does NOT auto-detect account type — know your account's limits before uploading.
 
 ---
 
@@ -156,6 +156,7 @@ npx -y bun ${SKILL_DIR}/scripts/x-article.ts article.md --submit               #
 - First run: manual login required (session persists)
 - Always preview before `--submit`
 - Cross-platform: macOS, Linux, Windows
+- **Preview timeout**: Regular posts keep the browser open ~30s for preview then auto-close. Video posts keep the browser open for manual review (no auto-close).
 
 ## Extension Support
 

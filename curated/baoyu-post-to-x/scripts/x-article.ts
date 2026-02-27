@@ -99,7 +99,7 @@ export async function publishArticle(options: ArticleOptions): Promise<void> {
   console.log(`[x-article] HTML saved to: ${htmlPath}`);
 
   const chromePath = options.chromePath ?? findChromeExecutable(CHROME_CANDIDATES_BASIC);
-  if (!chromePath) throw new Error('Chrome not found');
+  if (!chromePath) throw new Error('Chrome not found. Set X_BROWSER_CHROME_PATH env var to your Chrome/Chromium executable path.');
 
   await mkdir(profileDir, { recursive: true });
   const existingPort = await findExistingDebugPort(profileDir);

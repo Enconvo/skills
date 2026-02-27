@@ -100,7 +100,7 @@ npx -y bun ${SKILL_DIR}/scripts/main.ts "Hello" --json
 |--------|-------------|
 | `--prompt`, `-p` | Prompt text |
 | `--promptfiles` | Read prompt from files (concatenated) |
-| `--model`, `-m` | Model: gemini-3-pro (default), gemini-2.5-pro, gemini-2.5-flash |
+| `--model`, `-m` | Model: gemini-3.0-pro (default), gemini-2.5-pro, gemini-2.5-flash |
 | `--image [path]` | Generate image (default: generated.png) |
 | `--reference`, `--ref` | Reference images for vision input |
 | `--sessionId` | Session ID for multi-turn conversation |
