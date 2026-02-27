@@ -16,7 +16,11 @@ All-in-one voice toolkit for Claude Code on Apple Silicon Macs.
 Copy this skill folder to your Claude Code skills directory:
 
 ```bash
+# Standard location
 cp -r voicebox ~/.claude/skills/voicebox
+
+# Or if using .agent/skills
+cp -r voicebox ~/.agent/skills/voicebox
 ```
 
 Or clone from the skills repo:
@@ -26,7 +30,7 @@ git clone https://github.com/Enconvo/skills.git /tmp/enconvo-skills
 cp -r /tmp/enconvo-skills/curated/voicebox ~/.claude/skills/voicebox
 ```
 
-That's it. Dependencies and models auto-download on first use.
+That's it. The skill works from any install location — all paths are resolved relative to the script. Dependencies and models auto-download on first use.
 
 ## Requirements
 
@@ -91,37 +95,39 @@ All commands default to **high** (1.7B models). Use `--quality standard` for fas
 
 ## Script Commands
 
+Replace `$SKILL_DIR` with your install path (e.g., `~/.claude/skills/voicebox` or `~/.agent/skills/voicebox`).
+
 ```bash
 # List profiles
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py list
+uv run $SKILL_DIR/scripts/voicebox.py list
 
 # List CustomVoice speakers
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py speakers
+uv run $SKILL_DIR/scripts/voicebox.py speakers
 
 # Generate speech
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Profile" "text" --play
+uv run $SKILL_DIR/scripts/voicebox.py generate "Profile" "text" --play
 
 # Generate with emotion (CustomVoice)
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Dylan" "text" --instruct "angry tone" --play
+uv run $SKILL_DIR/scripts/voicebox.py generate "Dylan" "text" --instruct "angry tone" --play
 
 # Create designed voice
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-designed "Name" --desc "description" --lang en
+uv run $SKILL_DIR/scripts/voicebox.py create-designed "Name" --desc "description" --lang en
 
 # Create CustomVoice profile
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-custom "Name" <speaker>
+uv run $SKILL_DIR/scripts/voicebox.py create-custom "Name" <speaker>
 
 # Clone from audio file
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-cloned "Name" --audio /path/to.wav --ref-text "transcript" --lang en
+uv run $SKILL_DIR/scripts/voicebox.py create-cloned "Name" --audio /path/to.wav --ref-text "transcript" --lang en
 
 # Record from mic and clone
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py record "Name" --duration 10 --lang en
+uv run $SKILL_DIR/scripts/voicebox.py record "Name" --duration 10 --lang en
 
 # Transcribe audio/video
-uv run ~/.claude/skills/voicebox/scripts/transcribe.py /path/to/file.wav
+uv run $SKILL_DIR/scripts/transcribe.py /path/to/file.wav
 
 # Multi-speaker conversation from JSON script
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py conversation /tmp/script.json --play
+uv run $SKILL_DIR/scripts/voicebox.py conversation /tmp/script.json --play
 
 # Delete a profile
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py delete "Name"
+uv run $SKILL_DIR/scripts/voicebox.py delete "Name"
 ```

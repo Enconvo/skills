@@ -9,6 +9,8 @@ user_invocable: true
 
 # Voicebox TTS Skill
 
+> **Path convention:** All commands below use `$SKILL_DIR` to mean this skill's base directory. When Claude loads a skill, the system prompt includes `Base directory for this skill: <path>` — use that path. Example: if installed at `~/.agent/skills/voicebox/`, then `$SKILL_DIR = ~/.agent/skills/voicebox`.
+
 Standalone text-to-speech using mlx-audio. Supports custom voice design (from text descriptions) and voice cloning (from audio samples). No external app required.
 
 ## Usage
@@ -60,7 +62,7 @@ Three model categories with quality tiers:
 
 All commands accept `--quality standard` or `--quality high` (default) to select model tier.
 
-All state is in the skill's `data/` directory (default: `~/.claude/skills/voicebox/data/`):
+All state is in the skill's `data/` directory (default: `$SKILL_DIR/data/`):
 - `profiles.json` — profile registry
 - `samples/` — WAV files for reference audio
 
@@ -128,7 +130,7 @@ When the text requires emotional delivery or the user requests a specific emotio
 
    e. **Use the conversation command** instead of single generate:
       ```bash
-      uv run ~/.claude/skills/voicebox/scripts/voicebox.py conversation /tmp/emotional_script.json --play --gap 0.15
+      uv run $SKILL_DIR/scripts/voicebox.py conversation /tmp/emotional_script.json --play --gap 0.15
       ```
 
    **When to auto-analyze:**
@@ -144,15 +146,15 @@ When the text requires emotional delivery or the user requests a specific emotio
 
 4. **Simple generate** (short text or no emotion needed):
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Profile Name" "text to speak" --play
+   uv run $SKILL_DIR/scripts/voicebox.py generate "Profile Name" "text to speak" --play
    ```
    With style override (short emotional text):
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Profile Name" "text to speak" --instruct "angry tone" --play
+   uv run $SKILL_DIR/scripts/voicebox.py generate "Profile Name" "text to speak" --instruct "angry tone" --play
    ```
    With high quality (1.7B model) for cloned voices:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Profile Name" "text to speak" --quality high --play
+   uv run $SKILL_DIR/scripts/voicebox.py generate "Profile Name" "text to speak" --quality high --play
    ```
    **IMPORTANT**: Use timeout of 300000ms — model loading + generation takes time on first run.
 
@@ -181,7 +183,7 @@ When the user says "create a ... voice profile":
 
 4. **Create the profile**:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-designed "Calm Narrator" \
+   uv run $SKILL_DIR/scripts/voicebox.py create-designed "Calm Narrator" \
      --desc "Calm middle-aged male narrator with a deep warm baritone voice, slow measured pace, soothing and trustworthy tone, suitable for audiobook narration" \
      --lang en
    ```
@@ -207,7 +209,7 @@ When the user wants to use a premium preset voice (no description or audio neede
 
 2. **Create the profile**:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-custom "Profile Name" <speaker>
+   uv run $SKILL_DIR/scripts/voicebox.py create-custom "Profile Name" <speaker>
    ```
    Language is auto-detected from speaker. Optional `--desc` for a label.
 
@@ -231,13 +233,13 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
 
 2. **If no transcript provided**, auto-transcribe using the built-in transcription:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/transcribe.py /path/to/audio.wav
+   uv run $SKILL_DIR/scripts/transcribe.py /path/to/audio.wav
    ```
    Only ask the user as a last resort.
 
 3. **Create the profile**:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-cloned "My Voice" \
+   uv run $SKILL_DIR/scripts/voicebox.py create-cloned "My Voice" \
      --audio /path/to/sample.wav \
      --ref-text "transcript of what was said" \
      --lang en
@@ -261,7 +263,7 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
 
 3. **Confirm they're ready**, then **record and auto-clone in one command**:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py record "My Voice" --duration 10 --lang en
+   uv run $SKILL_DIR/scripts/voicebox.py record "My Voice" --duration 10 --lang en
    ```
    - Default is 10 seconds. Adjust with `--duration` if the user wants more/less.
    - If the user already knows what they'll say, pass it: `--ref-text "what they said"` (skips transcription)
@@ -270,7 +272,7 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
 
 4. **Play back the recording** so the user can verify:
    ```bash
-   afplay ~/.claude/skills/voicebox/data/samples/<slug>.wav
+   afplay $SKILL_DIR/data/samples/<slug>.wav
    ```
 
 5. **Confirm** — Tell the user the profile was created and is ready to use with `/voicebox "My Voice" "text to speak"`.
@@ -291,11 +293,11 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
 
 2. **Run transcription**:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/transcribe.py /path/to/file.wav
+   uv run $SKILL_DIR/scripts/transcribe.py /path/to/file.wav
    ```
    With optional language:
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/transcribe.py /path/to/file.wav --language zh
+   uv run $SKILL_DIR/scripts/transcribe.py /path/to/file.wav --language zh
    ```
    **IMPORTANT**: Use timeout of 300000ms.
 
@@ -348,7 +350,7 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
 
 4. **Run the conversation command:**
    ```bash
-   uv run ~/.claude/skills/voicebox/scripts/voicebox.py conversation /tmp/my_script.json --play
+   uv run $SKILL_DIR/scripts/voicebox.py conversation /tmp/my_script.json --play
    ```
    **IMPORTANT**: Use timeout of 300000ms — multi-segment generation can take several minutes.
 
@@ -392,55 +394,55 @@ When the user says "clone my voice from /path/to/file.wav" or provides an audio 
 
 ```bash
 # List all profiles
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py list
+uv run $SKILL_DIR/scripts/voicebox.py list
 
 # List available models and quality tiers
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py models
+uv run $SKILL_DIR/scripts/voicebox.py models
 
 # Create designed voice profile
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-designed "Name" --desc "description" --lang en
+uv run $SKILL_DIR/scripts/voicebox.py create-designed "Name" --desc "description" --lang en
 
 # Create custom voice profile (preset speaker)
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-custom "Name" <speaker>
+uv run $SKILL_DIR/scripts/voicebox.py create-custom "Name" <speaker>
 
 # List available preset speakers
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py speakers
+uv run $SKILL_DIR/scripts/voicebox.py speakers
 
 # Create cloned voice profile (from existing audio file)
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py create-cloned "Name" --audio /path/to.wav --ref-text "transcript" --lang en
+uv run $SKILL_DIR/scripts/voicebox.py create-cloned "Name" --audio /path/to.wav --ref-text "transcript" --lang en
 
 # Record from microphone and clone (with known transcript)
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py record "Name" --duration 10 --lang en --ref-text "what I said"
+uv run $SKILL_DIR/scripts/voicebox.py record "Name" --duration 10 --lang en --ref-text "what I said"
 
 # Record from microphone and clone (auto-transcribe, high quality ASR)
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py record "Name" --duration 10 --lang en --quality high
+uv run $SKILL_DIR/scripts/voicebox.py record "Name" --duration 10 --lang en --quality high
 
 # Transcribe an audio file (built-in, no external skill needed)
-uv run ~/.claude/skills/voicebox/scripts/transcribe.py /path/to/audio.wav
+uv run $SKILL_DIR/scripts/transcribe.py /path/to/audio.wav
 
 # Transcribe with high quality ASR (1.7B model)
-uv run ~/.claude/skills/voicebox/scripts/transcribe.py /path/to/audio.wav --model Qwen/Qwen3-ASR-1.7B
+uv run $SKILL_DIR/scripts/transcribe.py /path/to/audio.wav --model Qwen/Qwen3-ASR-1.7B
 
 # Generate speech
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Name" "text" --play
+uv run $SKILL_DIR/scripts/voicebox.py generate "Name" "text" --play
 
 # Generate with high quality (1.7B clone model)
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Name" "text" --play --quality high
+uv run $SKILL_DIR/scripts/voicebox.py generate "Name" "text" --play --quality high
 
 # Generate with style override
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py generate "Name" "text" --instruct "angry" --play
+uv run $SKILL_DIR/scripts/voicebox.py generate "Name" "text" --instruct "angry" --play
 
 # Generate a multi-speaker conversation from JSON script
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py conversation /tmp/script.json --play
+uv run $SKILL_DIR/scripts/voicebox.py conversation /tmp/script.json --play
 
 # Conversation with custom gap and no silence trimming
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py conversation /tmp/script.json --gap 0.5 --no-trim-silence -o /tmp/my_show
+uv run $SKILL_DIR/scripts/voicebox.py conversation /tmp/script.json --gap 0.5 --no-trim-silence -o /tmp/my_show
 
 # Conversation with high quality models
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py conversation /tmp/script.json --quality high --play
+uv run $SKILL_DIR/scripts/voicebox.py conversation /tmp/script.json --quality high --play
 
 # Delete a profile
-uv run ~/.claude/skills/voicebox/scripts/voicebox.py delete "Name"
+uv run $SKILL_DIR/scripts/voicebox.py delete "Name"
 ```
 
 ## Quality Tiers
