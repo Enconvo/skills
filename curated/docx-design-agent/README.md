@@ -1,6 +1,7 @@
 # docx-design-agent
 
 A Claude Code skill for creating and editing professional Word documents on macOS with premium design quality.
+macOS 上的专业 Word 文档创建与编辑技能，具备高品质排版设计。
 
 ## Architecture
 
@@ -13,14 +14,14 @@ A Claude Code skill for creating and editing professional Word documents on macO
 
 **Golden Rule:** Build with python-docx, finalize with AppleScript. For edit-only tasks on an open document, use AppleScript alone (no python-docx, no file reload).
 
-## Features
+## Features / 功能
 
-- **Create documents from scratch** with premium design quality (styled cover pages, accent borders, callout cards, KPI tables, pull quotes, sidebar panels)
-- **Live-edit open documents** via AppleScript IPC (text, fonts, find/replace, fields, TOC)
-- **Finalize with AppleScript** — update TOC, refresh fields, export to PDF
-- **AI image generation** for cover art, section illustrations, and inline visuals
-- **5 built-in color palettes**: Dark Premium, Light Clean, Warm Earth, Bold Vibrant, Corporate Blue
-- **Dual-engine architecture**: python-docx for building, AppleScript for live tweaks and finalization
+- **Create documents from scratch** — Premium design with cover pages, accent borders, callout cards, KPI tables, pull quotes / 从零创建文档，含封面、装饰边框、卡片、KPI 表格、引用等高品质排版
+- **Live-edit open documents** — AppleScript IPC for text, fonts, find/replace, fields, TOC / 通过 AppleScript 实时编辑已打开的文档
+- **Finalize with AppleScript** — Update TOC, refresh fields, export to PDF / AppleScript 收尾：更新目录、刷新域、导出 PDF
+- **AI image generation** — Cover art, section illustrations, inline visuals / AI 生成封面图、章节插图和内嵌视觉素材
+- **5 built-in color palettes** — Dark Premium, Light Clean, Warm Earth, Bold Vibrant, Corporate Blue / 五套内置配色方案
+- **Dual-engine architecture** — python-docx for building, AppleScript for live tweaks and finalization / 双引擎架构：python-docx 构建 + AppleScript 实时调整
 
 ## Requirements
 

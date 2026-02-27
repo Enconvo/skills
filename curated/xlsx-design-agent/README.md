@@ -1,6 +1,7 @@
 # xlsx-design-agent
 
 A Claude Code skill for creating and editing professional Excel workbooks on macOS with premium design quality.
+macOS 上的专业 Excel 工作簿创建与编辑技能，具备高品质表格设计。
 
 ## Architecture
 
@@ -15,15 +16,15 @@ A Claude Code skill for creating and editing professional Excel workbooks on mac
 
 **Stale Display Warning:** Excel caches open files. After openpyxl writes, you must close and reopen the workbook via AppleScript to see changes — Excel will NOT auto-refresh from disk.
 
-## Features
+## Features / 功能
 
-- **Create workbooks from scratch** with premium design quality (styled cover sheets, KPI cards, data tables, charts, conditional formatting, accent borders)
-- **Live-edit open workbooks** via AppleScript IPC (cells, fonts, recalculation, find/replace)
-- **Grid-first design philosophy** — column widths, row heights, merged cells, and freeze panes as primary layout tools
-- **AI image generation** for cover sheet art and dashboard illustrations
-- **12 curated design styles** from Strategy Consulting to Retro Vintage
-- **5 built-in color palettes**: Dark Premium, Light Clean, Warm Earth, Bold Vibrant, Corporate Blue
-- **Dual-engine architecture**: openpyxl for building, AppleScript for live tweaks and finalization
+- **Create workbooks from scratch** — Premium design with cover sheets, KPI cards, data tables, charts, conditional formatting / 从零创建工作簿，含封面、KPI 卡片、数据表、图表、条件格式等高品质设计
+- **Live-edit open workbooks** — AppleScript IPC for cells, fonts, recalculation, find/replace / 通过 AppleScript 实时编辑已打开的工作簿
+- **Grid-first design philosophy** — Column widths, row heights, merged cells, freeze panes as primary layout tools / 网格优先设计，以列宽、行高、合并单元格和冻结窗格为核心布局手段
+- **AI image generation** — Cover sheet art and dashboard illustrations / AI 生成封面图与仪表盘插图
+- **12 curated design styles** — From Strategy Consulting to Retro Vintage / 12 种精选设计风格，从战略咨询到复古风
+- **5 built-in color palettes** — Dark Premium, Light Clean, Warm Earth, Bold Vibrant, Corporate Blue / 五套内置配色方案
+- **Dual-engine architecture** — openpyxl for building, AppleScript for live tweaks and finalization / 双引擎架构：openpyxl 构建 + AppleScript 实时调整
 
 ## Requirements
 

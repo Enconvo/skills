@@ -1,6 +1,7 @@
 # pptx-design-agent
 
 A Claude Code skill for creating and editing professional PowerPoint presentations on macOS with premium design quality.
+macOS 上的专业 PowerPoint 演示文稿创建与编辑技能，具备高品质视觉设计。
 
 ## Architecture
 
@@ -15,15 +16,15 @@ A Claude Code skill for creating and editing professional PowerPoint presentatio
 
 **No stale display issue:** Unlike the xlsx skill, python-pptx writes files without PowerPoint open, so AppleScript's `open POSIX file` always loads a fresh copy from disk.
 
-## Features
+## Features / 功能
 
-- **Create presentations from scratch** with premium design quality (gradients, cards, KPI panels, charts, tables)
-- **Live-edit open presentations** via AppleScript IPC (text, fonts, positions, fills, z-order, shadows, speaker notes)
-- **Composition-first design** — plan image + overlay as one design with intentional negative space
-- **AI image generation** for slide backgrounds and content illustrations
-- **5 built-in color palettes**: Dark Premium, Light Clean, Warm Earth, Bold Vibrant, Tropical Dark
-- **10 creative layout patterns** with layout rhythm across slides
-- **18 critical rules** for consistent, professional output
+- **Create presentations from scratch** — Premium design with gradients, cards, KPI panels, charts, tables / 从零创建演示文稿，含渐变、卡片、KPI 面板、图表等高品质设计
+- **Live-edit open presentations** — AppleScript IPC for text, fonts, positions, fills, z-order, shadows, speaker notes / 通过 AppleScript 实时编辑已打开的演示文稿
+- **Composition-first design** — Plan image + overlay as one design with intentional negative space / 构图优先设计，图片与叠加层统一规划留白区域
+- **AI image generation** — Slide backgrounds and content illustrations / AI 生成幻灯片背景与内容插图
+- **5 built-in color palettes** — Dark Premium, Light Clean, Warm Earth, Bold Vibrant, Tropical Dark / 五套内置配色方案
+- **10 creative layout patterns** — Layout rhythm across slides / 十种创意版式，幻灯片间节奏变化
+- **18 critical rules** — Consistent, professional output / 18 条核心规则，确保专业一致的输出
 
 ## Requirements
 
