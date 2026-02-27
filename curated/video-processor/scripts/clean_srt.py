@@ -12,41 +12,70 @@ import re
 # Filler patterns (case-insensitive)
 # Each tuple: (compiled regex, replacement)
 FILLER_PATTERNS = [
-    # Repeated "you know" (2+ occurrences in same segment, with or without commas)
+    # === "you know" (aggressive — remove in all positions) ===
+    # Repeated "you know" (2+ occurrences in same segment)
     (re.compile(r'(?:[,.]?\s*you know[,.]?\s*){2,}', re.IGNORECASE), ' '),
-    # "you know" at start of segment (with or without comma/period after)
+    # "you know" at start/end of segment
     (re.compile(r'^you know[,.]?\s*', re.IGNORECASE), ''),
-    # "you know" at end of segment
     (re.compile(r'[,.]?\s*you know[.]?\s*$', re.IGNORECASE), ''),
     # "you know" between commas
     (re.compile(r',\s*you know,\s*', re.IGNORECASE), ', '),
-    # "you know" after sentence-ending punctuation (". You know," or ". You know ")
+    # "you know" after sentence-ending punctuation
     (re.compile(r'([.!?])\s*you know[,.]?\s*', re.IGNORECASE), r'\1 '),
-    # "you know" as filler mid-sentence (no commas — common in raw Whisper output)
-    # Matches " you know " surrounded by word characters
+    # "you know" mid-sentence without commas (raw Whisper output)
     (re.compile(r'(?<=\w)\s+you know\s+(?=\w)', re.IGNORECASE), ' '),
-    # "And you know" / "and you know" at transitions
+    # "And you know" transitions
     (re.compile(r'\band you know[,.]?\s*', re.IGNORECASE), 'and '),
-    # Standalone filler words (with surrounding punctuation/spaces)
-    (re.compile(r'\b(?:um|uh|uhm|umm|hmm|hm|er|erm)\b[,.]?\s*', re.IGNORECASE), ''),
-    # "like" as filler (between commas, or at start)
-    (re.compile(r',\s*like,\s*', re.IGNORECASE), ', '),
+
+    # === Standalone filler sounds ===
+    (re.compile(r'\b(?:um|uh|uhm|umm|hmm|hm|er|erm|ah|ahh)\b[,.]?\s*', re.IGNORECASE), ''),
+
+    # === Filler words/phrases at segment start ===
+    # "Yeah," / "Yeah." / "Yeah yeah" at start — acknowledgment filler
+    (re.compile(r'^(?:yeah[,.\s]*)+', re.IGNORECASE), ''),
+    # "Well," at start — discourse marker
+    (re.compile(r'^well[,.]?\s*', re.IGNORECASE), ''),
+    # "Oh," at start — interjection
+    (re.compile(r'^oh[,.]?\s*', re.IGNORECASE), ''),
+    # "Okay," / "OK," at start
+    (re.compile(r'^(?:okay|ok)[,.]?\s*', re.IGNORECASE), ''),
+    # "Right," / "Right?" at start
+    (re.compile(r'^right[,?.]?\s*', re.IGNORECASE), ''),
+    # "So," at start (single, as discourse marker)
+    (re.compile(r'^so,\s*', re.IGNORECASE), ''),
+    # "Like," at start
     (re.compile(r'^like,\s*', re.IGNORECASE), ''),
-    # "I mean" as filler at start
+    # "I mean" at start or mid-sentence between commas
     (re.compile(r'^I mean[,.]?\s*', re.IGNORECASE), ''),
-    # Repeated "sort of" / "kind of" (2+ in same segment)
+    (re.compile(r',\s*I mean,\s*', re.IGNORECASE), ', '),
+    # "Actually," at start
+    (re.compile(r'^actually,\s*', re.IGNORECASE), ''),
+
+    # === Filler phrases at end of segment ===
+    # "right?" / "right." at end
+    (re.compile(r'[,.]?\s*right[?.]\s*$', re.IGNORECASE), '.'),
+
+    # === Mid-sentence fillers (between commas or in natural positions) ===
+    # "like" as filler between commas
+    (re.compile(r',\s*like,\s*', re.IGNORECASE), ', '),
+    # "I would say" as hedging filler
+    (re.compile(r',?\s*I would say,?\s*', re.IGNORECASE), ' '),
+    # "basically" / "essentially" as filler
+    (re.compile(r',?\s*basically,?\s*', re.IGNORECASE), ' '),
+    (re.compile(r',?\s*essentially,?\s*', re.IGNORECASE), ' '),
+
+    # === Repeated phrases (2+ in same segment) ===
     (re.compile(r'(?:,?\s*sort of[,.]?\s*){2,}', re.IGNORECASE), ' sort of '),
     (re.compile(r'(?:,?\s*kind of[,.]?\s*){2,}', re.IGNORECASE), ' kind of '),
-    # Stutters: "I- I", "the- the", "we- we" etc.
-    (re.compile(r'\b(\w+)-\s*\1\b', re.IGNORECASE), r'\1'),
-    # "right" as filler (repeated or at boundaries)
     (re.compile(r'(?:,?\s*right[,?]?\s*){2,}', re.IGNORECASE), ' '),
-    # "so" repeated as filler
     (re.compile(r'(?:^|\.\s*)(?:so,?\s*){2,}', re.IGNORECASE), 'So, '),
-    # "basically" as filler
-    (re.compile(r',?\s*basically,?\s*', re.IGNORECASE), ' '),
-    # "actually" as pure filler (at start with comma)
-    (re.compile(r'^actually,\s*', re.IGNORECASE), ''),
+
+    # === Stutters: "I- I", "the- the", "we- we" etc. ===
+    (re.compile(r'\b(\w+)-\s*\1\b', re.IGNORECASE), r'\1'),
+    # Whisper triple repeats without hyphens: "in in in" → "in"
+    (re.compile(r'\b(\w+)\s+\1\s+\1\b', re.IGNORECASE), r'\1'),
+    # Double repeats: "was was" → "was" (but not intentional like "very very")
+    (re.compile(r'\b(I|the|a|an|to|is|was|we|it|that|this|and|but|or|so|in|on|of)\s+\1\b', re.IGNORECASE), r'\1'),
 ]
 
 # Post-cleanup patterns
