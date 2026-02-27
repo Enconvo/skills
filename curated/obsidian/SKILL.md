@@ -1,49 +1,35 @@
 ---
 name: obsidian
-description: Work with Obsidian vaults — create and edit Obsidian Flavored Markdown (.md) with wikilinks, embeds, callouts, and properties; build Bases (.base) with views, filters, and formulas; create JSON Canvas (.canvas) files with nodes and edges; interact with vaults via the Obsidian CLI; and extract clean markdown from web pages using Defuddle. Use when working with Obsidian notes, .base files, .canvas files, vault operations, or web content extraction.
+description: "Obsidian vault toolkit: create/edit Markdown notes with wikilinks, callouts, embeds, and properties; build Bases (.base) views with filters and formulas; create JSON Canvas (.canvas) mind maps and flowcharts; interact with vaults via the Obsidian CLI; extract clean markdown from web pages with Defuddle. Activates on: obsidian, vault, wikilink, callout, .base file, .canvas file, obsidian cli, obsidian note, obsidian markdown, daily note, defuddle, or any Obsidian-related request."
 ---
 
 # Obsidian Skills
 
-A comprehensive skill for working with Obsidian vaults. This skill covers Obsidian Flavored Markdown, Bases, JSON Canvas, the Obsidian CLI, and Defuddle for web content extraction.
+Comprehensive skill for working with Obsidian vaults — Markdown, Bases, Canvas, CLI, and web content extraction.
 
-## When to use
+## Decision Matrix
 
-Activate this skill when:
-- Creating or editing `.md` files with Obsidian-specific syntax (wikilinks, callouts, embeds, properties, tags)
-- Working with `.base` files (database views, filters, formulas, summaries)
-- Creating or editing `.canvas` files (visual canvases, mind maps, flowcharts)
-- Interacting with an Obsidian vault via the CLI (reading, creating, searching notes, plugin development)
-- Extracting clean content from web pages for use in Obsidian
+| Need | Reference |
+|------|-----------|
+| Create/edit `.md` notes with wikilinks, callouts, embeds, properties, tags | [Obsidian Markdown](references/obsidian-markdown.md) |
+| Build `.base` files with views, filters, formulas, summaries | [Obsidian Bases](references/obsidian-bases.md) |
+| Create `.canvas` files with nodes, edges, mind maps, flowcharts | [JSON Canvas](references/json-canvas.md) |
+| Read, create, search notes via CLI; plugin development; debugging | [Obsidian CLI](references/obsidian-cli.md) |
+| Extract clean markdown from web pages (remove ads/clutter) | [Defuddle](references/defuddle.md) |
 
-## Reference guides
+---
 
-Each area has a dedicated reference with full syntax and examples:
+## Obsidian Markdown Essentials
 
-- [Obsidian Flavored Markdown](references/obsidian-markdown.md) — Wikilinks, embeds, callouts, properties, tags, math, diagrams, and all Obsidian-specific Markdown syntax
-- [Obsidian Bases](references/obsidian-bases.md) — `.base` file format, views (table/cards/list/map), filters, formulas, functions, summaries
-- [JSON Canvas](references/json-canvas.md) — `.canvas` file format, nodes (text/file/link/group), edges, colors, layout
-- [Obsidian CLI](references/obsidian-cli.md) — CLI commands for vault interaction, note management, plugin development, and debugging
-- [Defuddle](references/defuddle.md) — Extract clean markdown from web pages, reducing clutter and saving tokens
-
-## Quick reference
-
-### Obsidian Markdown essentials
+### Wikilinks & Embeds
 
 ```markdown
 [[Note Name]]                    Wikilink
 [[Note Name|Display Text]]      Wikilink with alias
 [[Note Name#Heading]]            Link to heading
+[[Note Name#^block-id]]          Link to block
 ![[Note Name]]                   Embed note
 ![[image.png|300]]               Embed image with width
-
-> [!note] Title                  Callout
-> Content here.
-
-- [ ] Task item                  Task list
-- [x] Completed task
-
-%%hidden comment%%               Comment
 ```
 
 ### Frontmatter
@@ -53,10 +39,32 @@ Each area has a dedicated reference with full syntax and examples:
 title: My Note
 tags: [project, active]
 aliases: [Alt Name]
+cssclasses: [custom-class]
 ---
 ```
 
-### Bases quick start
+### Callouts
+
+```markdown
+> [!note] Title
+> Content here.
+
+> [!tip]- Foldable callout
+> Hidden until expanded.
+```
+
+Types: `note`, `abstract`, `info`, `todo`, `tip`, `success`, `question`, `warning`, `failure`, `danger`, `bug`, `example`, `quote`
+
+### Tasks
+
+```markdown
+- [ ] Incomplete task
+- [x] Completed task
+```
+
+---
+
+## Bases Quick Start
 
 ```yaml
 # my-view.base
@@ -71,28 +79,45 @@ views:
     order: [file.name, status, formula.days_old]
 ```
 
-### Canvas quick start
+View types: `table`, `cards`, `list`, `map`
+
+---
+
+## Canvas Quick Start
 
 ```json
 {
   "nodes": [
-    {"id": "abc123", "type": "text", "x": 0, "y": 0, "width": 300, "height": 150, "text": "# Node"}
+    {"id": "abc123def4567890", "type": "text", "x": 0, "y": 0, "width": 300, "height": 150, "text": "# Node"}
   ],
   "edges": []
 }
 ```
 
-### CLI quick start
+Node types: `text`, `file`, `link`, `group`. IDs are 16-char hex strings.
+
+---
+
+## CLI Quick Start
 
 ```bash
 obsidian read file="My Note"
 obsidian create name="New Note" content="# Hello"
 obsidian search query="search term"
 obsidian daily:append content="- [ ] New task"
+obsidian property:set name="status" value="done" file="My Note"
+obsidian plugin:reload id=my-plugin
 ```
 
-### Defuddle quick start
+Run `obsidian help` for all commands. Use `silent` to prevent files from opening.
+
+---
+
+## Defuddle Quick Start
 
 ```bash
 defuddle parse <url> --md
+defuddle parse <url> --md -o content.md
 ```
+
+If not installed: `npm install -g defuddle-cli`
