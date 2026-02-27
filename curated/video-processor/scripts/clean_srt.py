@@ -12,11 +12,21 @@ import re
 # Filler patterns (case-insensitive)
 # Each tuple: (compiled regex, replacement)
 FILLER_PATTERNS = [
-    # Repeated "you know" (2+ occurrences in same segment)
-    (re.compile(r'(?:,?\s*you know[,.]?\s*){2,}', re.IGNORECASE), ' '),
-    # "you know" at start/end of segment
+    # Repeated "you know" (2+ occurrences in same segment, with or without commas)
+    (re.compile(r'(?:[,.]?\s*you know[,.]?\s*){2,}', re.IGNORECASE), ' '),
+    # "you know" at start of segment (with or without comma/period after)
     (re.compile(r'^you know[,.]?\s*', re.IGNORECASE), ''),
+    # "you know" at end of segment
     (re.compile(r'[,.]?\s*you know[.]?\s*$', re.IGNORECASE), ''),
+    # "you know" between commas
+    (re.compile(r',\s*you know,\s*', re.IGNORECASE), ', '),
+    # "you know" after sentence-ending punctuation (". You know," or ". You know ")
+    (re.compile(r'([.!?])\s*you know[,.]?\s*', re.IGNORECASE), r'\1 '),
+    # "you know" as filler mid-sentence (no commas — common in raw Whisper output)
+    # Matches " you know " surrounded by word characters
+    (re.compile(r'(?<=\w)\s+you know\s+(?=\w)', re.IGNORECASE), ' '),
+    # "And you know" / "and you know" at transitions
+    (re.compile(r'\band you know[,.]?\s*', re.IGNORECASE), 'and '),
     # Standalone filler words (with surrounding punctuation/spaces)
     (re.compile(r'\b(?:um|uh|uhm|umm|hmm|hm|er|erm)\b[,.]?\s*', re.IGNORECASE), ''),
     # "like" as filler (between commas, or at start)
@@ -37,8 +47,6 @@ FILLER_PATTERNS = [
     (re.compile(r',?\s*basically,?\s*', re.IGNORECASE), ' '),
     # "actually" as pure filler (at start with comma)
     (re.compile(r'^actually,\s*', re.IGNORECASE), ''),
-    # Remaining isolated "you know" in middle (single occurrence, between commas)
-    (re.compile(r',\s*you know,\s*', re.IGNORECASE), ', '),
 ]
 
 # Post-cleanup patterns
