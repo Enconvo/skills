@@ -27,6 +27,13 @@ If Obsidian was just launched, wait a few seconds for it to initialize before ru
 obsidian version
 ```
 
+If the command returns:
+> `Command line interface is not enabled. Please turn it on in Settings > General > Advanced.`
+
+Tell the user: **Please open Obsidian, go to Settings → General → Advanced, and enable "Command line interface". Then try again.**
+
+Do NOT attempt to enable it programmatically — this must be done manually by the user in the Obsidian app.
+
 If the command is not found, guide the user through setup:
 
 1. **Requires Obsidian installer 1.12+** — update Obsidian to the latest version.
