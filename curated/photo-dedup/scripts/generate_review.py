@@ -231,27 +231,27 @@ function upd() {
   document.getElementById('del-cnt').textContent = delCount;
   const btn = document.getElementById('save-btn');
   btn.disabled = n === 0 || delCount === 0;
-  btn.textContent = delCount > 0
-    ? '\\ud83d\\uddd1\\ufe0f \\u5220\\u9664\\u91cd\\u590d\\u6587\\u4ef6 (' + delCount + ')'
-    : '\\ud83d\\uddd1\\ufe0f \\u5220\\u9664\\u91cd\\u590d\\u6587\\u4ef6';
+  btn.textContent = n > 0
+    ? 'Keep Selected (' + n + ')'
+    : 'Keep Selected';
 }
 
 function save() {
   if (sel.size === 0) return;
   const toDelete = getDeleteList();
-  if (toDelete.length === 0) { toast('\\u6ca1\\u6709\\u9700\\u8981\\u5220\\u9664\\u7684\\u91cd\\u590d\\u6587\\u4ef6'); return; }
+  if (toDelete.length === 0) { toast('No duplicates to remove'); return; }
 
   const ok = confirm(
-    '\\u786e\\u8ba4\\u5220\\u9664 ' + toDelete.length + ' \\u4e2a\\u91cd\\u590d\\u6587\\u4ef6\\uff1f\\n\\n' +
-    '\\u4fdd\\u7559: ' + sel.size + ' \\u5f20\\u7167\\u7247\\n' +
-    '\\u5220\\u9664: ' + toDelete.length + ' \\u4e2a\\u91cd\\u590d\\u6587\\u4ef6\\n\\n' +
-    '\\u26a0\\ufe0f \\u6b64\\u64cd\\u4f5c\\u4e0d\\u53ef\\u64a4\\u9500\\uff01'
+    'Remove ' + toDelete.length + ' duplicate files?\\n\\n' +
+    'Keep: ' + sel.size + ' photos\\n' +
+    'Remove: ' + toDelete.length + ' duplicates\\n\\n' +
+    '\\u26a0\\ufe0f This action cannot be undone!'
   );
   if (!ok) return;
 
   const btn = document.getElementById('save-btn');
   btn.disabled = true;
-  btn.textContent = '\\u5220\\u9664\\u4e2d...';
+  btn.textContent = 'Removing...';
 
   fetch('http://localhost:54535/command/call/enconvo/delete_files', {
     method: 'POST',
@@ -280,14 +280,14 @@ function save() {
     });
 
     if (fail > 0) {
-      toast('\\u2705 \\u5df2\\u5220\\u9664 ' + ok + ' \\u4e2a\\u6587\\u4ef6\\uff0c' + fail + ' \\u4e2a\\u5931\\u8d25');
+      toast('\\u2705 Removed ' + ok + ' files, ' + fail + ' failed');
     } else {
-      toast('\\u2705 \\u5df2\\u6210\\u529f\\u5220\\u9664 ' + ok + ' \\u4e2a\\u91cd\\u590d\\u6587\\u4ef6');
+      toast('\\u2705 Successfully removed ' + ok + ' duplicates');
     }
     upd();
   })
   .catch(err => {
-    toast('\\u274c \\u5220\\u9664\\u5931\\u8d25: ' + err.message);
+    toast('\\u274c Failed to remove: ' + err.message);
     btn.disabled = false;
     upd();
   });
@@ -407,7 +407,7 @@ def build_html(data, source_dir, output_dir):
 
     # Assemble full HTML
     html = f'''<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -431,15 +431,15 @@ def build_html(data, source_dir, output_dir):
 
 <div class="tb">
   <div class="wrap tb-inner">
-    <span class="sel-count">保留: <strong id="cnt">0</strong> · 删除: <strong id="del-cnt">0</strong></span>
+    <span class="sel-count">Keep: <strong id="cnt">0</strong> · Remove: <strong id="del-cnt">0</strong></span>
     <button class="btn btn-o" onclick="best()">Auto-select best</button>
     <button class="btn btn-o" onclick="clearAll()">Clear</button>
-    <button class="btn btn-p" id="save-btn" onclick="save()" disabled>🗑️ 删除重复文件</button>
+    <button class="btn btn-p" id="save-btn" onclick="save()" disabled>Keep Selected</button>
   </div>
 </div>
 
 <main class="wrap">
-  <p class="hint">💡 点击选择要保留的照片 · 点击 🔍 预览 · 已自动选择最佳质量 · 未选中的重复文件将被删除</p>
+  <p class="hint">💡 Click to select photos to keep · Click 🔍 to preview · Best quality auto-selected · Unselected duplicates will be removed</p>
   {groups_html}
 </main>
 
