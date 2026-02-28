@@ -44,7 +44,7 @@ When the user invokes this skill:
    python3 ~/.claude/skills/photo-dedup/scripts/dedup.py <source_folder> --preview [--threshold N]
    ```
 4. **Report results** to the user (total, unique, duplicates)
-5. **User reviews in browser** — they see all duplicate groups, click to select photos to keep, then click "删除重复文件" button
+5. **User reviews in browser** — they see all duplicate groups, click to select photos to keep, then click "Keep Selected" button
 6. **Browser confirms** — a confirmation dialog warns the user that unselected duplicates will be deleted
 7. **Auto-delete** — the browser calls the Enconvo API (`http://localhost:54535/command/call/enconvo/delete_files`) to delete unselected duplicate files directly
 
