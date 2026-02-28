@@ -179,6 +179,9 @@ main { padding: 20px 0 80px; }
 JS = """
 const CFG = __CFG__;
 const sel = new Set();
+const allPaths = new Set();
+
+document.querySelectorAll('.card').forEach(c => allPaths.add(c.dataset.path));
 
 function toggle(el) {
   const p = el.dataset.path;
@@ -215,36 +218,79 @@ function selGroup(gi) {
   upd();
 }
 
+function getDeleteList() {
+  const toDelete = [];
+  allPaths.forEach(p => { if (!sel.has(p)) toDelete.push(p); });
+  return toDelete;
+}
+
 function upd() {
   const n = sel.size;
+  const delCount = getDeleteList().length;
   document.getElementById('cnt').textContent = n;
+  document.getElementById('del-cnt').textContent = delCount;
   const btn = document.getElementById('save-btn');
-  btn.disabled = n === 0;
-  btn.textContent = n > 0 ? '\\ud83d\\udcbe \\u4fdd\\u5b58\\u5df2\\u9009 (' + n + ')' : '\\ud83d\\udcbe \\u4fdd\\u5b58\\u5df2\\u9009';
+  btn.disabled = n === 0 || delCount === 0;
+  btn.textContent = delCount > 0
+    ? '\\ud83d\\uddd1\\ufe0f \\u5220\\u9664\\u91cd\\u590d\\u6587\\u4ef6 (' + delCount + ')'
+    : '\\ud83d\\uddd1\\ufe0f \\u5220\\u9664\\u91cd\\u590d\\u6587\\u4ef6';
 }
 
 function save() {
   if (sel.size === 0) return;
-  const dir = CFG.output_dir.replace(/^~/, '$HOME');
-  let sh = '#!/bin/bash\\n';
-  sh += '# Photo Dedup — copy selected photos\\n';
-  sh += '# \\u7167\\u7247\\u7cbe\\u9009 \\u2014 \\u590d\\u5236\\u9009\\u4e2d\\u7684\\u7167\\u7247\\n\\n';
-  sh += 'OUT="' + dir + '"\\n';
-  sh += 'mkdir -p "$OUT"\\n\\n';
-  sh += 'echo "Copying ' + sel.size + ' photos to $OUT..."\\n\\n';
-  sel.forEach(p => {
-    sh += "cp -n '" + p.replace(/'/g, "'\\\\''") + "' \\"$OUT/\\"\\n";
-  });
-  sh += '\\necho ""\\n';
-  sh += 'echo "\\u2705 Done! ' + sel.size + ' photos saved to $OUT"\\n';
-  sh += 'open "$OUT" 2>/dev/null\\n';
+  const toDelete = getDeleteList();
+  if (toDelete.length === 0) { toast('\\u6ca1\\u6709\\u9700\\u8981\\u5220\\u9664\\u7684\\u91cd\\u590d\\u6587\\u4ef6'); return; }
 
-  const blob = new Blob([sh], {type: 'text/x-shellscript'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'copy_photos.sh';
-  a.click();
-  toast('\\u2705 \\u5df2\\u4e0b\\u8f7d copy_photos.sh \\u2014 \\u5728\\u7ec8\\u7aef\\u8fd0\\u884c: bash ~/Downloads/copy_photos.sh');
+  const ok = confirm(
+    '\\u786e\\u8ba4\\u5220\\u9664 ' + toDelete.length + ' \\u4e2a\\u91cd\\u590d\\u6587\\u4ef6\\uff1f\\n\\n' +
+    '\\u4fdd\\u7559: ' + sel.size + ' \\u5f20\\u7167\\u7247\\n' +
+    '\\u5220\\u9664: ' + toDelete.length + ' \\u4e2a\\u91cd\\u590d\\u6587\\u4ef6\\n\\n' +
+    '\\u26a0\\ufe0f \\u6b64\\u64cd\\u4f5c\\u4e0d\\u53ef\\u64a4\\u9500\\uff01'
+  );
+  if (!ok) return;
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = '\\u5220\\u9664\\u4e2d...';
+
+  fetch('http://localhost:54535/command/call/enconvo/delete_files', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filePaths: toDelete })
+  })
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(data => {
+    const results = data.data || [];
+    const ok = results.filter(r => r.success).length;
+    const fail = results.filter(r => !r.success).length;
+
+    // Remove deleted cards from page
+    toDelete.forEach(p => {
+      const card = document.querySelector('.card[data-path="' + CSS.escape(p) + '"]');
+      if (card) card.remove();
+      allPaths.delete(p);
+    });
+
+    // Remove empty groups
+    document.querySelectorAll('.group').forEach(g => {
+      if (g.querySelectorAll('.card').length === 0) g.remove();
+    });
+
+    if (fail > 0) {
+      toast('\\u2705 \\u5df2\\u5220\\u9664 ' + ok + ' \\u4e2a\\u6587\\u4ef6\\uff0c' + fail + ' \\u4e2a\\u5931\\u8d25');
+    } else {
+      toast('\\u2705 \\u5df2\\u6210\\u529f\\u5220\\u9664 ' + ok + ' \\u4e2a\\u91cd\\u590d\\u6587\\u4ef6');
+    }
+    upd();
+  })
+  .catch(err => {
+    toast('\\u274c \\u5220\\u9664\\u5931\\u8d25: ' + err.message);
+    btn.disabled = false;
+    upd();
+  });
 }
 
 function toast(msg) {
@@ -385,15 +431,15 @@ def build_html(data, source_dir, output_dir):
 
 <div class="tb">
   <div class="wrap tb-inner">
-    <span class="sel-count">Selected: <strong id="cnt">0</strong></span>
+    <span class="sel-count">保留: <strong id="cnt">0</strong> · 删除: <strong id="del-cnt">0</strong></span>
     <button class="btn btn-o" onclick="best()">Auto-select best</button>
     <button class="btn btn-o" onclick="clearAll()">Clear</button>
-    <button class="btn btn-p" id="save-btn" onclick="save()" disabled>💾 Save selected</button>
+    <button class="btn btn-p" id="save-btn" onclick="save()" disabled>🗑️ 删除重复文件</button>
   </div>
 </div>
 
 <main class="wrap">
-  <p class="hint">💡 Click to select · Click 🔍 to preview · Best quality auto-selected</p>
+  <p class="hint">💡 点击选择要保留的照片 · 点击 🔍 预览 · 已自动选择最佳质量 · 未选中的重复文件将被删除</p>
   {groups_html}
 </main>
 

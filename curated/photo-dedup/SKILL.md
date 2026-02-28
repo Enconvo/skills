@@ -44,26 +44,23 @@ When the user invokes this skill:
    python3 ~/.claude/skills/photo-dedup/scripts/dedup.py <source_folder> --preview [--threshold N]
    ```
 4. **Report results** to the user (total, unique, duplicates)
-5. **User reviews in browser** — they see all duplicate groups, click to select photos, then click "Save selected" to download a `copy_photos.sh` script
-6. **Run the save script** for the user:
-   ```bash
-   bash ~/Downloads/copy_photos.sh
-   ```
-7. **Tell the user** where the selected photos are saved (default: `~/Desktop/photo_picks/`)
+5. **User reviews in browser** — they see all duplicate groups, click to select photos to keep, then click "删除重复文件" button
+6. **Browser confirms** — a confirmation dialog warns the user that unselected duplicates will be deleted
+7. **Auto-delete** — the browser calls the Enconvo API (`http://localhost:54535/command/call/enconvo/delete_files`) to delete unselected duplicate files directly
 
-No server needed. The HTML file is self-contained — works offline, opens instantly.
+No server needed for the review page. The HTML file is self-contained — works offline, opens instantly. File deletion is handled via the Enconvo local API.
 
 ## Output Structure
 
 ```
-~/Desktop/photo_picks/         ← Selected photos (copies, originals untouched)
 <source>/photo_dedup.html      ← Review page (open in browser)
 /tmp/dedup_report_*.json       ← Scan report
 ```
 
 ## Important Notes
 
-- **Non-destructive** — Original photos are NEVER moved or deleted
+- **Destructive** — Unselected duplicate photos will be permanently deleted after user confirmation
+- **Best quality auto-selected** — The largest file in each group is auto-selected for keeping
 - **Supported formats** — JPG, JPEG, PNG, HEIC, WEBP, TIFF, BMP
 - **Performance** — Handles 500+ photos in under a minute
-- **No server** — Everything runs locally as static HTML
+- **No server** — Review page runs as static HTML, deletion via Enconvo local API
