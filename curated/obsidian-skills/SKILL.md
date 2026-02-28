@@ -1,5 +1,5 @@
 ---
-name: obsidian
+name: obsidian-skills
 description: "Obsidian vault toolkit: interact with vaults via Obsidian CLI (read, create, search, daily notes, properties, tasks, plugins); create/edit Markdown notes with wikilinks, callouts, embeds, and properties; build Bases (.base) views with filters and formulas; create JSON Canvas (.canvas) mind maps and flowcharts; extract clean markdown from web pages with Defuddle. Activates on: obsidian, vault, wikilink, callout, .base file, .canvas file, obsidian cli, obsidian note, obsidian markdown, daily note, defuddle, or any Obsidian-related request."
 ---
 
