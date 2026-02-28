@@ -9,7 +9,19 @@ Comprehensive skill for working with Obsidian vaults — CLI interaction, Markdo
 
 ## Prerequisites — Obsidian CLI
 
-Before running any `obsidian` CLI command, verify the CLI is available:
+Before running any `obsidian` CLI command:
+
+### 1. Ensure Obsidian is running
+
+The CLI **requires** the Obsidian app to be open. Check and launch if needed:
+
+```bash
+pgrep -x Obsidian > /dev/null || open -a Obsidian
+```
+
+If Obsidian was just launched, wait a few seconds for it to initialize before running CLI commands.
+
+### 2. Verify the CLI is available
 
 ```bash
 obsidian version
@@ -17,10 +29,9 @@ obsidian version
 
 If the command is not found, guide the user through setup:
 
-1. **Obsidian must be running** — the CLI connects to the running Obsidian app.
-2. **Requires Obsidian installer 1.12+** — update Obsidian to the latest version.
-3. **Enable CLI in Obsidian**: Go to **Settings → General → Command line interface** and follow the prompt to register.
-4. **Restart the terminal** after registration for PATH changes to take effect.
+1. **Requires Obsidian installer 1.12+** — update Obsidian to the latest version.
+2. **Enable CLI in Obsidian**: Go to **Settings → General → Command line interface** and follow the prompt to register.
+3. **Restart the terminal** after registration for PATH changes to take effect.
 
 **macOS**: Ensure `~/.zprofile` contains:
 ```bash
