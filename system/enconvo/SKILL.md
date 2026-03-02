@@ -92,15 +92,19 @@ Returns the provider's stored credential values:
 
 ### Request User to Fill Credentials
 
-When credentials are missing or invalid, prompt the user to fill them via a UI page:
+When credentials are missing or invalid, prompt the user to fill them via a UI dialog:
 
 ```bash
 curl -X POST "http://localhost:54535/command/call/credentials/request_user_fill_credentials" \
   -H "Content-Type: application/json" \
-  -d '{"providerName": "anthropic"}'
+  -d '{"providerName": "anthropic", "conversationId": "current-conversation-id"}'
 ```
 
-This opens a credential configuration page in Enconvo for the user to enter their API key or complete OAuth. Wait for the user to finish filling in credentials before continuing the workflow.
+Parameters:
+- `providerName` (required) - The credentials provider name (e.g., `open_ai`, `anthropic`)
+- `conversationId` (required) - The current conversation ID, used to route the UI event
+
+This opens a credential configuration dialog in Enconvo for the user to enter their API key or complete OAuth. The response returns the user's action result (confirm or cancel). Wait for the user to finish filling in credentials before continuing the workflow.
 
 ### Common Providers
 
