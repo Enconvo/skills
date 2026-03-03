@@ -16,7 +16,7 @@ Before running any `obsidian` CLI command:
 The CLI **requires** the Obsidian app to be open. Check and launch if needed:
 
 ```bash
-pgrep -x Obsidian > /dev/null || { open -a Obsidian && sleep 2; }
+obsidian &>/dev/null & sleep 2
 ```
 
 ### 2. Verify the CLI is available
