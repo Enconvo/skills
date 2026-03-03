@@ -23,14 +23,14 @@ Take screenshots via Enconvo's screenshot API. All screenshot endpoints return t
 
 Lets the user freely select an area on screen to capture.
 
-**Endpoint:** `POST http://localhost:54535/command/call/screen_shot_action/screenshot`
+**Endpoint:** `POST http://localhost:54535/screen_shot_action/screenshot`
 
 **Parameters:** None required.
 
 **Example:**
 
 ```bash
-curl -X POST http://localhost:54535/command/call/screen_shot_action/screenshot \
+curl -X POST http://localhost:54535/screen_shot_action/screenshot \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -39,14 +39,14 @@ curl -X POST http://localhost:54535/command/call/screen_shot_action/screenshot \
 
 Captures a full screenshot of the currently active screen display.
 
-**Endpoint:** `POST http://localhost:54535/command/call/screen_shot_action/screenshot_current_screen`
+**Endpoint:** `POST http://localhost:54535/screen_shot_action/screenshot_current_screen`
 
 **Parameters:** None required.
 
 **Example:**
 
 ```bash
-curl -X POST http://localhost:54535/command/call/screen_shot_action/screenshot_current_screen \
+curl -X POST http://localhost:54535/screen_shot_action/screenshot_current_screen \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -55,7 +55,7 @@ curl -X POST http://localhost:54535/command/call/screen_shot_action/screenshot_c
 
 Captures a screenshot of the currently active (frontmost) application window.
 
-**Endpoint:** `POST http://localhost:54535/command/call/screen_shot_action/screenshot_frontmost_app`
+**Endpoint:** `POST http://localhost:54535/screen_shot_action/screenshot_frontmost_app`
 
 **Parameters:**
 
@@ -67,12 +67,12 @@ Captures a screenshot of the currently active (frontmost) application window.
 
 ```bash
 # Capture visible area only
-curl -X POST http://localhost:54535/command/call/screen_shot_action/screenshot_frontmost_app \
+curl -X POST http://localhost:54535/screen_shot_action/screenshot_frontmost_app \
   -H "Content-Type: application/json" \
   -d '{}'
 
 # Capture full scrollable content
-curl -X POST http://localhost:54535/command/call/screen_shot_action/screenshot_frontmost_app \
+curl -X POST http://localhost:54535/screen_shot_action/screenshot_frontmost_app \
   -H "Content-Type: application/json" \
   -d '{"capture_full_content": true}'
 ```
@@ -81,14 +81,14 @@ curl -X POST http://localhost:54535/command/call/screen_shot_action/screenshot_f
 
 Lets the user click on a window to capture it.
 
-**Endpoint:** `POST http://localhost:54535/command/call/screen_shot_action/user_select_window_screenshot`
+**Endpoint:** `POST http://localhost:54535/screen_shot_action/user_select_window_screenshot`
 
 **Parameters:** None required.
 
 **Example:**
 
 ```bash
-curl -X POST http://localhost:54535/command/call/screen_shot_action/user_select_window_screenshot \
+curl -X POST http://localhost:54535/screen_shot_action/user_select_window_screenshot \
   -H "Content-Type: application/json" \
   -d '{}'
 ```

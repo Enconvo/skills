@@ -46,7 +46,7 @@ When the user invokes this skill:
 4. **Report results** to the user (total, unique, duplicates)
 5. **User reviews in browser** — they see all duplicate groups, click to select photos to keep, then click "Keep Selected" button
 6. **Browser confirms** — a confirmation dialog warns the user that unselected duplicates will be deleted
-7. **Auto-delete** — the browser calls the Enconvo API (`http://localhost:54535/command/call/enconvo/delete_files`) to delete unselected duplicate files directly
+7. **Auto-delete** — the browser calls the Enconvo API (`http://localhost:54535/enconvo/delete_files`) to delete unselected duplicate files directly
 
 No server needed for the review page. The HTML file is self-contained — works offline, opens instantly. File deletion is handled via the Enconvo local API.
 

@@ -14,6 +14,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+DEFAULT_SKILLS_DIR = os.path.join(os.path.expanduser("~"), ".enconvo", "skills")
 CLAWDHUB_INSTALL_DIR = os.path.expanduser("~/.agents")
 
 # npm package names for CLI dependencies
@@ -22,8 +23,8 @@ _CLI_PACKAGES = {
     "clawdhub": "clawdhub",
 }
 
-API_INSTALL = "http://localhost:54535/command/call/skills_manager/api_install_skill"
-API_LIST = "http://localhost:54535/command/call/skills_manager/api_skills_list"
+API_INSTALL = "http://localhost:54535/skills_manager/api_install_skill"
+API_LIST = "http://localhost:54535/skills_manager/api_skills_list"
 
 
 class InstallError(Exception):
@@ -61,6 +62,7 @@ class Args(argparse.Namespace):
     url: str | None
     slug: str | None
     skills_slug: str | None
+    skills_dir: str
 
 
 def _request(api_url: str) -> bytes:
@@ -89,12 +91,14 @@ def _find_skill_in_store(skill_name: str) -> dict | None:
     return None
 
 
-def _install_from_store(skill_name: str, download_url: str) -> dict:
+def _install_from_store(skill_name: str, download_url: str, skills_dir: str | None = None) -> dict:
     """Install via skillName + downloadUrl."""
     params = {
         "skillName": skill_name,
         "downloadUrl": download_url,
     }
+    if skills_dir:
+        params["skillsDir"] = skills_dir
     url = API_INSTALL + "?" + urllib.parse.urlencode(params)
     try:
         payload = _request(url)
@@ -107,9 +111,11 @@ def _install_from_store(skill_name: str, download_url: str) -> dict:
     return json.loads(payload.decode("utf-8"))
 
 
-def _install_from_github(github_url: str) -> dict:
+def _install_from_github(github_url: str, skills_dir: str | None = None) -> dict:
     """Install via githubUrl."""
     params = {"githubUrl": github_url}
+    if skills_dir:
+        params["skillsDir"] = skills_dir
     url = API_INSTALL + "?" + urllib.parse.urlencode(params)
     try:
         payload = _request(url)
@@ -270,6 +276,12 @@ def _parse_args(argv: list[str]) -> Args:
         default=None,
         help="ClawHub skill slug to install directly from ClawHub",
     )
+    parser.add_argument(
+        "--skills-dir",
+        default=DEFAULT_SKILLS_DIR,
+        dest="skills_dir",
+        help=f"Skills installation directory (default: {DEFAULT_SKILLS_DIR})",
+    )
     return parser.parse_args(argv, namespace=Args())
 
 
@@ -277,9 +289,11 @@ def main(argv: list[str]) -> int:
     args = _parse_args(argv)
 
     try:
+        skills_dir = args.skills_dir
+
         # Mode 1: --url (GitHub URL) -> install via githubUrl
         if args.url:
-            result = _install_from_github(args.url)
+            result = _install_from_github(args.url, skills_dir=skills_dir)
             if result.get("success"):
                 print(f"Installed skill from {args.url} successfully.")
             else:
@@ -310,7 +324,7 @@ def main(argv: list[str]) -> int:
                     raise InstallError(
                         f"No download URL found for skill '{args.name}'."
                     )
-                result = _install_from_store(args.name, download_url)
+                result = _install_from_store(args.name, download_url, skills_dir=skills_dir)
                 if result.get("success"):
                     print(f"Installed {args.name} successfully from Enconvo store.")
                 else:

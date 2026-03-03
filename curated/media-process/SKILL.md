@@ -64,7 +64,7 @@ After capturing, use the **Read** tool (file read) to view the image content.
 
 ### Image Compression
 
-**Endpoint:** `POST http://localhost:54535/command/call/compress_image/image_compress`
+**Endpoint:** `POST http://localhost:54535/compress_image/image_compress`
 
 **Parameters:**
 
@@ -79,7 +79,7 @@ After capturing, use the **Read** tool (file read) to view the image content.
 **Example:**
 
 ```bash
-curl -X POST http://localhost:54535/command/call/compress_image/image_compress \
+curl -X POST http://localhost:54535/compress_image/image_compress \
   -H "Content-Type: application/json" \
   -d '{
     "image_files": ["/path/to/image.png"],
@@ -95,7 +95,7 @@ curl -X POST http://localhost:54535/command/call/compress_image/image_compress \
 
 ### Video Compress
 
-**Endpoint:** `POST http://localhost:54535/command/call/video_utils/compress_video`
+**Endpoint:** `POST http://localhost:54535/video_utils/compress_video`
 
 **Parameters:**
 
@@ -110,7 +110,7 @@ curl -X POST http://localhost:54535/command/call/compress_image/image_compress \
 **Example:**
 
 ```bash
-curl -X POST http://localhost:54535/command/call/video_utils/compress_video \
+curl -X POST http://localhost:54535/video_utils/compress_video \
   -H "Content-Type: application/json" \
   -d '{
     "video_files": ["/path/to/video.mp4"],
@@ -122,7 +122,7 @@ curl -X POST http://localhost:54535/command/call/video_utils/compress_video \
 
 ### Extract Audio from Video
 
-**Endpoint:** `POST http://localhost:54535/command/call/video_utils/extract_audio`
+**Endpoint:** `POST http://localhost:54535/video_utils/extract_audio`
 
 **Parameters:**
 
@@ -135,7 +135,7 @@ curl -X POST http://localhost:54535/command/call/video_utils/compress_video \
 **Example:**
 
 ```bash
-curl -X POST http://localhost:54535/command/call/video_utils/extract_audio \
+curl -X POST http://localhost:54535/video_utils/extract_audio \
   -H "Content-Type: application/json" \
   -d '{
     "video_files": ["/path/to/video.mp4"],
@@ -147,7 +147,7 @@ curl -X POST http://localhost:54535/command/call/video_utils/extract_audio \
 
 Download videos or audio from YouTube, TikTok, Instagram, Reddit, Twitter, Vimeo, etc.
 
-**Endpoint:** `POST http://localhost:54535/command/call/video_utils/online_video_or_audio_downloader`
+**Endpoint:** `POST http://localhost:54535/video_utils/online_video_or_audio_downloader`
 
 This command delegates to `youtube|youtube_video_downloader` internally. Pass the URL as needed.
 
@@ -181,7 +181,7 @@ ffmpeg -i video.mp4 -i audio.mp3 -c:v copy -c:a aac output.mp4
 
 ### Audio Compress
 
-**Endpoint:** `POST http://localhost:54535/command/call/audio_utils/compress_audio`
+**Endpoint:** `POST http://localhost:54535/audio_utils/compress_audio`
 
 **Parameters:**
 
@@ -196,7 +196,7 @@ ffmpeg -i video.mp4 -i audio.mp3 -c:v copy -c:a aac output.mp4
 **Example:**
 
 ```bash
-curl -X POST http://localhost:54535/command/call/audio_utils/compress_audio \
+curl -X POST http://localhost:54535/audio_utils/compress_audio \
   -H "Content-Type: application/json" \
   -d '{
     "audio_files": ["/path/to/audio.mp3"],
@@ -233,7 +233,7 @@ ffmpeg -i input.mp3 -b:a 128k output.mp3
 
 Transcribe audio or video files to text.
 
-**Endpoint:** `POST http://localhost:54535/command/call/transcribe/transcribe_audio_video`
+**Endpoint:** `POST http://localhost:54535/transcribe/transcribe_audio_video`
 
 **Parameters:**
 
@@ -252,7 +252,7 @@ Transcribe audio or video files to text.
 
 ```bash
 # Transcribe to plain text
-curl -X POST http://localhost:54535/command/call/transcribe/transcribe_audio_video \
+curl -X POST http://localhost:54535/transcribe/transcribe_audio_video \
   -H "Content-Type: application/json" \
   -d '{
     "audio_files": ["/path/to/audio.mp3"],
@@ -260,7 +260,7 @@ curl -X POST http://localhost:54535/command/call/transcribe/transcribe_audio_vid
   }'
 
 # Transcribe to file
-curl -X POST http://localhost:54535/command/call/transcribe/transcribe_audio_video \
+curl -X POST http://localhost:54535/transcribe/transcribe_audio_video \
   -H "Content-Type: application/json" \
   -d '{
     "audio_files": ["/path/to/video.mp4"],

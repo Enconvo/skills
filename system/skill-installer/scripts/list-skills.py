@@ -14,7 +14,7 @@ import urllib.parse
 import urllib.request
 
 
-API_BASE = "http://localhost:54535/command/call/skills_manager/api_skills_list"
+API_BASE = "http://localhost:54535/skills_manager/api_skills_list"
 
 # npm package names for CLI dependencies
 _CLI_PACKAGES = {

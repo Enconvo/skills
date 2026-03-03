@@ -75,16 +75,19 @@ All of these scripts use network, so when running in the sandbox, request escala
 - `scripts/install-skill.py --url <github-url>` (install from GitHub, name derived from URL)
 - `scripts/install-skill.py --skills-slug <owner/repo@skill>` (install directly from Skills.sh)
 - `scripts/install-skill.py --slug <clawdhub-slug>` (install directly from ClawHub)
+- `scripts/install-skill.py --skills-dir <path>` (custom skills installation directory, default: ~/.enconvo/skills)
 - `scripts/uninstall-skill.py --name <skill-name>`
+- `scripts/uninstall-skill.py --skills-dir <path>` (custom skills directory)
+- `scripts/installed-skills.py --skills-dir <path>` (custom skills directory)
 
 ## API Details
 
 The scripts use the Enconvo skills manager API:
-- List skills: `http://localhost:54535/command/call/skills_manager/api_skills_list?search=<keyword>`
-- Install skill from store: `http://localhost:54535/command/call/skills_manager/api_install_skill?skillName=<name>&downloadUrl=<url>`
-- Install skill from github: `http://localhost:54535/command/call/skills_manager/api_install_skill&githubUrl=<url>`
-- Installed skills: `http://localhost:54535/command/call/skills_manager/get_all_installed_skills`
-- Uninstall skill: `http://localhost:54535/command/call/skills_manager/api_uninstall_skill?skillName=<name>`
+- List skills: `http://localhost:54535/skills_manager/api_skills_list?search=<keyword>`
+- Install skill from store: `http://localhost:54535/skills_manager/api_install_skill?skillName=<name>&downloadUrl=<url>&skillsDir=<path>`
+- Install skill from github: `http://localhost:54535/skills_manager/api_install_skill?githubUrl=<url>&skillsDir=<path>`
+- Installed skills: `http://localhost:54535/skills_manager/get_all_installed_skills`
+- Uninstall skill: `http://localhost:54535/skills_manager/api_uninstall_skill?skillName=<name>`
 
 Skills.sh CLI (second fallback):
 - Search: `skills find <query>`
@@ -105,7 +108,7 @@ ClawHub CLI (third fallback):
 - When installing by ClawHub slug (`--slug`), the skill is installed directly from ClawHub.
 - When installing by URL (`--url`), the skill name is derived automatically from the URL.
 - GitHub URLs support both full repo (`https://github.com/owner/repo`) and subdirectory (`https://github.com/owner/repo/tree/branch/path/to/skill`).
-- Skills are installed into `~/.agents/skills` via the Enconvo skills manager service, Skills.sh CLI, or ClawHub CLI.
+- Skills are installed into `~/.enconvo/skills` by default (configurable via `--skills-dir`) via the Enconvo skills manager service, Skills.sh CLI, or ClawHub CLI.
 - ClawHub CLI installs to `<cwd>/skills/<slug>` by default. The installer sets `cwd=~/.agents` to ensure skills land in `~/.agents/skills/<slug>`.
 
 ## Notes

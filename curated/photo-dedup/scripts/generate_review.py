@@ -253,7 +253,7 @@ function save() {
   btn.disabled = true;
   btn.textContent = 'Removing...';
 
-  fetch('http://localhost:54535/command/call/enconvo/delete_files', {
+  fetch('http://localhost:54535/enconvo/delete_files', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ filePaths: toDelete })

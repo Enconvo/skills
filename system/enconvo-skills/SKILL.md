@@ -17,23 +17,23 @@ To call a command via HTTP, replace `|` with `/`:
 
 ```
 commandKey:  writing_package|fix_spelling_and_grammar
-URL:         http://localhost:54535/command/call/writing_package/fix_spelling_and_grammar
+URL:         http://localhost:54535/writing_package/fix_spelling_and_grammar
 ```
 
 ### Calling Commands
 
-**Base URL**: `http://localhost:54535/command/call/{extensionName}/{commandName}`
+**Base URL**: `http://localhost:54535/{extensionName}/{commandName}`
 
 Pass parameters as JSON body via POST:
 
 ```bash
 # Fix grammar
-curl -X POST "http://localhost:54535/command/call/writing_package/fix_spelling_and_grammar" \
+curl -X POST "http://localhost:54535/writing_package/fix_spelling_and_grammar" \
   -H "Content-Type: application/json" \
   -d '{"input_text": "hello wrold"}'
 
 # Translate text
-curl -X POST "http://localhost:54535/command/call/translate/translate" \
+curl -X POST "http://localhost:54535/translate/translate" \
   -H "Content-Type: application/json" \
   -d '{"input_text": "hello", "target_language": "zh"}'
 ```
@@ -61,10 +61,13 @@ Data query commands return raw JSON arrays or objects.
 
 Enconvo manages API keys and OAuth tokens for all supported providers (OpenAI, Anthropic, Google, etc.).
 
+**SECURITY: Never expose credentials in the conversation.** Always use the Bash tool to call credential APIs and write results to local files. If the user wants to view credentials, generate a file and let them open it.
+
 ### List All Credential Providers
 
 ```bash
-curl -X POST "http://localhost:54535/command/call/search/get_all_credentials_providers"
+curl -s -X POST "http://localhost:54535/search/get_all_credentials_providers" \
+  -o /tmp/enconvo_credentials_providers.json
 ```
 
 Returns an array of providers, each with:
@@ -77,25 +80,20 @@ Returns an array of providers, each with:
 ### Load Credentials for a Provider
 
 ```bash
-curl -X POST "http://localhost:54535/command/call/credentials/load_credentials" \
+curl -s -X POST "http://localhost:54535/credentials/load_credentials" \
   -H "Content-Type: application/json" \
-  -d '{"providerName": "anthropic"}'
+  -d '{"providerName": "anthropic"}' \
+  -o /tmp/enconvo_credentials_anthropic.json
 ```
 
-Returns the provider's stored credential values:
-
-- `access_token`, `refresh_token` - for OAuth2 providers
-- `apiKey` - for API key providers
-- `baseUrl` - API endpoint URL
-- `credentials_type` - `apiKey` or `oauth2`
-- `preferenceKey` - the full preference key (e.g., `credentials|anthropic`)
+Returns the provider's stored credential values. **Always write to a local file, never output to conversation.**
 
 ### Request User to Fill Credentials
 
 When credentials are missing or invalid, prompt the user to fill them via a UI dialog:
 
 ```bash
-curl -X POST "http://localhost:54535/command/call/credentials/request_user_fill_credentials" \
+curl -s -X POST "http://localhost:54535/credentials/request_user_fill_credentials" \
   -H "Content-Type: application/json" \
   -d '{"providerName": "anthropic", "conversationId": "current-conversation-id"}'
 ```
@@ -118,4 +116,4 @@ This opens a credential configuration dialog in Enconvo for the user to enter th
 
 - Enconvo must be running locally for API access
 - All HTTP calls use POST method with JSON body
-- Credentials contain sensitive data (API keys, tokens) - handle securely
+- **Credentials are sensitive** - always use Bash tool to call credential APIs and deliver results via local files, never expose in conversation

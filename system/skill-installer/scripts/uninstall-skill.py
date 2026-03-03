@@ -5,13 +5,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 
+DEFAULT_SKILLS_DIR = os.path.join(os.path.expanduser("~"), ".enconvo", "skills")
 
-API_BASE = "http://localhost:54535/command/call/skills_manager/api_uninstall_skill"
+API_BASE = "http://localhost:54535/skills_manager/api_uninstall_skill"
 
 
 class UninstallError(Exception):
@@ -20,6 +22,7 @@ class UninstallError(Exception):
 
 class Args(argparse.Namespace):
     name: str
+    skills_dir: str
 
 
 def _request(api_url: str) -> bytes:
@@ -28,8 +31,10 @@ def _request(api_url: str) -> bytes:
         return resp.read()
 
 
-def _uninstall_skill(skill_name: str) -> dict:
+def _uninstall_skill(skill_name: str, skills_dir: str | None = None) -> dict:
     params = {"skillName": skill_name}
+    if skills_dir:
+        params["skillsDir"] = skills_dir
     url = API_BASE + "?" + urllib.parse.urlencode(params)
     try:
         payload = _request(url)
@@ -50,13 +55,19 @@ def _parse_args(argv: list[str]) -> Args:
         required=True,
         help="Skill name to uninstall",
     )
+    parser.add_argument(
+        "--skills-dir",
+        default=DEFAULT_SKILLS_DIR,
+        dest="skills_dir",
+        help=f"Skills installation directory (default: {DEFAULT_SKILLS_DIR})",
+    )
     return parser.parse_args(argv, namespace=Args())
 
 
 def main(argv: list[str]) -> int:
     args = _parse_args(argv)
     try:
-        result = _uninstall_skill(args.name)
+        result = _uninstall_skill(args.name, skills_dir=args.skills_dir)
         if result.get("success"):
             print(f"Uninstalled {args.name} successfully.")
         else:

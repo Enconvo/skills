@@ -5,12 +5,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
+DEFAULT_SKILLS_DIR = os.path.join(os.path.expanduser("~"), ".enconvo", "skills")
 
-API_BASE = "http://localhost:54535/command/call/skills_manager/get_all_installed_skills"
+API_BASE = "http://localhost:54535/skills_manager/get_all_installed_skills"
 
 
 class ListError(Exception):
@@ -19,6 +22,7 @@ class ListError(Exception):
 
 class Args(argparse.Namespace):
     format: str
+    skills_dir: str
 
 
 def _request(url: str) -> bytes:
@@ -27,9 +31,12 @@ def _request(url: str) -> bytes:
         return resp.read()
 
 
-def _get_installed_skills() -> list[dict]:
+def _get_installed_skills(skills_dir: str | None = None) -> list[dict]:
+    url = API_BASE
+    if skills_dir:
+        url += "?" + urllib.parse.urlencode({"skillsDir": skills_dir})
     try:
-        payload = _request(API_BASE)
+        payload = _request(url)
     except urllib.error.HTTPError as exc:
         raise ListError(f"Failed to fetch installed skills: HTTP {exc.code}") from exc
     except urllib.error.URLError as exc:
@@ -52,13 +59,19 @@ def _parse_args(argv: list[str]) -> Args:
         default="text",
         help="Output format",
     )
+    parser.add_argument(
+        "--skills-dir",
+        default=DEFAULT_SKILLS_DIR,
+        dest="skills_dir",
+        help=f"Skills installation directory (default: {DEFAULT_SKILLS_DIR})",
+    )
     return parser.parse_args(argv, namespace=Args())
 
 
 def main(argv: list[str]) -> int:
     args = _parse_args(argv)
     try:
-        skills = _get_installed_skills()
+        skills = _get_installed_skills(skills_dir=args.skills_dir)
         if args.format == "json":
             print(json.dumps(skills, indent=2))
         else:
