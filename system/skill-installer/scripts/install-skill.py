@@ -90,18 +90,33 @@ def _is_github_url(s: str) -> bool:
     return bool(re.match(r"https?://github\.com/", s))
 
 
-def _find_skill_in_store(skill_name: str) -> dict | None:
-    """Search the store for a skill by name and return its info."""
+def _search_store(skill_name: str) -> list[dict]:
+    """Search the store for skills by name. Returns the list of matching skills."""
     try:
         payload = _post_json(API_LIST, {"search": skill_name})
     except (urllib.error.HTTPError, urllib.error.URLError):
-        return None
+        return []
     data = json.loads(payload.decode("utf-8"))
-    skills = data.get("data", {}).get("list", [])
-    for s in skills:
-        if s.get("name") == skill_name:
-            return s
-    return None
+    return data.get("data", {}).get("list", [])
+
+
+def _prompt_selection(skills: list[dict]) -> dict:
+    """Print numbered list and prompt user to pick one."""
+    print("Multiple skills found in Enconvo store:")
+    for i, s in enumerate(skills, 1):
+        name = s.get("name", "unknown")
+        desc = s.get("description", "")
+        if len(desc) > 70:
+            desc = desc[:67] + "..."
+        print(f"  {i}. {name}" + (f" - {desc}" if desc else ""))
+    while True:
+        try:
+            choice = input(f"Select a skill to install (1-{len(skills)}): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            raise InstallError("Selection cancelled.")
+        if choice.isdigit() and 1 <= int(choice) <= len(skills):
+            return skills[int(choice) - 1]
+        print(f"Invalid choice. Please enter a number between 1 and {len(skills)}.")
 
 
 def _install_from_store(skill_name: str, download_url: str, skills_dir: str | None = None) -> dict:
@@ -330,16 +345,25 @@ def main(argv: list[str]) -> int:
         # Mode 4: --name -> Enconvo store -> Skills.sh -> ClawHub fallback chain
         if args.name:
             # 1) Try Enconvo store
-            store_info = _find_skill_in_store(args.name)
-            if store_info:
+            store_results = _search_store(args.name)
+            if store_results:
+                # Exact match -> use directly; multiple results -> let user pick
+                exact = [s for s in store_results if s.get("name") == args.name]
+                if len(exact) == 1:
+                    store_info = exact[0]
+                elif len(store_results) == 1:
+                    store_info = store_results[0]
+                else:
+                    store_info = _prompt_selection(store_results)
                 download_url = store_info.get("download_url", "")
+                skill_name = store_info.get("name", args.name)
                 if not download_url:
                     raise InstallError(
-                        f"No download URL found for skill '{args.name}'."
+                        f"No download URL found for skill '{skill_name}'."
                     )
-                result = _install_from_store(args.name, download_url, skills_dir=skills_dir)
+                result = _install_from_store(skill_name, download_url, skills_dir=skills_dir)
                 if result.get("success"):
-                    print(f"Installed {args.name} successfully from Enconvo store.")
+                    print(f"Installed {skill_name} successfully from Enconvo store.")
                 else:
                     msg = result.get("error", result.get("message", "Unknown error"))
                     print(f"Install failed: {msg}", file=sys.stderr)
