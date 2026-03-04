@@ -10,7 +10,6 @@ import shutil
 import subprocess
 import sys
 import urllib.error
-import urllib.parse
 import urllib.request
 
 
@@ -62,21 +61,24 @@ class Args(argparse.Namespace):
     all: bool
 
 
-def _request(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={"User-Agent": "skill-installer"})
+def _post_json(url: str, body: dict) -> bytes:
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json", "User-Agent": "skill-installer"},
+        method="POST",
+    )
     with urllib.request.urlopen(req) as resp:
         return resp.read()
 
 
 def _list_skills(search: str | None) -> list[dict]:
-    params = {}
+    body = {}
     if search:
-        params["search"] = search
-    url = API_BASE
-    if params:
-        url += "?" + urllib.parse.urlencode(params)
+        body["search"] = search
     try:
-        payload = _request(url)
+        payload = _post_json(API_BASE, body)
     except urllib.error.HTTPError as exc:
         raise ListError(f"Failed to fetch skills: HTTP {exc.code}") from exc
     except urllib.error.URLError as exc:

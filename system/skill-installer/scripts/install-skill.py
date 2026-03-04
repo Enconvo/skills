@@ -74,16 +74,26 @@ def _request(api_url: str) -> bytes:
         return resp.read()
 
 
+def _post_json(url: str, body: dict) -> bytes:
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json", "User-Agent": "skill-installer"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req) as resp:
+        return resp.read()
+
+
 def _is_github_url(s: str) -> bool:
     return bool(re.match(r"https?://github\.com/", s))
 
 
 def _find_skill_in_store(skill_name: str) -> dict | None:
     """Search the store for a skill by name and return its info."""
-    params = {"search": skill_name}
-    url = API_LIST + "?" + urllib.parse.urlencode(params)
     try:
-        payload = _request(url)
+        payload = _post_json(API_LIST, {"search": skill_name})
     except (urllib.error.HTTPError, urllib.error.URLError):
         return None
     data = json.loads(payload.decode("utf-8"))

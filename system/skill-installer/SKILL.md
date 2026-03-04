@@ -83,7 +83,7 @@ All of these scripts use network, so when running in the sandbox, request escala
 ## API Details
 
 The scripts use the Enconvo skills manager API:
-- List skills: `http://localhost:54535/skills_manager/api_skills_list?search=<keyword>`
+- List skills (POST JSON): `curl -s -X POST http://localhost:54535/skills_manager/api_skills_list -H "Content-Type: application/json" -d '{"search": "<keyword>"}'`
 - Install skill from store: `http://localhost:54535/skills_manager/api_install_skill?skillName=<name>&downloadUrl=<url>&skillsDir=<path>`
 - Install skill from github: `http://localhost:54535/skills_manager/api_install_skill?githubUrl=<url>&skillsDir=<path>`
 - Installed skills: `http://localhost:54535/skills_manager/get_all_installed_skills`
