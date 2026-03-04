@@ -16,10 +16,10 @@ import urllib.request
 
 API_BASE = "http://localhost:54535/skills_manager/api_skills_list"
 
-# npm package names for CLI dependencies
+# npm package names for CLI dependencies (value can be a single package or a list)
 _CLI_PACKAGES = {
     "skills": "skills",
-    "clawdhub": "clawdhub",
+    "clawdhub": ["clawdhub", "undici"],
 }
 
 
@@ -31,25 +31,28 @@ def _ensure_cli(cmd: str) -> None:
     """Ensure a CLI tool is installed, auto-install via npm if missing."""
     if shutil.which(cmd):
         return
-    pkg = _CLI_PACKAGES.get(cmd, cmd)
-    print(f"'{cmd}' CLI not found. Installing via: npm i -g {pkg} ...")
+    pkgs = _CLI_PACKAGES.get(cmd, cmd)
+    if isinstance(pkgs, str):
+        pkgs = [pkgs]
+    pkg_str = " ".join(pkgs)
+    print(f"'{cmd}' CLI not found. Installing via: npm i -g {pkg_str} ...")
     try:
         result = subprocess.run(
-            ["npm", "i", "-g", pkg],
+            ["npm", "i", "-g"] + pkgs,
             capture_output=True,
             text=True,
             timeout=120,
         )
     except FileNotFoundError:
         raise ListError(
-            f"npm not found. Please install Node.js first, then run: npm i -g {pkg}"
+            f"npm not found. Please install Node.js first, then run: npm i -g {pkg_str}"
         )
     except subprocess.TimeoutExpired:
-        raise ListError(f"Timed out installing {pkg}.")
+        raise ListError(f"Timed out installing {pkg_str}.")
     if result.returncode != 0:
-        raise ListError(f"Failed to install {pkg}: {result.stderr.strip()}")
+        raise ListError(f"Failed to install {pkg_str}: {result.stderr.strip()}")
     if not shutil.which(cmd):
-        raise ListError(f"Installed {pkg} but '{cmd}' command still not found.")
+        raise ListError(f"Installed {pkg_str} but '{cmd}' command still not found.")
     print(f"'{cmd}' installed successfully.")
 
 

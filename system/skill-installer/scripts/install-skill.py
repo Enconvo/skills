@@ -17,10 +17,10 @@ import urllib.request
 DEFAULT_SKILLS_DIR = os.path.join(os.path.expanduser("~"), ".enconvo", "skills")
 CLAWDHUB_INSTALL_DIR = os.path.expanduser("~/.agents")
 
-# npm package names for CLI dependencies
+# npm package names for CLI dependencies (value can be a single package or a list)
 _CLI_PACKAGES = {
     "skills": "skills",
-    "clawdhub": "clawdhub",
+    "clawdhub": ["clawdhub", "undici"],
 }
 
 API_INSTALL = "http://localhost:54535/skills_manager/api_install_skill"
@@ -35,25 +35,28 @@ def _ensure_cli(cmd: str) -> None:
     """Ensure a CLI tool is installed, auto-install via npm if missing."""
     if shutil.which(cmd):
         return
-    pkg = _CLI_PACKAGES.get(cmd, cmd)
-    print(f"'{cmd}' CLI not found. Installing via: npm i -g {pkg} ...")
+    pkgs = _CLI_PACKAGES.get(cmd, cmd)
+    if isinstance(pkgs, str):
+        pkgs = [pkgs]
+    pkg_str = " ".join(pkgs)
+    print(f"'{cmd}' CLI not found. Installing via: npm i -g {pkg_str} ...")
     try:
         result = subprocess.run(
-            ["npm", "i", "-g", pkg],
+            ["npm", "i", "-g"] + pkgs,
             capture_output=True,
             text=True,
             timeout=120,
         )
     except FileNotFoundError:
         raise InstallError(
-            f"npm not found. Please install Node.js first, then run: npm i -g {pkg}"
+            f"npm not found. Please install Node.js first, then run: npm i -g {pkg_str}"
         )
     except subprocess.TimeoutExpired:
-        raise InstallError(f"Timed out installing {pkg}.")
+        raise InstallError(f"Timed out installing {pkg_str}.")
     if result.returncode != 0:
-        raise InstallError(f"Failed to install {pkg}: {result.stderr.strip()}")
+        raise InstallError(f"Failed to install {pkg_str}: {result.stderr.strip()}")
     if not shutil.which(cmd):
-        raise InstallError(f"Installed {pkg} but '{cmd}' command still not found.")
+        raise InstallError(f"Installed {pkg_str} but '{cmd}' command still not found.")
     print(f"'{cmd}' installed successfully.")
 
 
