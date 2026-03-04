@@ -3,7 +3,7 @@ name: voicebox
 version: 1.0.0
 author: zanearcher
 category: audio
-description: "All-in-one voice toolkit: TTS (voice design + cloning), multi-speaker conversations/dramas/audiobooks, speech recording, and transcription. Activates on: /voicebox commands, \"clone my voice\", \"record my voice\", \"transcribe this\", \"create a conversation\", \"make a drama\", or any audio transcription request."
+description: "Text-to-speech voice toolkit. DEFAULT ACTION: When called with text (e.g. /voicebox hello), IMMEDIATELY run: uv run $SKILL_DIR/scripts/voicebox.py generate \"Calm Narrator\" \"<text>\" --play. Do NOT ask questions, do NOT greet the user — just generate and play the speech. Also supports: voice cloning, multi-speaker conversations, recording, and transcription."
 user_invocable: true
 ---
 
@@ -12,6 +12,24 @@ user_invocable: true
 > **Path convention:** All commands below use `$SKILL_DIR` to mean this skill's base directory. When Claude loads a skill, the system prompt includes `Base directory for this skill: <path>` — use that path. Example: if installed at `~/.agent/skills/voicebox/`, then `$SKILL_DIR = ~/.agent/skills/voicebox`.
 
 Standalone text-to-speech using mlx-audio. Supports custom voice design (from text descriptions) and voice cloning (from audio samples). No external app required.
+
+## CRITICAL: Default Action Rule
+
+**When `/voicebox` is followed by plain text (not a keyword like "create", "clone", "transcribe", "record", "list", "delete"), the DEFAULT action is ALWAYS to generate speech immediately using the "Calm Narrator" profile. Do NOT ask follow-up questions. Do NOT present a menu of options. Just run the generate command and play the audio.**
+
+Example: `/voicebox hello` → immediately run:
+```bash
+uv run $SKILL_DIR/scripts/voicebox.py generate "Calm Narrator" "hello" --play
+```
+
+Only route to other modes when the input contains explicit keywords:
+- "create" / "design" → Mode 2 (create profile)
+- "clone" / "record" → Mode 3/4 (clone voice)
+- "transcribe" → Mode 5 (transcription)
+- "conversation" / "drama" / "audiobook" → Mode 6 (multi-speaker)
+- "list" / "delete" / "speakers" / "models" → Management commands
+
+**Everything else = generate speech immediately.**
 
 ## Usage
 
@@ -96,9 +114,15 @@ When the text requires emotional delivery or the user requests a specific emotio
 
 2. **Find the profile** — Look up the profile name in profiles.json (case-insensitive, partial match OK).
 
-3. **Auto-emotion analysis** (for CustomVoice profiles or when emotions are detected in text):
+3. **Emotion segmentation (OPT-IN ONLY — never do this by default):**
 
-   If the text is **long (3+ sentences) or contains emotional shifts**, Claude MUST automatically:
+   **By default, long text is generated as a single pass with `generate`.** Do NOT automatically split text into emotional segments. Only activate emotion segmentation when the user explicitly requests it with phrases like:
+   - "with emotions", "auto-emotion", "segment emotions", "emotional delivery"
+   - "split by emotion", "vary the emotions", "make it expressive"
+
+   **If the user does NOT ask for emotion segmentation, skip this entire step and go straight to step 4 (simple generate), regardless of text length.**
+
+   When the user **explicitly requests** emotion segmentation:
 
    a. **Analyze the text** — Identify distinct emotional segments (e.g., excitement → worry → determination → gratitude).
 
@@ -114,7 +138,10 @@ When the text requires emotional delivery or the user requests a specific emotio
       - **Determination:** `"determined, resolute, firm and confident"`
       - **Tenderness:** `"gentle, tender, soft-spoken with warmth"`
 
-   d. **Generate a conversation script** using the SAME profile for all lines but with per-line `instruct` overrides:
+   d. **Generate a conversation script — CRITICAL: USE THE SAME SINGLE PROFILE FOR EVERY LINE.**
+
+      **THIS IS NOT A MULTI-SPEAKER CONVERSATION.** Emotion segmentation is ONE person speaking with varying emotions. Every `"profile"` value in the script MUST be identical — the same profile the user selected (or the default). Only the `"instruct"` field varies between lines. Do NOT assign different profiles to different segments.
+
       ```json
       {
         "title": "emotional_speech",
@@ -127,22 +154,17 @@ When the text requires emotional delivery or the user requests a specific emotio
         ]
       }
       ```
+      Note: ALL four lines above use `"Dylan"` — the same profile. This is intentional and required.
 
    e. **Use the conversation command** instead of single generate:
       ```bash
       uv run $SKILL_DIR/scripts/voicebox.py conversation /tmp/emotional_script.json --play --gap 0.15
       ```
 
-   **When to auto-analyze:**
-   - Text has 3+ sentences with detectable emotional variation
-   - Text contains dialogue, exclamations, questions, or emotional keywords
-   - User explicitly requests emotional delivery
-   - The profile is a CustomVoice type (supports `instruct`)
-
-   **When to skip (use simple generate):**
-   - Short text (1-2 sentences) with uniform emotion → just use `--instruct` on a single generate
-   - Text is purely informational/neutral with no emotional shifts
-   - Profile is "designed" or "cloned" type (instruct has limited effect)
+   **IMPORTANT — Emotion segmentation vs Multi-speaker:**
+   - **Emotion segmentation (this section):** OPT-IN only. ONE voice, varying emotions. Same profile on every line.
+   - **Multi-speaker conversation (Mode 6):** MULTIPLE voices, different profiles per line. Only when user asks for conversation/dialogue/drama.
+   - **Default for long text:** Single `generate` call. No segmentation. No splitting.
 
 4. **Simple generate** (short text or no emotion needed):
    ```bash
