@@ -62,28 +62,22 @@ def probe_video(video_file):
     play_res_x = w
     play_res_y = h
 
-    # Font size scales with video height
-    # Base: 26pt at 1080p. Scale linearly.
+    # Font size scales with video height (base: 45pt main / 30pt secondary at 1080p)
     scale = h / 1080
-    main_size = max(16, round(26 * scale))
-    secondary_size = max(12, round(18 * scale))
+    main_size = max(16, round(45 * scale))
+    secondary_size = max(12, round(30 * scale))
     outline = max(1, round(2 * scale))
 
-    # Margins scale with height
-    # For ultrawide (AR > 2.0), push subtitles up slightly to stay in frame
-    # For tall/portrait (AR < 1.0), reduce margins to save space
+    # Margins as percentage of height (~13.3% main, ~9% secondary from bottom)
+    # Slight AR adjustments: ultrawide pushes up a bit more
     if ar > 2.0:
-        # Ultrawide (21:9, cinemascope)
-        main_margin_v = round(70 * scale)
-        secondary_margin_v = round(35 * scale)
-    elif ar < 1.0:
-        # Portrait / vertical video (9:16 reels, TikTok)
-        main_margin_v = round(45 * scale)
-        secondary_margin_v = round(15 * scale)
+        # Ultrawide (21:9, cinemascope) — push up slightly more
+        main_margin_v = round(0.15 * h)
+        secondary_margin_v = round(0.105 * h)
     else:
-        # Standard (16:9, 4:3)
-        main_margin_v = round(62 * scale)
-        secondary_margin_v = round(30 * scale)
+        # Standard (16:9, 4:3) and Portrait (9:16)
+        main_margin_v = round(0.133 * h)
+        secondary_margin_v = round(0.09 * h)
 
     params = {
         'width': w, 'height': h, 'aspect_ratio': ar,
