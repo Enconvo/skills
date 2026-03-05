@@ -106,8 +106,9 @@ Only use when user **explicitly asks** to caption a video with word-level accura
 - `--style=highlight` (default) — karaoke fill: words highlight as spoken
 - `--style=appear` — words appear one by one as spoken
 - `--style=underline` — full line shown, current word underlined+highlighted
+- `--bilingual=<lang>` — add secondary language translation below main captions (e.g. `--bilingual=english`)
 - `--position=bottom|top|center` — caption position (default: bottom)
-- `--font-size=24` — font size (default: 24)
+- `--font-size=<size>` — font size (default: auto-calculated from video resolution)
 - `--words-per-line=8` — max words per caption line (default: 8)
 - `--color=BBGGRR` — text color in ASS hex (default: 00FFFFFF = white)
 - `--highlight=BBGGRR` — highlight color in ASS hex (default: 0000FFFF = yellow)
@@ -115,11 +116,21 @@ Only use when user **explicitly asks** to caption a video with word-level accura
 - `--srt-only` — only generate ASS file, don't burn into video
 - `--lang=en` — source language code (default: auto-detect)
 
+**Auto-sizing:** The script probes video resolution via ffprobe and auto-calculates optimal font size, margins, and outline thickness based on the video's height (scaled from 1080p baseline). Aspect ratio is also considered — ultrawide (>2.0) gets tighter margins, portrait (<1.0) gets compact margins. User CLI flags (`--font-size`, `--position`) override auto values.
+
+**Fonts:** Cinema-style defaults — PingFang SC for CJK, Helvetica Neue for Latin. Regular weight, clean outline. Matches the bilingual subtitle style used in Chinese cinemas for Hollywood films.
+
+**Bilingual layout:** Main language on top (larger, karaoke highlighting) + secondary language below (smaller, white). Both bottom-aligned with proper spacing.
+
 **Example Sessions:**
 ```
 User: "Caption this video with word-level timestamps"
 Claude: python3 scripts/caption_video.py video.mp4
 → video_captioned.mp4 (karaoke-style word highlighting)
+
+User: "Caption with bilingual Chinese + English"
+Claude: python3 scripts/caption_video.py video.mp4 --bilingual=english
+→ Chinese karaoke on top, English translation below
 
 User: "Add word captions to this video, style: appear, position: top"
 Claude: python3 scripts/caption_video.py video.mp4 --style=appear --position=top

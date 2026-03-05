@@ -1,24 +1,14 @@
 #!/usr/bin/env python3
 """
-Translate SRT subtitles using Groq Llama 3.3 70B
-Usage: translate_srt.py <srt_file> <target_lang> [groq_api_key]
+Translate SRT subtitles using EnConvo API
+Usage: translate_srt.py <srt_file> <target_lang>
 """
 import sys
 import os
 import re
 import json
-
-# Load .env from project root if present (for GROQ_API_KEY)
-_env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env')
-if os.path.exists(_env_file):
-    with open(_env_file) as _f:
-        for _line in _f:
-            _line = _line.strip()
-            if _line and not _line.startswith('#') and '=' in _line:
-                _k, _, _v = _line.partition('=')
-                _k, _v = _k.strip(), _v.strip().strip('"').strip("'")
-                if _k and not os.getenv(_k):
-                    os.environ[_k] = _v
+import urllib.request
+import urllib.error
 
 
 def parse_srt(srt_content):
@@ -50,24 +40,9 @@ def parse_srt(srt_content):
     return segments
 
 
-def translate_subtitle(srt_content, target_lang, groq_api_key):
-    """Translate SRT content to target language using Groq Llama 3.3 70B"""
-    from groq import Groq
-
-    print(f"\n{'='*60}")
-    print(f"  Translating Subtitles")
-    print(f"{'='*60}\n")
-    print(f"Target language: {target_lang}")
-    print(f"Using: Groq Llama 3.3 70B\n")
-
-    client = Groq(api_key=groq_api_key)
-    segments = parse_srt(srt_content)
-
-    translated_segments = []
-    for i, seg in enumerate(segments):
-        print(f"  Translating segment {i+1}/{len(segments)}...", end='\r')
-
-        translation_prompt = f"""Translate this video subtitle from English to {target_lang}.
+def enconvo_translate(text, target_lang):
+    """Call EnConvo API to translate text"""
+    prompt = f"""Translate this video subtitle from English to {target_lang}.
 
 CRITICAL RULES:
 1. Use NATURAL {target_lang} phrasing - avoid word-for-word translation
@@ -83,26 +58,48 @@ EXAMPLE (English to Chinese):
 - Good: "我一看到这个，就想到了你。" (natural Chinese)
 
 SUBTITLE TEXT:
-{seg['text']}
+{text}
 
 OUTPUT: Only the natural {target_lang} translation, nothing else."""
 
-        response = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"You are a professional video subtitle translator specializing in natural, culturally-aware {target_lang} translations. Your translations sound like a native speaker, not a machine. You preserve the original tone, style, and intent while adapting idioms and expressions for the target culture."
-                },
-                {
-                    "role": "user",
-                    "content": translation_prompt
-                }
-            ],
-            model="llama-3.3-70b-versatile",
-            temperature=0.5
-        )
+    url = "http://localhost:54535/command/call/chat_with_ai/chat"
+    payload = json.dumps({"input_text": prompt}).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
 
-        translated_text = response.choices[0].message.content.strip()
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = resp.read().decode("utf-8")
+            # Try to parse as JSON; if it has a known field, extract it
+            try:
+                data = json.loads(result)
+                if isinstance(data, dict):
+                    # Return the most likely text field
+                    return (data.get("output_text") or data.get("text") or data.get("result") or data.get("response") or str(data)).strip()
+                return str(data).strip()
+            except json.JSONDecodeError:
+                return result.strip()
+    except urllib.error.URLError as e:
+        print(f"\n  Error calling EnConvo API: {e}")
+        print("  Make sure EnConvo is running on localhost:54535")
+        sys.exit(1)
+
+
+def translate_subtitle(srt_content, target_lang):
+    """Translate SRT content to target language using EnConvo API"""
+
+    print(f"\n{'='*60}")
+    print(f"  Translating Subtitles")
+    print(f"{'='*60}\n")
+    print(f"Target language: {target_lang}")
+    print(f"Using: EnConvo API\n")
+
+    segments = parse_srt(srt_content)
+
+    translated_segments = []
+    for i, seg in enumerate(segments):
+        print(f"  Translating segment {i+1}/{len(segments)}...", end='\r')
+
+        translated_text = enconvo_translate(seg['text'], target_lang)
         translated_segments.append({
             'index': seg['index'],
             'timestamp': seg['timestamp'],
@@ -149,22 +146,14 @@ def save_translated_srt(segments, output_file):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: translate_srt.py <srt_file> <target_lang> [groq_api_key]")
+        print("Usage: translate_srt.py <srt_file> <target_lang>")
         print("Example: translate_srt.py video_original.srt chinese")
-        print("Example: translate_srt.py video_original.srt spanish gsk_xxx")
+        print("Example: translate_srt.py video_original.srt spanish")
+        print("\nRequires EnConvo running on localhost:54535")
         sys.exit(1)
 
     srt_file = sys.argv[1]
     target_lang = sys.argv[2]
-    groq_api_key = sys.argv[3] if len(sys.argv) > 3 else os.getenv('GROQ_API_KEY')
-
-    if not groq_api_key:
-        print("Error: GROQ_API_KEY not provided")
-        print("")
-        print("   Get your free key at: https://console.groq.com")
-        print("   Then: export GROQ_API_KEY=gsk_xxx")
-        print("   Or add to .env file in the skill root directory")
-        sys.exit(1)
 
     if not os.path.exists(srt_file):
         print(f"Error: File not found: {srt_file}")
@@ -175,7 +164,7 @@ def main():
         srt_content = f.read()
 
     # Translate
-    translated_segments = translate_subtitle(srt_content, target_lang, groq_api_key)
+    translated_segments = translate_subtitle(srt_content, target_lang)
 
     # Review
     display_translation_review(translated_segments)

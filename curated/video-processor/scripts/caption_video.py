@@ -9,13 +9,15 @@ Usage: caption_video.py <video_file_or_url> [options]
 Options:
   --style=<style>       Caption style: highlight (default), appear, underline
   --position=<pos>      Position: bottom (default), top, center
-  --font-size=<size>    Font size (default: 24)
+  --font-size=<size>    Font size (default: 26)
   --words-per-line=<n>  Max words per caption line (default: 8)
   --color=<hex>         Text color in hex BBGGRR (default: 00FFFFFF = white)
   --highlight=<hex>     Highlight color in hex BBGGRR (default: 0000FFFF = yellow)
   --output=<file>       Output filename (default: {name}_captioned.mp4)
   --srt-only            Only generate ASS subtitle file, don't burn into video
   --lang=<code>         Source language code (default: auto-detect)
+  --bilingual=<lang>    Add secondary language translation below main captions
+                        e.g. --bilingual=english, --bilingual=chinese
 """
 import sys
 import os
@@ -33,6 +35,68 @@ def print_header(text):
     print(f"\n{'='*60}")
     print(f"  {text}")
     print(f"{'='*60}\n")
+
+
+def probe_video(video_file):
+    """Get video dimensions and calculate optimal caption parameters.
+
+    Returns dict with: width, height, aspect_ratio, play_res_x, play_res_y,
+    main_font_size, secondary_font_size, main_margin_v, secondary_margin_v, outline.
+    """
+    result = subprocess.run(
+        ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+         '-show_entries', 'stream=width,height',
+         '-of', 'json', video_file],
+        capture_output=True, text=True
+    )
+    try:
+        info = json.loads(result.stdout)
+        w = info['streams'][0]['width']
+        h = info['streams'][0]['height']
+    except (json.JSONDecodeError, KeyError, IndexError):
+        w, h = 1920, 1080  # fallback
+
+    ar = w / h
+
+    # PlayRes matches native resolution for pixel-perfect rendering
+    play_res_x = w
+    play_res_y = h
+
+    # Font size scales with video height
+    # Base: 26pt at 1080p. Scale linearly.
+    scale = h / 1080
+    main_size = max(16, round(26 * scale))
+    secondary_size = max(12, round(18 * scale))
+    outline = max(1, round(2 * scale))
+
+    # Margins scale with height
+    # For ultrawide (AR > 2.0), push subtitles up slightly to stay in frame
+    # For tall/portrait (AR < 1.0), reduce margins to save space
+    if ar > 2.0:
+        # Ultrawide (21:9, cinemascope)
+        main_margin_v = round(70 * scale)
+        secondary_margin_v = round(35 * scale)
+    elif ar < 1.0:
+        # Portrait / vertical video (9:16 reels, TikTok)
+        main_margin_v = round(45 * scale)
+        secondary_margin_v = round(15 * scale)
+    else:
+        # Standard (16:9, 4:3)
+        main_margin_v = round(62 * scale)
+        secondary_margin_v = round(30 * scale)
+
+    params = {
+        'width': w, 'height': h, 'aspect_ratio': ar,
+        'play_res_x': play_res_x, 'play_res_y': play_res_y,
+        'main_font_size': main_size, 'secondary_font_size': secondary_size,
+        'main_margin_v': main_margin_v, 'secondary_margin_v': secondary_margin_v,
+        'outline': outline,
+    }
+
+    print(f"  Video: {w}x{h} (AR {ar:.2f})")
+    print(f"  Auto caption: font {main_size}pt, margins {main_margin_v}/{secondary_margin_v}px")
+
+    return params
 
 
 def transcribe_words(video_file, groq_api_key, source_lang=None):
@@ -142,6 +206,118 @@ def group_words_into_lines(words, max_words_per_line=8):
     return merged
 
 
+def translate_lines(lines, target_lang):
+    """Translate each caption line to target language via EnConvo API."""
+    import urllib.request
+
+    print(f"  Translating {len(lines)} lines to {target_lang}...")
+    translations = []
+
+    for line_words in lines:
+        text = ''.join(w['word'] for w in line_words)
+        prompt = (
+            f"Translate to {target_lang}. Return ONLY the translation, nothing else. "
+            f"Keep it natural and concise for subtitles.\n\n{text}"
+        )
+
+        payload = json.dumps({
+            "messages": [{"role": "user", "content": prompt}],
+            "model": "anthropic/claude-sonnet-4-20250514",
+            "stream": False
+        }).encode()
+
+        req = urllib.request.Request(
+            "http://localhost:54535/api/chat",
+            data=payload,
+            headers={"Content-Type": "application/json"}
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read())
+                translated = result.get('choices', [{}])[0].get('message', {}).get('content', '').strip()
+                translations.append(translated)
+        except Exception as e:
+            # Fallback: return empty
+            print(f"    Translation failed for '{text}': {e}")
+            translations.append("")
+
+    return translations
+
+
+def get_line_text(line_words):
+    """Extract plain text from a line of words."""
+    return ''.join(w['word'] for w in line_words)
+
+
+def generate_ass_bilingual(lines, translations, style_config):
+    """Generate ASS with main language karaoke (top) + translation (below).
+
+    Cinema-style bilingual subtitles:
+    - Main language: PingFang SC (CJK) or Helvetica Neue, with karaoke highlighting
+    - Secondary language: Helvetica Neue, clean white text below
+    """
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    secondary_size = vp.get('secondary_font_size', max(int(font_size * 0.7), 16))
+    highlight = style_config.get('highlight', '&H0000FFFF')  # yellow
+    color = style_config.get('color', '&H00FFFFFF')  # white
+    outline_color = '&H00000000'
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+    secondary_margin_v = vp.get('secondary_margin_v', 30)
+
+    # Detect if main language is CJK (check first line's text)
+    sample = get_line_text(lines[0]) if lines else ''
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' or '\uac00' <= c <= '\ud7af' for c in sample)
+    main_font = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+    secondary_font = 'Helvetica Neue'
+
+    ass_content = f"""[Script Info]
+Title: Bilingual Word-Level Captions
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Main,{main_font},{font_size},{highlight},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,2,20,20,{main_margin_v},1
+Style: Secondary,{secondary_font},{secondary_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,2,20,20,{secondary_margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+
+    events = []
+    for i, line_words in enumerate(lines):
+        if not line_words:
+            continue
+
+        line_start = line_words[0]['start']
+        line_end = line_words[-1]['end']
+        start_ts = seconds_to_ass_time(line_start)
+        end_ts = seconds_to_ass_time(line_end)
+
+        # Main language with karaoke
+        kara_parts = []
+        for w in line_words:
+            word_dur_cs = int((w['end'] - w['start']) * 100)
+            if word_dur_cs < 1:
+                word_dur_cs = 1
+            kara_parts.append(f"{{\\kf{word_dur_cs}}}{w['word']} ")
+        kara_text = ''.join(kara_parts).rstrip()
+        events.append(f"Dialogue: 0,{start_ts},{end_ts},Main,,0,0,0,,{kara_text}")
+
+        # Secondary language translation
+        if i < len(translations) and translations[i]:
+            events.append(f"Dialogue: 1,{start_ts},{end_ts},Secondary,,0,0,0,,{translations[i]}")
+
+    return ass_content + '\n'.join(events) + '\n'
+
+
 def seconds_to_ass_time(seconds):
     """Convert seconds to ASS timestamp: H:MM:SS.cc (centiseconds)."""
     h = int(seconds // 3600)
@@ -157,33 +333,38 @@ def generate_ass_highlight(lines, style_config):
     Each word starts in the base color and switches to the highlight color
     at the exact moment it's spoken, using ASS \\kf (karaoke fill) tags.
     """
-    font_size = style_config.get('font_size', 24)
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 24))
     position = style_config.get('position', 'bottom')
     color = style_config.get('color', '&H00FFFFFF')  # white
     highlight = style_config.get('highlight', '&H0000FFFF')  # yellow
     outline_color = style_config.get('outline_color', '&H00000000')  # black
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 40)
 
     # Position alignment
     if position == 'top':
         alignment = 8  # top center
-        margin_v = 30
+        margin_v = vp.get('secondary_margin_v', 30)
     elif position == 'center':
         alignment = 5  # center
         margin_v = 0
     else:
         alignment = 2  # bottom center
-        margin_v = 40
+        margin_v = main_margin_v
 
     ass_header = f"""[Script Info]
 Title: Word-Level Captions
 ScriptType: v4.00+
-PlayResX: 1920
-PlayResY: 1080
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
 WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,{font_size},{highlight},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,3,1,{alignment},20,20,{margin_v},1
+Style: Default,PingFang SC,{font_size},{highlight},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,{alignment},20,20,{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -220,31 +401,36 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 def generate_ass_appear(lines, style_config):
     """Generate ASS subtitle where words appear one by one as spoken."""
-    font_size = style_config.get('font_size', 24)
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 24))
     position = style_config.get('position', 'bottom')
     color = style_config.get('color', '&H00FFFFFF')
     outline_color = style_config.get('outline_color', '&H00000000')
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 40)
 
     if position == 'top':
         alignment = 8
-        margin_v = 30
+        margin_v = vp.get('secondary_margin_v', 30)
     elif position == 'center':
         alignment = 5
         margin_v = 0
     else:
         alignment = 2
-        margin_v = 40
+        margin_v = main_margin_v
 
     ass_header = f"""[Script Info]
 Title: Word-Level Captions
 ScriptType: v4.00+
-PlayResX: 1920
-PlayResY: 1080
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
 WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,{font_size},{color},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,3,1,{alignment},20,20,{margin_v},1
+Style: Default,PingFang SC,{font_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,{alignment},20,20,{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -273,32 +459,37 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 def generate_ass_underline(lines, style_config):
     """Generate ASS subtitle with the current word underlined/bolded."""
-    font_size = style_config.get('font_size', 24)
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 24))
     position = style_config.get('position', 'bottom')
     color = style_config.get('color', '&H00FFFFFF')
     highlight = style_config.get('highlight', '&H0000FFFF')
     outline_color = style_config.get('outline_color', '&H00000000')
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 40)
 
     if position == 'top':
         alignment = 8
-        margin_v = 30
+        margin_v = vp.get('secondary_margin_v', 30)
     elif position == 'center':
         alignment = 5
         margin_v = 0
     else:
         alignment = 2
-        margin_v = 40
+        margin_v = main_margin_v
 
     ass_header = f"""[Script Info]
 Title: Word-Level Captions
 ScriptType: v4.00+
-PlayResX: 1920
-PlayResY: 1080
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
 WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,Arial,{font_size},{color},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,3,1,{alignment},20,20,{margin_v},1
+Style: Default,PingFang SC,{font_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,{alignment},20,20,{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -394,16 +585,17 @@ def main():
     # Parse positional arg
     input_source = args[0]
 
-    # Parse options
+    # Parse options — all None means "auto from video probe"
     style = 'highlight'
     position = 'bottom'
-    font_size = 24
+    font_size = None  # auto from video
     words_per_line = 8
     color = '&H00FFFFFF'
     highlight = '&H0000FFFF'
     output_file = None
     srt_only = False
     source_lang = None
+    bilingual = None
 
     for arg in args[1:]:
         if arg.startswith('--style='):
@@ -424,6 +616,8 @@ def main():
             srt_only = True
         elif arg.startswith('--lang='):
             source_lang = arg.split('=', 1)[1]
+        elif arg.startswith('--bilingual='):
+            bilingual = arg.split('=', 1)[1]
 
     groq_api_key = os.getenv('GROQ_API_KEY')
     if not groq_api_key:
@@ -441,6 +635,13 @@ def main():
             sys.exit(1)
 
     base_name = Path(video_file).stem
+
+    # Probe video for auto-sizing
+    vp = probe_video(video_file)
+
+    # Apply auto values, user overrides take precedence
+    if font_size is None:
+        font_size = vp['main_font_size']
 
     # Step 1: Transcribe with word-level timestamps
     words, segments = transcribe_words(video_file, groq_api_key, source_lang)
@@ -462,9 +663,14 @@ def main():
         'position': position,
         'color': color,
         'highlight': highlight,
+        'video_params': vp,
     }
 
-    if style == 'appear':
+    if bilingual:
+        # Bilingual mode: translate each line, then generate dual-language ASS
+        translations = translate_lines(lines, bilingual)
+        ass_content = generate_ass_bilingual(lines, translations, style_config)
+    elif style == 'appear':
         ass_content = generate_ass_appear(lines, style_config)
     elif style == 'underline':
         ass_content = generate_ass_underline(lines, style_config)
