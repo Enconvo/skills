@@ -134,7 +134,7 @@ Spawns the `claude` CLI for each message. Supports multi-turn conversations via 
   "type": "claude-code",
   "model": "sonnet",
   "permissionMode": "bypassPermissions",
-  "workingDir": "/Users/zanearcher",
+  "workingDir": "/Users/youruser",
   "timeout": 600000
 }
 ```
@@ -310,19 +310,11 @@ All commands support `--json`. Full path: `~/.claude/skills/botfather/scripts/bo
 
 Manage Discord applications and bots via the Discord REST API.
 
-### Discord Dev Setup — Playwright Token Extraction
+### Discord Dev Setup
 
-1. Navigate to `https://discord.com/login` via Playwright
-2. User logs in
-3. Navigate to `https://discord.com/developers/applications`
-4. Extract token via `browser_evaluate`:
-   ```js
-   (webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()
-   ```
-   Fallback: `document.body.appendChild(document.createElement('iframe')).contentWindow.localStorage.token?.replace(/"/g, '')`
-   Fallback 2: Check `browser_network_requests` for `Authorization` header
-5. Save: `~/.claude/skills/discord-dev/scripts/discord-dev.sh save-token --token "<token>"`
-6. Verify: `discord-dev.sh status`
+1. Obtain your Discord user token (see discord-dev skill docs for methods)
+2. Save: `~/.claude/skills/discord-dev/scripts/discord-dev.sh save-token --token "<token>"`
+3. Verify: `discord-dev.sh status`
 
 ### Discord Dev Quick Reference
 

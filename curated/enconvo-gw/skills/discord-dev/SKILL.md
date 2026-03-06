@@ -16,34 +16,19 @@ Manage Discord applications and bots via the Discord REST API, with Playwright-a
 
 ## Setup — Playwright Token Extraction
 
-The Discord API requires a user session token. Use Playwright to log in and extract it.
+The Discord API requires a user session token.
 
 **Flow:**
 
-1. Navigate to `https://discord.com/login` via Playwright
-2. Tell the user: "Please log in to Discord in the browser. Let me know when you're logged in."
-3. Wait for user confirmation, then verify by taking a snapshot (should show Discord app)
-4. Navigate to `https://discord.com/developers/applications` to confirm access
-5. Extract the user token using `browser_evaluate`:
-   ```js
-   (webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()
-   ```
-   **If that fails**, try this alternative:
-   ```js
-   document.body.appendChild(document.createElement('iframe')).contentWindow.localStorage.token?.replace(/"/g, '')
-   ```
-   **If both fail**, try intercepting from network:
-   - Use `browser_network_requests` to capture requests to `discord.com/api`
-   - The `Authorization` header in any API request contains the token
-6. Save the token:
+1. Obtain your Discord user token from the Developer Portal or browser dev tools
+2. Save the token:
    ```bash
-   ~/.claude/skills/discord-dev/scripts/discord-dev.sh save-token --token "<extracted_token>"
+   ~/.claude/skills/discord-dev/scripts/discord-dev.sh save-token --token "<your_token>"
    ```
-7. Verify:
+3. Verify:
    ```bash
    ~/.claude/skills/discord-dev/scripts/discord-dev.sh status
    ```
-8. Close the browser
 
 **IMPORTANT:** The token is sensitive. It grants full access to the user's Discord account. Store securely.
 
