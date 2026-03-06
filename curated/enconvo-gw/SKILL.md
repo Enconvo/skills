@@ -134,7 +134,7 @@ Spawns the `claude` CLI for each message. Supports multi-turn conversations via 
   "type": "claude-code",
   "model": "sonnet",
   "permissionMode": "bypassPermissions",
-  "workingDir": "/Users/youruser",
+  "workingDir": "~",
   "timeout": 600000
 }
 ```
