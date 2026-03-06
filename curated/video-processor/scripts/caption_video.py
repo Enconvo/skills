@@ -18,6 +18,9 @@ Options:
   --lang=<code>         Source language code (default: auto-detect)
   --bilingual=<lang>    Add secondary language translation below main captions
                         e.g. --bilingual=english, --bilingual=chinese
+  --main-lang=<lang>   Make translated language the MAIN (top, karaoke) caption,
+                        original source becomes secondary (bottom, static).
+                        e.g. --main-lang=chinese  → Chinese karaoke top, English below
 """
 import sys
 import os
@@ -312,6 +315,97 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return ass_content + '\n'.join(events) + '\n'
 
 
+def generate_ass_bilingual_translated_main(lines, main_translations, style_config):
+    """Generate ASS where TRANSLATED text is main (top, karaoke) and original is secondary (bottom).
+
+    Used for --main-lang: e.g. Chinese karaoke on top, English original below.
+    Karaoke timing for CJK: distribute segment duration evenly across characters.
+    For non-CJK translated main: distribute across words.
+    """
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    secondary_size = vp.get('secondary_font_size', max(int(font_size * 0.7), 16))
+    highlight = style_config.get('highlight', '&H0000FFFF')  # yellow
+    color = style_config.get('color', '&H00FFFFFF')  # white
+    outline_color = '&H00000000'
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+    secondary_margin_v = vp.get('secondary_margin_v', 30)
+
+    # Detect if translated main is CJK
+    sample = main_translations[0] if main_translations else ''
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' or '\uac00' <= c <= '\ud7af' for c in sample)
+    main_font = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+    secondary_font = 'Helvetica Neue'
+
+    ass_content = f"""[Script Info]
+Title: Bilingual Word-Level Captions (Translated Main)
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Main,{main_font},{font_size},{highlight},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,2,20,20,{main_margin_v},1
+Style: Secondary,{secondary_font},{secondary_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,2,20,20,{secondary_margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+
+    events = []
+    for i, line_words in enumerate(lines):
+        if not line_words:
+            continue
+
+        line_start = line_words[0]['start']
+        line_end = line_words[-1]['end']
+        total_dur_cs = max(1, int((line_end - line_start) * 100))
+        start_ts = seconds_to_ass_time(line_start)
+        end_ts = seconds_to_ass_time(line_end)
+
+        # Main: translated text with karaoke distributed across characters (CJK) or words
+        zh_text = main_translations[i] if i < len(main_translations) else ''
+        if zh_text:
+            if is_cjk:
+                # Distribute timing across each character
+                chars = list(zh_text)
+                if chars:
+                    per_char_cs = max(1, total_dur_cs // len(chars))
+                    remainder_cs = total_dur_cs - per_char_cs * len(chars)
+                    kara_parts = []
+                    for j, ch in enumerate(chars):
+                        dur = per_char_cs + (1 if j < remainder_cs else 0)
+                        kara_parts.append(f"{{\\kf{dur}}}{ch}")
+                    kara_text = ''.join(kara_parts)
+                else:
+                    kara_text = zh_text
+            else:
+                # Non-CJK: distribute across words
+                words_list = zh_text.split()
+                if words_list:
+                    per_word_cs = max(1, total_dur_cs // len(words_list))
+                    remainder_cs = total_dur_cs - per_word_cs * len(words_list)
+                    kara_parts = []
+                    for j, w in enumerate(words_list):
+                        dur = per_word_cs + (1 if j < remainder_cs else 0)
+                        kara_parts.append(f"{{\\kf{dur}}}{w} ")
+                    kara_text = ''.join(kara_parts).rstrip()
+                else:
+                    kara_text = zh_text
+            events.append(f"Dialogue: 0,{start_ts},{end_ts},Main,,0,0,0,,{kara_text}")
+
+        # Secondary: original source words joined as plain text
+        orig_text = ' '.join(w['word'].strip() for w in line_words)
+        if orig_text:
+            events.append(f"Dialogue: 1,{start_ts},{end_ts},Secondary,,0,0,0,,{orig_text}")
+
+    return ass_content + '\n'.join(events) + '\n'
+
+
 def seconds_to_ass_time(seconds):
     """Convert seconds to ASS timestamp: H:MM:SS.cc (centiseconds)."""
     h = int(seconds // 3600)
@@ -516,6 +610,444 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return ass_header + '\n'.join(events) + '\n'
 
 
+
+def generate_ass_fade(lines, style_config):
+    """Fade style: each word fades in bright when spoken, fades out at end.
+    Dim context line shows all words throughout for readability.
+    """
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    position = style_config.get('position', 'bottom')
+    color = style_config.get('color', '&H00FFFFFF')
+    highlight = style_config.get('highlight', '&H0000FFFF')
+    outline_color = '&H00000000'
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+
+    if position == 'top':
+        alignment, margin_v = 8, vp.get('secondary_margin_v', 30)
+    elif position == 'center':
+        alignment, margin_v = 5, 0
+    else:
+        alignment, margin_v = 2, main_margin_v
+
+    sample = ' '.join(w['word'] for line in lines[:3] for w in line[:3])
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in sample)
+    font_name = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+
+    ass = f"""[Script Info]
+Title: Fade Word Captions
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Word,{font_name},{font_size},{highlight},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,{outline},2,{alignment},20,20,{margin_v},1
+Style: Context,{font_name},{font_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,{alignment},20,20,{margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    events = []
+    for line_words in lines:
+        if not line_words:
+            continue
+        line_start_ts = seconds_to_ass_time(line_words[0]['start'])
+        line_end_ts   = seconds_to_ass_time(line_words[-1]['end'])
+        context_text  = ' '.join(w['word'].strip() for w in line_words)
+        events.append(f"Dialogue: 0,{line_start_ts},{line_end_ts},Context,,0,0,0,,{{\alpha&HB0&}}{context_text}")
+
+        for w in line_words:
+            word_text = w['word'].strip()
+            if not word_text:
+                continue
+            dur_cs = max(20, int((w['end'] - w['start']) * 100))
+            fade_in  = min(200, dur_cs // 3)
+            fade_out = max(dur_cs - 120, dur_cs // 2)
+            tag = (f"{{\alpha&HFF&"
+                   f"\t(0,{fade_in},\alpha&H00&)"
+                   f"\t({fade_out},{dur_cs},\alpha&HCC&)}}")
+            events.append(f"Dialogue: 1,{seconds_to_ass_time(w['start'])},{seconds_to_ass_time(w['end'])},Word,,0,0,0,,{tag}{word_text}")
+    return ass + '\n'.join(events) + '\n'
+
+
+def generate_ass_zoom(lines, style_config):
+    """Zoom style: each word zooms in from 0% scale with slight overshoot."""
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    position = style_config.get('position', 'bottom')
+    color = style_config.get('color', '&H00FFFFFF')
+    highlight = style_config.get('highlight', '&H0000FFFF')
+    outline_color = '&H00000000'
+    outline = min(6, max(3, vp.get('outline', 2) + 2))
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+
+    if position == 'top':
+        alignment, margin_v = 8, vp.get('secondary_margin_v', 30)
+    elif position == 'center':
+        alignment, margin_v = 5, 0
+    else:
+        alignment, margin_v = 2, main_margin_v
+
+    sample = ' '.join(w['word'] for line in lines[:3] for w in line[:3])
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in sample)
+    font_name = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+
+    ass = f"""[Script Info]
+Title: Zoom Word Captions
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Zoom,{font_name},{font_size},{highlight},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,{outline},2,{alignment},20,20,{margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    events = []
+    for line_words in lines:
+        for w in line_words:
+            word_text = w['word'].strip()
+            if not word_text:
+                continue
+            dur_cs = max(20, int((w['end'] - w['start']) * 100))
+            t1 = min(200, dur_cs // 3)       # zoom in end
+            t2 = min(t1 + 60, dur_cs - 20)   # settle end
+            t3 = max(t2 + 10, dur_cs - min(100, dur_cs // 4))
+            tag = (f"{{\fscx0\fscy0"
+                   f"\t(0,{t1},\fscx115\fscy115)"
+                   f"\t({t1},{t2},\fscx100\fscy100)"
+                   f"\t({t3},{dur_cs},\fscx90\fscy90\alpha&H80&)}}")
+            events.append(f"Dialogue: 0,{seconds_to_ass_time(w['start'])},{seconds_to_ass_time(w['end'])},Zoom,,0,0,0,,{tag}{word_text}")
+    return ass + '\n'.join(events) + '\n'
+
+
+def generate_ass_slide(lines, style_config):
+    """Slide style: words slide up from 50px below their final position."""
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    position = style_config.get('position', 'bottom')
+    color = style_config.get('color', '&H00FFFFFF')
+    highlight = style_config.get('highlight', '&H0000FFFF')
+    outline_color = '&H00000000'
+    outline = min(6, max(3, vp.get('outline', 2) + 2))
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+
+    if position == 'top':
+        alignment = 8
+        margin_v = vp.get('secondary_margin_v', 30)
+        cx = play_res_x // 2
+        cy_final = margin_v
+    elif position == 'center':
+        alignment = 5
+        margin_v = 0
+        cx = play_res_x // 2
+        cy_final = play_res_y // 2
+    else:
+        alignment = 2
+        margin_v = main_margin_v
+        cx = play_res_x // 2
+        cy_final = play_res_y - margin_v
+
+    slide_offset = max(30, int(play_res_y * 0.04))
+
+    sample = ' '.join(w['word'] for line in lines[:3] for w in line[:3])
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in sample)
+    font_name = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+
+    ass = f"""[Script Info]
+Title: Slide Word Captions
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Slide,{font_name},{font_size},{highlight},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,{outline},2,{alignment},20,20,{margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    events = []
+    for line_words in lines:
+        for w in line_words:
+            word_text = w['word'].strip()
+            if not word_text:
+                continue
+            dur_cs = max(20, int((w['end'] - w['start']) * 100))
+            slide_dur = min(220, dur_cs // 2)
+            exit_start = max(slide_dur + 10, dur_cs - min(120, dur_cs // 4))
+            cy_start = cy_final + slide_offset
+            tag = (f"{{\an{alignment}"
+                   f"\move({cx},{cy_start},{cx},{cy_final},0,{slide_dur})"
+                   f"\alpha&H00&"
+                   f"\t({exit_start},{dur_cs},\alpha&HB0&)}}")
+            events.append(f"Dialogue: 0,{seconds_to_ass_time(w['start'])},{seconds_to_ass_time(w['end'])},Slide,,0,0,0,,{tag}{word_text}")
+    return ass + '\n'.join(events) + '\n'
+
+
+def generate_ass_wave(lines, style_config):
+    """Wave style: full line shown; current word rocks/oscillates with rotation."""
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    position = style_config.get('position', 'bottom')
+    color = style_config.get('color', '&H00FFFFFF')
+    highlight = style_config.get('highlight', '&H0000FFFF')
+    outline_color = '&H00000000'
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+
+    if position == 'top':
+        alignment, margin_v = 8, vp.get('secondary_margin_v', 30)
+    elif position == 'center':
+        alignment, margin_v = 5, 0
+    else:
+        alignment, margin_v = 2, main_margin_v
+
+    sample = ' '.join(w['word'] for line in lines[:3] for w in line[:3])
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in sample)
+    font_name = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+
+    ass = f"""[Script Info]
+Title: Wave Word Captions
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Word,{font_name},{font_size},{highlight},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,{outline},2,{alignment},20,20,{margin_v},1
+Style: Context,{font_name},{font_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,{alignment},20,20,{margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    events = []
+    for line_words in lines:
+        if not line_words:
+            continue
+        line_start_ts = seconds_to_ass_time(line_words[0]['start'])
+        line_end_ts   = seconds_to_ass_time(line_words[-1]['end'])
+        context_text  = ' '.join(w['word'].strip() for w in line_words)
+        events.append(f"Dialogue: 0,{line_start_ts},{line_end_ts},Context,,0,0,0,,{{\alpha&HB0&}}{context_text}")
+
+        for w in line_words:
+            word_text = w['word'].strip()
+            if not word_text:
+                continue
+            dur_cs = max(30, int((w['end'] - w['start']) * 100))
+            t1 = min(100, dur_cs // 4)
+            t2 = min(t1 + 100, dur_cs // 2)
+            t3 = min(t2 + 100, dur_cs - 30)
+            # Rock: -8° → +8° → -4° → 0° (settling oscillation)
+            tag = (f"{{\frz-8"
+                   f"\fscx115\fscy115"
+                   f"\t(0,{t1},\frz8\fscx115\fscy115)"
+                   f"\t({t1},{t2},\frz-4\fscx110\fscy110)"
+                   f"\t({t2},{t3},\frz0\fscx100\fscy100)"
+                   f"\t({t3},{dur_cs},\frz0\fscx100\fscy100\alpha&HB0&)}}")
+            events.append(f"Dialogue: 1,{seconds_to_ass_time(w['start'])},{seconds_to_ass_time(w['end'])},Word,,0,0,0,,{tag}{word_text}")
+    return ass + '\n'.join(events) + '\n'
+
+
+def generate_ass_typewriter(lines, style_config):
+    """Typewriter style: characters appear one by one per word.
+    Previous words shown in white, current word typed in yellow character by character.
+    """
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    position = style_config.get('position', 'bottom')
+    color = style_config.get('color', '&H00FFFFFF')
+    highlight = style_config.get('highlight', '&H0000FFFF')
+    outline_color = '&H00000000'
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+
+    if position == 'top':
+        alignment, margin_v = 8, vp.get('secondary_margin_v', 30)
+    elif position == 'center':
+        alignment, margin_v = 5, 0
+    else:
+        alignment, margin_v = 2, main_margin_v
+
+    sample = ' '.join(w['word'] for line in lines[:3] for w in line[:3])
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in sample)
+    font_name = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+
+    ass = f"""[Script Info]
+Title: Typewriter Word Captions
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,{font_name},{font_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,{alignment},20,20,{margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    events = []
+    for line_words in lines:
+        if not line_words:
+            continue
+
+        for wi, w in enumerate(line_words):
+            word_text = w['word'].strip()
+            if not word_text:
+                continue
+            chars = list(word_text)
+            if not chars:
+                continue
+
+            word_dur = w['end'] - w['start']
+            char_dur = word_dur / len(chars)
+            prev_text = ' '.join(pw['word'].strip() for pw in line_words[:wi] if pw['word'].strip())
+
+            for ci in range(len(chars)):
+                t_start = w['start'] + ci * char_dur
+                t_end   = w['start'] + (ci + 1) * char_dur if ci + 1 < len(chars) else w['end']
+                typed = word_text[:ci + 1]
+
+                if prev_text:
+                    display = f"{{\c{color}}}{prev_text} {{\c{highlight}}}{typed}"
+                else:
+                    display = f"{{\c{highlight}}}{typed}"
+
+                events.append(f"Dialogue: 0,{seconds_to_ass_time(t_start)},{seconds_to_ass_time(t_end)},Default,,0,0,0,,{display}")
+
+        # After last word fully typed, show full line in white until line ends
+        last_w = line_words[-1]
+        full_line = ' '.join(w['word'].strip() for w in line_words if w['word'].strip())
+        last_char_end = last_w['start'] + (last_w['end'] - last_w['start']) / max(1, len(last_w['word'].strip())) * len(last_w['word'].strip())
+        line_end = last_w['end']
+        if last_char_end < line_end:
+            events.append(f"Dialogue: 0,{seconds_to_ass_time(last_char_end)},{seconds_to_ass_time(line_end)},Default,,0,0,0,,{full_line}")
+
+    return ass + '\n'.join(events) + '\n'
+
+def generate_ass_bounce(lines, style_config, translations=None):
+    """Generate per-word spring-bounce animation captions.
+
+    Each word springs in with a scale animation (140%→95%→105%→100%→exit),
+    displayed individually centered. TikTok/social-media style.
+
+    If translations provided, adds static secondary text below each line
+    for bilingual captioning.
+    """
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    position = style_config.get('position', 'bottom')
+    color = style_config.get('color', '&H00FFFFFF')
+    highlight = style_config.get('highlight', '&H0000FFFF')
+    outline_color = '&H00000000'
+    outline = min(6, max(3, vp.get('outline', 2) + 2))
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+    secondary_margin_v = vp.get('secondary_margin_v', 30)
+    secondary_size = vp.get('secondary_font_size', max(16, int(font_size * 0.55)))
+
+    if position == 'top':
+        alignment = 8
+        margin_v = vp.get('secondary_margin_v', 30)
+    elif position == 'center':
+        alignment = 5
+        margin_v = 0
+    else:
+        alignment = 2
+        margin_v = main_margin_v
+
+    # Detect CJK from sample words
+    sample = ' '.join(w['word'] for line in lines[:3] for w in line[:3])
+    is_cjk = any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in sample)
+    font_name = 'PingFang SC' if is_cjk else 'Helvetica Neue'
+
+    ass_content = f"""[Script Info]
+Title: Bounce Word-Level Captions
+ScriptType: v4.00+
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Bounce,{font_name},{font_size},{highlight},{color},{outline_color},&H80000000,1,0,0,0,100,100,0,0,1,{outline},2,{alignment},20,20,{margin_v},1
+Style: Secondary,Helvetica Neue,{secondary_size},{color},{color},{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{max(1, outline - 1)},1,{alignment},20,20,{secondary_margin_v},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+
+    events = []
+    for i, line_words in enumerate(lines):
+        if not line_words:
+            continue
+
+        line_start = line_words[0]['start']
+        line_end = line_words[-1]['end']
+        line_start_ts = seconds_to_ass_time(line_start)
+        line_end_ts = seconds_to_ass_time(line_end)
+
+        # Optional secondary (translation) — static for entire line duration
+        if translations and i < len(translations) and translations[i]:
+            events.append(
+                f"Dialogue: 0,{line_start_ts},{line_end_ts},Secondary,,0,0,0,,{translations[i]}"
+            )
+
+        # Per-word spring-bounce events (Layer 1)
+        for w in line_words:
+            word_text = w['word'].strip()
+            if not word_text:
+                continue
+
+            word_start = w['start']
+            word_end = w['end']
+            word_dur_cs = max(20, int((word_end - word_start) * 100))
+
+            # Spring bounce timing (centiseconds from word start)
+            t1 = min(180, max(20, word_dur_cs // 3))          # end of initial compress
+            t2 = min(t1 + 80, word_dur_cs - max(20, word_dur_cs // 4) - 10)
+            t2 = max(t1 + 10, t2)
+            t3 = max(t2 + 10, word_dur_cs - min(120, word_dur_cs // 4))
+
+            w_start_ts = seconds_to_ass_time(word_start)
+            w_end_ts = seconds_to_ass_time(word_end)
+
+            # Spring animation: pop in (140%) → compress (95%) → spring up (105%) → settle (100%) → exit (88%+fade)
+            bounce_tag = (
+                f"{{\\fscx140\\fscy140"
+                f"\\t(0,{t1},\\fscx95\\fscy95)"
+                f"\\t({t1},{t2},\\fscx105\\fscy105)"
+                f"\\t({t2},{t3},\\fscx100\\fscy100)"
+                f"\\t({t3},{word_dur_cs},\\fscx88\\fscy88\\alpha&H60&)"
+                f"}}"
+            )
+            events.append(
+                f"Dialogue: 1,{w_start_ts},{w_end_ts},Bounce,,0,0,0,,{bounce_tag}{word_text}"
+            )
+
+    return ass_content + '\n'.join(events) + '\n'
+
+
 def burn_captions(video_file, ass_file, output_file):
     """Burn ASS subtitles into video using ffmpeg."""
     print_header("Step 3: Burning Captions into Video")
@@ -583,6 +1115,7 @@ def main():
     style = 'highlight'
     position = 'bottom'
     font_size = None  # auto from video
+    font_size_user_override = False
     words_per_line = 8
     color = '&H00FFFFFF'
     highlight = '&H0000FFFF'
@@ -590,6 +1123,8 @@ def main():
     srt_only = False
     source_lang = None
     bilingual = None
+    main_lang = None
+    words_json = None
 
     for arg in args[1:]:
         if arg.startswith('--style='):
@@ -598,6 +1133,7 @@ def main():
             position = arg.split('=', 1)[1]
         elif arg.startswith('--font-size='):
             font_size = int(arg.split('=', 1)[1])
+            font_size_user_override = True
         elif arg.startswith('--words-per-line='):
             words_per_line = int(arg.split('=', 1)[1])
         elif arg.startswith('--color='):
@@ -612,6 +1148,10 @@ def main():
             source_lang = arg.split('=', 1)[1]
         elif arg.startswith('--bilingual='):
             bilingual = arg.split('=', 1)[1]
+        elif arg.startswith('--main-lang='):
+            main_lang = arg.split('=', 1)[1]
+        elif arg.startswith('--words-json='):
+            words_json = arg.split('=', 1)[1]
 
     groq_api_key = os.getenv('GROQ_API_KEY')
     if not groq_api_key:
@@ -636,9 +1176,20 @@ def main():
     # Apply auto values, user overrides take precedence
     if font_size is None:
         font_size = vp['main_font_size']
+    # Bounce style: auto-scale up for impactful display
+    if style == 'bounce' and not font_size_user_override:
+        font_size = int(font_size * 1.8)
 
-    # Step 1: Transcribe with word-level timestamps
-    words, segments = transcribe_words(video_file, groq_api_key, source_lang)
+    # Step 1: Transcribe with word-level timestamps (or load from cache)
+    if words_json and os.path.exists(words_json):
+        print_header("Step 1: Word-Level Transcription")
+        print(f"  Loading cached word timestamps from: {words_json}")
+        with open(words_json, 'r', encoding='utf-8') as _f:
+            _data = json.load(_f)
+        words, segments = _data.get('words', []), _data.get('segments', [])
+        print(f"  Words: {len(words)}, Segments: {len(segments)}")
+    else:
+        words, segments = transcribe_words(video_file, groq_api_key, source_lang)
 
     if not words:
         print("ERROR: No word-level timestamps returned. Groq Whisper may not support")
@@ -660,10 +1211,30 @@ def main():
         'video_params': vp,
     }
 
-    if bilingual:
+    if main_lang:
+        # Main-lang mode: translate to main_lang → Chinese (or other) on top karaoke, original below
+        print(f"  Mode: Translated main ({main_lang}) + original secondary")
+        main_translations = translate_lines(lines, main_lang)
+        ass_content = generate_ass_bilingual_translated_main(lines, main_translations, style_config)
+    elif bilingual:
         # Bilingual mode: translate each line, then generate dual-language ASS
         translations = translate_lines(lines, bilingual)
-        ass_content = generate_ass_bilingual(lines, translations, style_config)
+        if style == 'bounce':
+            ass_content = generate_ass_bounce(lines, style_config, translations=translations)
+        else:
+            ass_content = generate_ass_bilingual(lines, translations, style_config)
+    elif style == 'bounce':
+        ass_content = generate_ass_bounce(lines, style_config)
+    elif style == 'fade':
+        ass_content = generate_ass_fade(lines, style_config)
+    elif style == 'zoom':
+        ass_content = generate_ass_zoom(lines, style_config)
+    elif style == 'slide':
+        ass_content = generate_ass_slide(lines, style_config)
+    elif style == 'wave':
+        ass_content = generate_ass_wave(lines, style_config)
+    elif style == 'typewriter':
+        ass_content = generate_ass_typewriter(lines, style_config)
     elif style == 'appear':
         ass_content = generate_ass_appear(lines, style_config)
     elif style == 'underline':

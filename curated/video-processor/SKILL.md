@@ -102,19 +102,33 @@ Only use when user **explicitly asks** to caption a video with word-level accura
 1. Run: `python3 scripts/caption_video.py <video_file_or_url> [options]`
 2. Output: `{name}_captioned.mp4` + `{name}_captions.ass` + `{name}_words.json`
 
+**Caption Styles (`--style=`):**
+
+| Style | Technique | Description |
+|-------|-----------|-------------|
+| `highlight` *(default)* | Karaoke Fill | Full line shown; current word sweeps from white → yellow as spoken |
+| `appear` | Word Reveal | Words appear one by one and accumulate until line ends |
+| `underline` | Active Underline | Full line visible; current word is yellow + bold + underlined |
+| `bounce` | Spring Physics | Word-by-word pop — each word bounces in (140%→95%→105%→100%) and exits; 1.8× bigger font |
+| `fade` | Fade In/Out | Dim context line persists; current word fades in bright yellow, fades out at end |
+| `zoom` | Zoom In | Word scales from 0% → 115% → 100% with slight overshoot — punchy entrance |
+| `slide` | Slide Up | Word slides up 50px into position, then gently fades out |
+| `wave` | Rock/Oscillate | Dim context line persists; current word rocks −8°→+8°→−4°→0° (settling oscillation) |
+| `typewriter` | Typewriter | Characters appear one by one per word; previous words shown in white, current in yellow |
+
 **Options:**
-- `--style=highlight` (default) — karaoke fill: words highlight as spoken
-- `--style=appear` — words appear one by one as spoken
-- `--style=underline` — full line shown, current word underlined+highlighted
+- `--style=<style>` — caption animation style (see table above, default: `highlight`)
 - `--bilingual=<lang>` — add secondary language translation below main captions (e.g. `--bilingual=english`)
+- `--main-lang=<lang>` — make translated language the MAIN (top, karaoke) caption; original becomes secondary below
 - `--position=bottom|top|center` — caption position (default: bottom)
-- `--font-size=<size>` — font size (default: auto-calculated from video resolution)
+- `--font-size=<size>` — font size (default: auto-calculated from video resolution; `bounce` auto-scales 1.8×)
 - `--words-per-line=8` — max words per caption line (default: 8)
 - `--color=BBGGRR` — text color in ASS hex (default: 00FFFFFF = white)
 - `--highlight=BBGGRR` — highlight color in ASS hex (default: 0000FFFF = yellow)
 - `--output=file.mp4` — custom output filename
-- `--srt-only` — only generate ASS file, don't burn into video
+- `--srt-only` — only generate ASS subtitle file, don't burn into video
 - `--lang=en` — source language code (default: auto-detect)
+- `--words-json=<file>` — skip re-transcription; load cached `_words.json` from a previous run
 
 **Auto-sizing:** The script probes video resolution via ffprobe and auto-calculates optimal font size, margins, and outline thickness based on the video's height (scaled from 1080p baseline). Aspect ratio is also considered — ultrawide (>2.0) gets tighter margins, portrait (<1.0) gets compact margins. User CLI flags (`--font-size`, `--position`) override auto values.
 
