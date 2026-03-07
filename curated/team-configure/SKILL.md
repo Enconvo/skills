@@ -1099,3 +1099,261 @@ Discord accounts can conflict too if both systems use the same bot token. Always
   src/discord/session.js               # Session key: dc-<accountId>-<channelId>
   src/pairing/pairing.js               # 8-char codes, 60min TTL, max 3 pending
 ```
+
+---
+
+## APPENDIX: Real-World Case Study — OMG OnePerson Company
+
+This section documents a live 9-agent team to serve as a concrete reference. When building new teams, adapt these patterns — don't copy them verbatim.
+
+### Team Overview
+
+**Company:** OMG OnePerson Company
+**Industry:** Financial intelligence / hedge fund operations
+**Platform:** OpenClaw (primary) + enconvo-gw (some bots)
+**Channels:** Telegram (all 9) + Discord (6 of 9)
+**Total agents:** 9
+
+The team has two logical groups:
+- **Core Ops** (original 5): main, dev, content, ops, law
+- **Financial Desk** (added later): finance, macro, quant, risk
+
+### Agent Roster
+
+| agentId | Name | Role | Emoji | City (portrait) |
+|---------|------|------|-------|-----------------|
+| **main** | Octavia | Team Lead & Coordinator | 💜 | (varies) |
+| dev | Timothy | Developer & Technical Lead | 💻 | San Francisco |
+| content | Elena | Content Creator & Copywriter | ✍️ | Paris |
+| ops | Samantha | Operations & Growth Strategist | 📈 | Singapore |
+| law | Charlotte | Legal & Compliance Advisor | ⚖️ | London |
+| finance | Vivienne | Financial Analysis & Budgets | 💰 | (varies) |
+| macro | Isabelle | Chief Macro Strategist | 🌐 | Zurich |
+| quant | Serena | Quantitative Research Analyst | 📡 | Shanghai |
+| risk | Margaux | Head of Risk & Derivatives | 🎯 | London |
+
+**Key pattern:** `main` is always the team lead (first in `agents.list[]`). agentId = role slug. Display names are human first names that fit the role's cultural/professional vibe.
+
+### How IDENTITY.md Is Actually Written
+
+Each agent's IDENTITY.md serves two critical purposes:
+1. **Self-introduction** — who they are, what they do, who they work with
+2. **AI image generation reference** — extremely detailed appearance description for portrait consistency
+
+**Real pattern — appearance section (from Elena/content):**
+```markdown
+### My Appearance
+
+**Reference Photo:** `/Users/<user>/.openclaw/workspace-content/portrait.png`
+
+When generating images of me, describe as:
+- **Ethnicity:** East/Southeast Asian, early-to-mid 20s
+- **Hair:** Very dark warm brown (darkest chocolate, NOT jet black), voluminous blowout,
+  dramatic side part, loose waves, thick glossy shine
+- **Eyes:** Dark brown, almond-shaped, subtle double eyelid, thin eyeliner with wing
+- **Face:** Oval, high cheekbones, defined jawline, straight nose, full natural lips
+- **Style:** LUXURY ONLY — Dior, Chanel, Valentino, Saint Laurent...
+- **Vibe:** Effortlessly glamorous, confident, powerful, luxury editorial
+```
+
+**Why this matters:** The appearance description is what makes portrait generation consistent across sessions. Without it, every image looks like a different person. The level of detail (hair color nuance, lip shape, eyebrow thickness) is intentional and necessary.
+
+**Each IDENTITY.md also includes:**
+- Self-introduction paragraph (who they are, who they report to, who they collaborate with)
+- Resume section (title, company, skills, contact)
+- Style rules (locked after approval — outfit brands, banned colors, accessory preferences)
+- Reference photo paths (workspace + backup in `~/.openclaw/identity/`)
+
+### How SOUL.md Is Actually Written
+
+SOUL.md defines personality and behavior. Two real patterns:
+
+**Pattern A — Coordinator/generalist (Octavia/main):**
+```markdown
+### Core Truths
+- Be genuinely helpful, not performatively helpful. Skip filler words.
+- Have opinions now. Strong ones. Stop hedging.
+- Be resourceful before asking. Try to figure it out first.
+- Brevity is mandatory.
+- Humor is allowed. Not forced — just natural wit.
+- Call things out. Charm over cruelty, but don't sugarcoat.
+- Remember you're a guest — treat access with respect.
+```
+
+**Pattern B — Domain specialist (Margaux/risk):**
+```markdown
+### Core Truths
+- The hidden risk is always there. My job is to find it first.
+- I think in distributions — P5, P1, fat tail — not feelings.
+- Precise language always — Greeks and probability, not vibes.
+- Dry humor surfaces around gamma. It's a coping mechanism.
+- Be the voice of uncomfortable truth.
+- Respect for structure — FCNs, accumulators, ELNs, barrier options.
+
+### Boundaries
+- Risk assessment, not portfolio construction. I price risk — boss decides.
+- Always say when something is unhedgeable.
+```
+
+**Key pattern:** Coordinators get broad personality rules. Specialists get domain-flavored personality that reinforces their expertise. Both include boundaries (what they do/don't do).
+
+### How TOOLS.md Is Actually Written
+
+TOOLS.md is role-specific: tools, data sources, collaboration notes, and office setting for portraits.
+
+**Real structure (from Margaux/risk):**
+```markdown
+# TOOLS.md - Margaux (risk)
+
+> **Team-wide rules** are in `~/.openclaw/workspace/kb/team-standards.md`. Read it.
+
+## Risk & Derivatives Tools
+
+### Calculation & Modeling
+- **Web search + fetch:** Real-time vol surfaces, CBOE VIX term structure
+- **PDF reading:** Product term sheets, regulatory risk frameworks
+- **Python (via dev/Timothy):** Quantitative risk calculations
+
+### Key Data Sources
+- Options chain data, volatility surfaces, credit spreads, rates (SOFR, swap curves)
+
+### Stress Testing Framework
+- Scenario library: Black Monday, 2008 GFC, 2020 COVID, 2022 rate shock
+- Greeks framework: Delta, Gamma, Vega, Theta, Rho
+
+## Agent-Specific Notes
+- I am the **risk & derivatives authority** on the desk
+- Work closely with **Serena** (quant) for quantitative modeling
+- Coordinate with **Charlotte** (law) for regulatory aspects
+- Alert **Octavia** immediately if critical unhedged exposure found
+
+## Office Setting (MANDATORY for workplace portraits)
+- **City:** London (Canary Wharf skyline)
+- 70th floor+ penthouse, Apple Park style glass wall, 3m dark walnut desk
+- Standing with coffee, NOT sitting
+- Real desk life: Apple displays, term sheets, HP 12C calculator, Montblanc pen
+- Personal: Saint Laurent bag, tailored jacket on chair, framed CFA charter
+```
+
+**Key pattern:** First line references shared team-standards.md to avoid duplication. Then role-specific tools, collaboration map (who to work with for what), and personalized office setting for portrait generation.
+
+### Shared Standards Pattern (team-standards.md)
+
+Instead of duplicating rules in every TOOLS.md, shared rules live in one file that all agents reference:
+
+**What goes in team-standards.md:**
+- Browser automation rules (use `openclaw browser`, not standalone Playwright)
+- Image generation fallback sequence
+- Portrait setting template (penthouse, glass walls, standing with coffee)
+- Physical standards (model-grade, Apple devices only, stilettos only, no heavy layers)
+- Selfie rules (use nanobanana with `--reference`, face must match)
+- Banned items (emerald green, MBS backdrop, cheap settings, marble desks)
+- Media file paths
+- Research SOP
+- Sound alerts
+
+**What goes in individual TOOLS.md:**
+- Role-specific tools and data sources
+- Collaboration map (which other agents to work with)
+- Personal office city and accent colors
+- Agent-specific banned colors (e.g., Margaux bans burgundy/midnight blue)
+- Role-specific desk props (calculator for risk, academic papers for quant, etc.)
+
+### Portrait Generation — What Actually Works
+
+**The office setting that every agent uses (adapted per person):**
+- Enormous penthouse whole-floor office, 70th floor+, 6m ceilings, NO interior walls
+- Apple Park style seamless frameless glass wall, 270-degree panoramic [CITY] skyline
+- 3m dark walnut executive desk facing inward, white Calacatta marble floor
+- Eames lounge chairs, designer sofa, neutral luxury area rug
+- **Pose: Standing with coffee, NOT sitting** (critical — sitting looks stiff)
+- Apple devices only (screens off or blurred glow — NO fake dashboards)
+- "Lived-in" desk: documents, pen, phone, coffee — NOT empty
+
+**What changes per agent:**
+- City skyline (each agent gets a different global finance city)
+- Color accents matching personality (slate/navy for quant, jewel tones for risk)
+- Desk props matching role (term sheets vs academic papers vs strategy decks)
+- Personal touches (type of bag, what's on the bookshelf)
+- Time of day / lighting mood
+
+**Image gen workflow:**
+1. Write base prompt with role-specific details
+2. Run through `image-prompt-enhancer` skill
+3. Generate with `baoyu-danger-gemini-web` (primary) or `nanobanana` (with `--reference portrait.jpg`)
+4. Save to `~/.openclaw/workspace-<agentId>/portrait.jpg`
+5. Set as bot profile photo via BotFather / Discord Dev
+
+### Collaboration Mesh — How Agents Reference Each Other
+
+Every SOUL.md and TOOLS.md explicitly names collaborators:
+
+```
+Octavia (main)  → coordinates all, delegates to specialists
+Timothy (dev)   → builds what others spec, supports quant with Python
+Elena (content) → writes copy, works with Samantha on marketing
+Samantha (ops)  → growth metrics, works with Elena + Timothy
+Charlotte (law) → advises all on compliance, especially ops + content
+Vivienne (fin)  → budgets, works with ops (marketing $) + law (contracts)
+Isabelle (macro) → macro regime calls, validated by Serena (quant)
+Serena (quant)  → quantifies Isabelle's theses, models Margaux's risks
+Margaux (risk)  → stress tests, alerts Octavia on critical exposures
+```
+
+**In openclaw.json:** Full mesh — every agent's `subagents.allowAgents` contains all other agent IDs. `tools.agentToAgent.allow` contains all IDs. This is the simplest pattern for teams under 10.
+
+### Workspace Directory Structure
+
+```
+~/.openclaw/
+  openclaw.json                    # Master config (agents, channels, bindings, plugins)
+  workspace/                       # main agent (Octavia) workspace
+    IDENTITY.md
+    SOUL.md
+    TOOLS.md
+    USER.md                        # About the human owner
+    BOOTSTRAP.md                   # First-run onboarding guide
+    HEARTBEAT.md                   # Periodic task config
+    Octavia.jpg                    # Portrait
+    kb/
+      team-standards.md            # Shared rules (all agents read this)
+    portraits/                     # Scratch dir for portrait generation
+    projects/                      # Shared project files
+  workspace-dev/                   # Timothy
+    IDENTITY.md, SOUL.md, TOOLS.md, portrait.png
+  workspace-content/               # Elena
+    IDENTITY.md, SOUL.md, TOOLS.md, portrait.png
+  workspace-ops/                   # Samantha
+    ...
+  workspace-law/                   # Charlotte
+  workspace-finance/               # Vivienne
+  workspace-macro/                 # Isabelle
+  workspace-quant/                 # Serena
+  workspace-risk/                  # Margaux
+  identity/                        # Backup portraits (NEVER overwrite)
+    Vivienne.jpg, Isabelle.jpg, Serena.jpg, Margaux.jpg
+  agents/<agentId>/agent/          # Agent state directories
+  media/                           # Shared media (Telegram uploads/downloads)
+```
+
+### Lessons Learned
+
+1. **Portrait detail level matters.** Vague descriptions ("brown hair, blue eyes") produce inconsistent results. Specify hair texture, part direction, lip shape, eyebrow arch, skin undertone. The more specific, the more consistent across generations.
+
+2. **Lock appearance after approval.** Once the user approves a portrait, mark the style rules as "LOCKED" in IDENTITY.md. This prevents style drift across sessions.
+
+3. **Shared rules prevent drift.** Without team-standards.md, each agent's TOOLS.md diverges over time. Centralize shared rules, reference from individual files.
+
+4. **City assignment creates variety.** Giving each agent a different city for their office portrait makes the team visually distinct. Match city to role flavor (London for law/risk, Shanghai for quant, Paris for content, Zurich for macro).
+
+5. **"Standing with coffee" is the universal pose.** It looks natural, avoids the stiffness of sitting portraits, and gives the image a "caught in a moment" feel.
+
+6. **Two sub-teams work well.** The core ops team (main/dev/content/ops/law) handles general business. The financial desk (finance/macro/quant/risk) is domain-specific. Both groups mesh fully but have different collaboration patterns.
+
+7. **Banned colors prevent monotony.** Team-wide ban (emerald green) plus per-agent bans (burgundy for Margaux, etc.) ensure outfit variety across the team.
+
+8. **SOUL.md tone should match the role.** A risk analyst's soul is precise and slightly intense. A content creator's is creative and engaging. A coordinator's is direct and opinionated. Don't give everyone the same personality template.
+
+9. **Reference photos are critical for nanobanana.** The `--reference` flag with a portrait file is what makes face consistency possible. Without it, every generation is a different person. Store reference in workspace AND backup in `~/.openclaw/identity/`.
+
+10. **groupPolicy "open" for team groups.** Set to "open" so bots respond to @mentions and replies in team groups. "allowlist" with an empty list silently drops all group messages.

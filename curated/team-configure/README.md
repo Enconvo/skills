@@ -44,6 +44,9 @@ End-to-end AI team member lifecycle management. Tell the AI about your company a
 - **Update mesh** — Recalculate and apply full agent-to-agent communication graph
 - **Manage allowlists** — Control group/guild participation per agent
 
+### Real-World Reference
+- **Built-in case study** — Documents a live 9-agent financial intelligence team (coordinator + dev + content + ops + law + finance + macro + quant + risk) with real IDENTITY.md, SOUL.md, and TOOLS.md patterns, portrait generation workflow, collaboration mesh, and 10 lessons learned
+
 ## Quick Start
 
 ```bash
@@ -90,7 +93,7 @@ bash scripts/setup.sh all
 
 ```
 team-configure/
-├── SKILL.md                    # Complete AI instructions (850+ lines)
+├── SKILL.md                    # Complete AI instructions (1350+ lines, includes real case study)
 ├── README.md                   # This file
 ├── scripts/
 │   └── setup.sh                # Bootstrap: install/update all dependencies
@@ -188,6 +191,9 @@ See [SKILL.md](SKILL.md) for the complete reference: bootstrap walkthrough, all 
 - **OpenClaw 共存** — 与 OpenClaw 并行运行的令牌冲突规避规则
 - **故障排查** — 10种常见问题/原因/解决方案
 
+### 实战案例参考
+- **内置案例研究** — 记录了一个9代理金融情报团队（协调员+开发+内容+运营+法律+财务+宏观+量化+风控），包含真实的 IDENTITY.md、SOUL.md、TOOLS.md 模式、肖像生成流程、协作网格，以及10条经验教训
+
 ## 快速开始
 
 ```bash
@@ -242,6 +248,9 @@ Gestion complète du cycle de vie d'une équipe IA. Décrivez votre entreprise e
 - **Coexistence OpenClaw** — Règles pour éviter les conflits de tokens
 - **Dépannage** — 10 scénarios problème/cause/solution courants
 
+### Étude de cas réelle
+- **Cas d'étude intégré** — Documente une équipe de 9 agents en intelligence financière (coordinateur + dev + contenu + ops + juridique + finance + macro + quant + risque) avec de vrais modèles IDENTITY.md, SOUL.md, TOOLS.md, workflow de portraits, maillage de collaboration et 10 leçons apprises
+
 ## Démarrage rapide
 
 ```bash
@@ -292,6 +301,9 @@ End-to-End KI-Team-Aufbau. Beschreiben Sie Ihr Unternehmen und die KI entwirft d
 - **Discord-Spezifisches** — `MessageContent`-Intent, 2000-Zeichen-Chunking, `!reset`-Befehl
 - **OpenClaw-Koexistenz** — Regeln zur Vermeidung von Token-Konflikten
 - **Fehlerbehebung** — 10 häufige Symptom/Ursache/Lösung-Szenarien
+
+### Praxisbeispiel
+- **Integrierte Fallstudie** — Dokumentiert ein 9-Agenten-Team für Finanzintelligenz (Koordinator + Dev + Content + Ops + Recht + Finanzen + Makro + Quant + Risiko) mit realen IDENTITY.md-, SOUL.md-, TOOLS.md-Mustern, Portrait-Workflow, Kollaborationsnetz und 10 Erkenntnissen
 
 ## Schnellstart
 
@@ -344,6 +356,9 @@ End-to-end AI-teamopbouw. Vertel de AI over uw bedrijf en het ontwerpt het team,
 - **OpenClaw coëxistentie** — Regels om tokenconflicten te vermijden
 - **Probleemoplossing** — 10 veelvoorkomende symptoom/oorzaak/oplossing-scenario's
 
+### Praktijkvoorbeeld
+- **Ingebouwde casestudy** — Documenteert een 9-agent financieel inlichtingenteam (coördinator + dev + content + ops + juridisch + financiën + macro + quant + risico) met echte IDENTITY.md-, SOUL.md-, TOOLS.md-patronen, portretworkflow, samenwerkingsmesh en 10 geleerde lessen
+
 ## Snel starten
 
 ```bash
@@ -395,6 +410,9 @@ Configuración integral de equipos de IA. Describa su empresa y la IA diseña el
 - **Coexistencia con OpenClaw** — Reglas para evitar conflictos de tokens
 - **Solución de problemas** — 10 escenarios comunes de síntoma/causa/solución
 
+### Caso de estudio real
+- **Caso de estudio integrado** — Documenta un equipo de 9 agentes de inteligencia financiera (coordinador + dev + contenido + ops + legal + finanzas + macro + quant + riesgo) con patrones reales de IDENTITY.md, SOUL.md, TOOLS.md, flujo de retratos, malla de colaboración y 10 lecciones aprendidas
+
 ## Inicio rápido
 
 ```bash
@@ -445,6 +463,9 @@ Configuração completa de equipes de IA. Descreva sua empresa e a IA projeta a 
 - **Especificidades do Discord** — Intent `MessageContent`, fragmentação de 2000 caracteres, comando `!reset`
 - **Coexistência com OpenClaw** — Regras para evitar conflitos de tokens
 - **Solução de problemas** — 10 cenários comuns de sintoma/causa/solução
+
+### Caso de estudo real
+- **Caso de estudo integrado** — Documenta uma equipe de 9 agentes de inteligência financeira (coordenador + dev + conteúdo + ops + jurídico + finanças + macro + quant + risco) com padrões reais de IDENTITY.md, SOUL.md, TOOLS.md, fluxo de retratos, malha de colaboração e 10 lições aprendidas
 
 ## Início rápido
 
