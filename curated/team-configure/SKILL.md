@@ -754,10 +754,53 @@ openclaw pairing list telegram
 openclaw pairing approve <CODE> --channel telegram --notify
 ```
 
-#### Phase 9: Group Setup
+#### Phase 9: Group Setup (Channel Side)
 
-Add all bots to team Telegram group (via Playwright on web.telegram.org).
-Invite all Discord bots to server (via OAuth2 URLs in browser).
+Create team channels and add all bots so they can collaborate and be @mentioned.
+
+**Telegram Group:**
+
+1. **Create the group** via Playwright MCP on `https://web.telegram.org`:
+   - Open web.telegram.org
+   - Click hamburger menu -> "New Group"
+   - Name it (e.g., "<Team Name> HQ")
+   - Add the user's own account as initial member
+   - Create the group
+
+2. **Add all bots to the group** — for each team member bot:
+   - In the group, click group name -> "Add Members"
+   - Search for `@<botUsername>` and add
+   - Repeat for all bots
+
+3. **Ensure @mention-based interaction:**
+   - Bots with privacy mode **disabled** (done in Phase 6 via `botfather.sh set privacy @bot "Disable"`) can read ALL group messages
+   - With privacy enabled, bots only see messages that @mention them or reply to their messages
+   - For team groups, privacy is typically disabled so bots see context — but they should still only **respond** when @mentioned or replied to
+   - The gateway (OpenClaw/enconvo-gw) handles this: `groupPolicy: "open"` means respond to @mentions and replies in allowed groups
+
+4. **Verify bots are in the group:**
+   - Send a message in the group @mentioning each bot
+   - Each should respond (if gateway is running and pairing is approved)
+
+**Discord Server:**
+
+1. **Create the server** (if needed):
+   - Use Playwright to navigate to Discord, click "+" -> "Create My Own" -> name it
+
+2. **Invite all bots** — for each team member:
+   - Use the OAuth2 URL generated in Phase 6:
+     ```bash
+     <SKILL_DIR>/skills/discord-dev/discord-dev.sh oauth2-url "<AppName>" --permissions 8 --scopes "bot applications.commands"
+     ```
+   - Open each URL in browser, select the server, authorize
+
+3. **Discord @mention behavior:**
+   - Bots respond to DMs, @mentions, and replies to their own messages
+   - With `messageContentIntent: true` (set in Phase 6), bots can also read all guild messages
+   - Without it, bots only see messages that directly mention them
+
+4. **Create team channel** (optional):
+   - Create a `#team` or `#hq` channel in the server for team discussions
 
 #### Phase 10: Verification
 
