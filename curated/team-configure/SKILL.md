@@ -558,7 +558,7 @@ enconvo-gw gateway stop && enconvo-gw gateway --force
 
 ### 3. Full Team Setup from Scratch
 
-The most complex operation. Follows all phases in order.
+The most complex operation. Truly end-to-end: from "I have a company" to a fully operational AI team with identities, portraits, and live bots.
 
 #### Phase 1: Prerequisites
 
@@ -571,27 +571,127 @@ This installs/verifies: Node.js, OpenClaw, enconvo-gw, BotFather auth, Discord D
 
 If BotFather or Discord Dev need first-time setup, walk the user through Phase 0D / 0E (see FROM-SCRATCH SETUP above).
 
-#### Phase 2: Planning
+#### Phase 2: Discovery — Understand the Business
 
-Gather from user:
+**Ask the user these questions** (adapt to conversation flow, don't interrogate):
+
+1. **What does your company/team do?** — Industry, core business, product/service
+2. **What's the team for?** — Internal ops, client-facing, research, trading desk, creative studio, dev team, etc.
+3. **What channels do you need?** — Telegram, Discord, or both
+4. **AI platform preference?** — OpenClaw (default), enconvo-gw, or both
+5. **Team size preference?** — "Let me decide" or "suggest based on my needs"
+6. **Any specific roles in mind?** — Or leave it to the AI to design
+
+#### Phase 3: Team Design — Propose Composition
+
+Based on the discovery answers, **design the team and present it for approval**. Consider:
+
+**Role design principles:**
+- Every team needs a **main** agent (team lead / coordinator / COO) — this is the `main` agentId
+- Roles should cover the core functions of the business with minimal overlap
+- Each agent should have a clear, distinct specialty
+- Typical team sizes: 3-5 for focused teams, 6-10 for full operations
+- Think about which roles need to collaborate most (informs mesh design)
+
+**Industry examples (adapt, don't copy):**
+
+| Industry | Typical Roles |
+|---|---|
+| Trading/Finance | main (COO), macro, quant, risk, law, content, dev |
+| Software Dev | main (PM), backend, frontend, devops, qa, design |
+| Marketing Agency | main (strategy), content, design, social, analytics, copywriting |
+| Research Lab | main (PI), literature, data, methodology, writing |
+| E-commerce | main (ops), product, marketing, support, analytics, logistics |
+| Creative Studio | main (creative director), design, copy, production, social |
+
+**For each proposed member, define:**
+
 ```
-Team Name: <name>
-AI Platform: openclaw | enconvo-gw | both
-Channels: telegram, discord
-Members:
-  - displayName, agentId, role, emoji
-  - displayName, agentId, role, emoji
-  - ...
+Member #N:
+  displayName:    <FirstName>           # Human-sounding, fits the role
+  agentId:        <role-slug>           # lowercase, e.g., "macro", "quant", "dev"
+  role:           <clear description>   # What this agent does
+  emoji:          <single emoji>        # Identity emoji
+  city:           <global city>         # For office portrait skyline
+  personality:    <brief traits>        # Analytical, creative, meticulous, etc.
+  botUsername:    <name_bot>            # Telegram (must end in "bot")
+  discordApp:    <DisplayName>          # Discord app name
 ```
 
-Auto-generate naming:
-- Telegram bot: `<firstname_lowercase>_bot` (must end in `bot` per Telegram rules)
-- Discord app: `<DisplayName>`
-- Agent ID: lowercase role slug (or custom)
+**Present the full team table to the user for approval before proceeding.** Let them adjust names, roles, add/remove members.
+
+The `main` agent is the team lead — designate clearly which member is `main`.
+
+#### Phase 4: Generate Identities & Portraits
+
+For each team member, generate a professional portrait and set up their identity.
+
+**Portrait generation workflow (per member):**
+
+1. **Write a portrait prompt** following these rules:
+   - Use the `image-prompt-enhancer` skill to enhance the base prompt
+   - Setting: C-suite penthouse office, 70th floor+, their assigned city skyline
+   - Full glass walls (Apple Park style), 3m dark walnut desk, Calacatta marble floor
+   - Pose: Standing with coffee, NOT sitting
+   - Professional attire: light blazers, silk, tailored — NO heavy layers
+   - "Lived-in luxury" desk: Apple laptop/monitor (screens off/blurred), documents, Montblanc pen, phone, coffee
+   - Personal touches: designer bag, blazer on chair, one meaningful object
+   - Model-grade everything — editorial campaign quality
+   - Apple devices ONLY, stilettos ONLY if shoes visible
+   - Each member gets a DIFFERENT city, outfit, color accent, time of day
+
+2. **Generate the portrait** using the image generation fallback sequence:
+   - Primary: `baoyu-danger-gemini-web` (Gemini)
+   - Fallback: `nanobanana`
+   - Last resort: `grok-image-gen`
+
+3. **Save as portrait** — copy to workspace:
+   ```bash
+   cp <generated_image> ~/.openclaw/workspace-<agentId>/portrait.jpg
+   ```
+
+4. **Set bot profile photos:**
+   ```bash
+   <SKILL_DIR>/skills/botfather/botfather.sh set userpic @<botUsername> ~/.openclaw/workspace-<agentId>/portrait.jpg
+   # Discord: discord-dev.sh update "<AppName>" --icon ~/.openclaw/workspace-<agentId>/portrait.jpg
+   ```
+
+5. **Create workspace TOOLS.md** for each agent at `~/.openclaw/workspace-<agentId>/TOOLS.md`:
+   - Agent-specific tools and data sources
+   - Role description and collaboration notes (which other agents to work with)
+   - Reference team-standards.md for shared rules
+   - Office setting with their specific city
+   - Selfie/portrait instructions with `--reference ./portrait.jpg`
+
+6. **Set agent identity in OpenClaw:**
+   ```bash
+   # Set in openclaw.json agents.list[N].identity:
+   # { "name": "<displayName>", "emoji": "<emoji>", "avatar": "portrait.png" }
+   ```
+
+#### Phase 5: Planning Summary
+
+Before executing, present the full plan:
+
+```
+Team: <name>
+Platform: <openclaw/enconvo-gw/both>
+Channels: <telegram/discord/both>
+
+Members (N total):
+  main    — <DisplayName> (<emoji>) — <role> — <city>
+  <id>    — <DisplayName> (<emoji>) — <role> — <city>
+  <id>    — <DisplayName> (<emoji>) — <role> — <city>
+  ...
+
+Mesh: full (every agent can call every other)
+```
+
+**Get user confirmation**, then proceed.
+
+#### Phase 6: Create All Channel Bots
 
 Compute full mesh: each agent's `allowAgents` = all other agent IDs.
-
-#### Phase 3: Create All Channel Bots
 
 For each member, sequentially:
 
@@ -609,7 +709,7 @@ discord-dev.sh oauth2-url "<displayName>" --permissions 8 --scopes "bot applicat
 
 **Collect all tokens in a structured list. Discord bot tokens are shown only once!**
 
-#### Phase 4: Configure AI Platform
+#### Phase 7: Configure AI Platform
 
 **OpenClaw:**
 
@@ -642,7 +742,7 @@ enconvo-gw channels add --channel telegram --account <agentId> --token "<TG_TOKE
 enconvo-gw channels add --channel discord --account <agentId> --token "<DC_TOKEN>" --agent <agentId>
 ```
 
-#### Phase 5: Restart & Pair
+#### Phase 8: Restart & Pair
 
 ```bash
 openclaw gateway stop && sleep 2 && openclaw gateway
@@ -654,12 +754,12 @@ openclaw pairing list telegram
 openclaw pairing approve <CODE> --channel telegram --notify
 ```
 
-#### Phase 6: Group Setup
+#### Phase 9: Group Setup
 
 Add all bots to team Telegram group (via Playwright on web.telegram.org).
 Invite all Discord bots to server (via OAuth2 URLs in browser).
 
-#### Phase 7: Verification
+#### Phase 10: Verification
 
 ```bash
 openclaw channels status --probe
