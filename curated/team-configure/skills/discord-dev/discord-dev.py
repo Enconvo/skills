@@ -296,6 +296,58 @@ def cmd_oauth2_url(args):
     print(url)
 
 
+def cmd_bot_id(args):
+    """Get the bot user ID for an application."""
+    token = ensure_token()
+    app_id = resolve_app_id(token, args.app)
+    app = api_request("GET", f"/applications/{app_id}", token)
+    bot = app.get("bot")
+    if not bot:
+        print(f"ERROR: Application '{args.app}' has no bot user. Run: discord-dev bot-add {args.app}", file=sys.stderr)
+        sys.exit(1)
+    if args.json:
+        print(json.dumps({"bot_id": bot["id"], "username": bot["username"], "app_id": app_id}, indent=2))
+    else:
+        print(f"Bot ID: {bot['id']}")
+        print(f"Username: {bot['username']}#{bot.get('discriminator', '0')}")
+        print(f"App ID: {app_id}")
+
+
+def cmd_dm(args):
+    """Send a DM to a bot (as the authenticated user) to trigger pairing."""
+    token = ensure_token()
+
+    # Resolve bot user ID
+    bot_user_id = args.bot_id
+    if not bot_user_id:
+        # Try to resolve from app name
+        if not args.app:
+            print("ERROR: Provide --bot-id <id> or --app <name> to identify the bot.", file=sys.stderr)
+            sys.exit(1)
+        app_id = resolve_app_id(token, args.app)
+        app = api_request("GET", f"/applications/{app_id}", token)
+        bot = app.get("bot")
+        if not bot:
+            print(f"ERROR: Application '{args.app}' has no bot user.", file=sys.stderr)
+            sys.exit(1)
+        bot_user_id = bot["id"]
+
+    # Create DM channel with the bot
+    dm_channel = api_request("POST", "/users/@me/channels", token, {"recipient_id": bot_user_id})
+    channel_id = dm_channel["id"]
+
+    # Send message
+    message = args.message or "/start"
+    result = api_request("POST", f"/channels/{channel_id}/messages", token, {"content": message})
+
+    if args.json:
+        print(json.dumps({"channel_id": channel_id, "message_id": result["id"], "content": message, "bot_user_id": bot_user_id}, indent=2))
+    else:
+        print(f"DM channel: {channel_id}")
+        print(f"Sent to bot {bot_user_id}: {message}")
+        print(f"Message ID: {result['id']}")
+
+
 def cmd_intents(args):
     """View or set privileged gateway intents."""
     token = ensure_token()
@@ -421,6 +473,16 @@ def main():
     p_intents.add_argument("--enable", nargs="+", help="Intents to enable: PRESENCE, GUILD_MEMBERS, MESSAGE_CONTENT")
     p_intents.add_argument("--disable", nargs="+", help="Intents to disable")
 
+    # bot-id
+    p_bot_id = sub.add_parser("bot-id", help="Get bot user ID for an application")
+    p_bot_id.add_argument("app", help="App name or ID")
+
+    # dm
+    p_dm = sub.add_parser("dm", help="Send a DM to a bot (as user) to trigger pairing")
+    p_dm.add_argument("--app", help="App name or ID (resolves bot user ID)")
+    p_dm.add_argument("--bot-id", help="Bot user ID (if known)")
+    p_dm.add_argument("--message", "-m", default="/start", help='Message to send (default: "/start")')
+
     args = parser.parse_args()
 
     if not args.cmd:
@@ -441,6 +503,8 @@ def main():
         "commands-set": cmd_commands_set,
         "oauth2-url": cmd_oauth2_url,
         "intents": cmd_intents,
+        "bot-id": cmd_bot_id,
+        "dm": cmd_dm,
     }[args.cmd]
 
     handler(args)
