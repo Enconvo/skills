@@ -2,7 +2,7 @@
 
 End-to-end AI team member lifecycle management. Create channel bots, configure AI agents, pair them together, set up inter-agent communication mesh — from a single skill.
 
-**Self-contained:** Bundles [enconvo-gw](../enconvo-gw/) (not publicly available), auto-installs [OpenClaw](https://github.com/nicepkg/openclaw), and walks through first-time setup of all dependencies.
+**Fully self-contained:** Bundles enconvo-gw gateway (not publicly available), BotFather scripts (Telegram bot management), and Discord Dev scripts (Developer Portal API). Auto-installs [OpenClaw](https://github.com/nicepkg/openclaw) and walks through first-time setup of all dependencies.
 
 ## What This Skill Does
 
@@ -63,19 +63,37 @@ bash scripts/setup.sh all
 └─────────────────────────────────────────────────────┘
 ```
 
+### Gateway Operations (enconvo-gw)
+- **Claude Code agent** — Session management (`--session-id`, `--resume`, `/reset`), system prompt injection
+- **Media handling** — Inbound (user uploads) and outbound (agent-generated files) with auto-upload to channels
+- **DM access policies** — Open, allowlist, or pairing-based access control per bot
+- **Streaming** — Progressive message editing for real-time response display
+- **Discord specifics** — `MessageContent` intent, 2000-char chunking, `!reset` command
+- **OpenClaw coexistence** — Rules for running alongside OpenClaw without token conflicts
+- **Troubleshooting** — 10 common symptom/cause/fix scenarios
+
 ## File Structure
 
 ```
 team-configure/
-├── SKILL.md                    # Complete AI instructions (700+ lines)
+├── SKILL.md                    # Complete AI instructions (850+ lines)
 ├── README.md                   # This file
 ├── scripts/
 │   └── setup.sh                # Bootstrap: install/update all dependencies
-└── enconvo-gw/                 # Bundled gateway source (not on npm)
-    ├── bin/enconvo-gw.js       # CLI entry point
-    ├── src/                    # Node.js ESM source (telegram, discord, claude, pairing)
-    ├── package.json            # grammy + discord.js + commander
-    └── package-lock.json
+├── enconvo-gw/                 # Bundled gateway source (not on npm)
+│   ├── bin/enconvo-gw.js       # CLI entry point
+│   ├── src/                    # Node.js ESM source (20 files)
+│   ├── package.json            # grammy + discord.js + commander
+│   └── package-lock.json
+└── skills/
+    ├── botfather/              # Bundled BotFather skill (Telegram bot management)
+    │   ├── botfather.py        # Python CLI (Telethon + argparse, 509 lines)
+    │   ├── botfather.sh        # Shell wrapper (ensures venv + telethon)
+    │   └── SKILL.md            # BotFather-specific documentation
+    └── discord-dev/            # Bundled Discord Dev skill (Developer Portal API)
+        ├── discord-dev.py      # Python CLI (stdlib only, no deps, 450 lines)
+        ├── discord-dev.sh      # Shell wrapper
+        └── SKILL.md            # Discord Dev-specific documentation
 ```
 
 ## Dependencies
@@ -83,9 +101,9 @@ team-configure/
 | Dependency | Source | Installed by |
 |-----------|--------|-------------|
 | [OpenClaw](https://github.com/nicepkg/openclaw) | npm (public) | `setup.sh` auto-installs |
-| enconvo-gw | Bundled in skill | `setup.sh` deploys to `~/enconvo-gw/` |
-| [BotFather skill](../enconvo-gw/) | Separate skill | User installs separately |
-| [Discord Dev skill](../enconvo-gw/) | Separate skill | User installs separately |
+| enconvo-gw | Bundled in `enconvo-gw/` | `setup.sh` deploys to `~/enconvo-gw/` |
+| BotFather scripts | Bundled in `skills/botfather/` | Used directly from skill dir |
+| Discord Dev scripts | Bundled in `skills/discord-dev/` | Used directly from skill dir |
 | Node.js 18+ | System | User installs |
 
 ## Requirements
@@ -133,6 +151,15 @@ See [SKILL.md](SKILL.md) for the complete reference: bootstrap walkthrough, all 
 - **更新通信网络** — 重新计算并应用完整的代理间通信图
 - **管理白名单** — 按代理控制群组/公会参与权限
 
+### 网关运维（enconvo-gw）
+- **Claude Code 代理** — 会话管理（`--session-id`、`--resume`、`/reset`）、系统提示注入
+- **媒体处理** — 入站（用户上传）和出站（代理生成文件）自动上传至频道
+- **DM 访问策略** — 开放、白名单或配对码授权，按机器人配置
+- **流式响应** — 渐进式消息编辑，实时显示回复
+- **Discord 特性** — `MessageContent` 意图、2000字符分块、`!reset` 命令
+- **OpenClaw 共存** — 与 OpenClaw 并行运行的令牌冲突规避规则
+- **故障排查** — 10种常见问题/原因/解决方案
+
 ## 快速开始
 
 ```bash
@@ -171,6 +198,15 @@ Gestion complète du cycle de vie des membres d'une équipe IA. Créez des bots 
 - **Configuration complète** — Depuis zéro : installer les dépendances, créer tous les bots, configurer tous les agents, mailler, appairer
 - **Mettre à jour le maillage** — Recalculer et appliquer le graphe de communication inter-agents
 
+### Opérations passerelle (enconvo-gw)
+- **Agent Claude Code** — Gestion de session (`--session-id`, `--resume`, `/reset`), injection de prompt système
+- **Gestion des médias** — Entrants (uploads utilisateur) et sortants (fichiers générés) avec envoi automatique
+- **Politiques d'accès DM** — Ouvert, liste blanche ou appairage par code
+- **Streaming** — Édition progressive des messages pour un affichage en temps réel
+- **Spécificités Discord** — Intent `MessageContent`, découpage 2000 caractères, commande `!reset`
+- **Coexistence OpenClaw** — Règles pour éviter les conflits de tokens
+- **Dépannage** — 10 scénarios problème/cause/solution courants
+
 ## Démarrage rapide
 
 ```bash
@@ -205,6 +241,15 @@ End-to-End-Lebenszyklusverwaltung für KI-Teammitglieder. Erstellen Sie Kanal-Bo
 - **Mitglied entfernen** — Saubere Entfernung über alle Kanäle und Plattformen
 - **Team von Grund auf einrichten** — Komplett neu: Abhängigkeiten installieren, alle Bots erstellen, alle Agenten konfigurieren, vernetzen, koppeln
 - **Netzwerk aktualisieren** — Inter-Agenten-Kommunikationsgraph neu berechnen und anwenden
+
+### Gateway-Betrieb (enconvo-gw)
+- **Claude Code Agent** — Sitzungsverwaltung (`--session-id`, `--resume`, `/reset`), System-Prompt-Injektion
+- **Medienverarbeitung** — Eingehend (Benutzer-Uploads) und ausgehend (Agent-generierte Dateien) mit Auto-Upload
+- **DM-Zugriffsrichtlinien** — Offen, Allowlist oder Pairing-basierte Zugriffskontrolle
+- **Streaming** — Progressive Nachrichtenbearbeitung für Echtzeit-Anzeige
+- **Discord-Spezifisches** — `MessageContent`-Intent, 2000-Zeichen-Chunking, `!reset`-Befehl
+- **OpenClaw-Koexistenz** — Regeln zur Vermeidung von Token-Konflikten
+- **Fehlerbehebung** — 10 häufige Symptom/Ursache/Lösung-Szenarien
 
 ## Schnellstart
 
@@ -241,6 +286,15 @@ End-to-end levenscyclusbeheer voor AI-teamleden. Maak kanaal-bots, configureer A
 - **Team vanaf nul opzetten** — Helemaal opnieuw: afhankelijkheden installeren, alle bots maken, alle agenten configureren, mesh opzetten, koppelen
 - **Mesh bijwerken** — Inter-agent communicatiegraaf herberekenen en toepassen
 
+### Gateway-operaties (enconvo-gw)
+- **Claude Code agent** — Sessiebeheer (`--session-id`, `--resume`, `/reset`), systeem-prompt injectie
+- **Mediaverwerking** — Inkomend (gebruiker uploads) en uitgaand (agent-gegenereerde bestanden) met auto-upload
+- **DM-toegangsbeleid** — Open, allowlist of pairing-gebaseerde toegangscontrole
+- **Streaming** — Progressieve berichtbewerking voor realtime weergave
+- **Discord-specifiek** — `MessageContent` intent, 2000-teken chunking, `!reset` commando
+- **OpenClaw coëxistentie** — Regels om tokenconflicten te vermijden
+- **Probleemoplossing** — 10 veelvoorkomende symptoom/oorzaak/oplossing-scenario's
+
 ## Snel starten
 
 ```bash
@@ -276,6 +330,15 @@ Gestión integral del ciclo de vida de los miembros de un equipo de IA. Cree bot
 - **Configuración completa** — Desde cero: instalar dependencias, crear todos los bots, configurar todos los agentes, establecer malla, emparejar
 - **Actualizar malla** — Recalcular y aplicar el grafo de comunicación inter-agentes
 
+### Operaciones de pasarela (enconvo-gw)
+- **Agente Claude Code** — Gestión de sesiones (`--session-id`, `--resume`, `/reset`), inyección de prompt del sistema
+- **Manejo de medios** — Entrantes (subidas de usuario) y salientes (archivos generados) con subida automática
+- **Políticas de acceso DM** — Abierto, lista de permitidos o emparejamiento por código
+- **Streaming** — Edición progresiva de mensajes para visualización en tiempo real
+- **Especificidades de Discord** — Intent `MessageContent`, fragmentación de 2000 caracteres, comando `!reset`
+- **Coexistencia con OpenClaw** — Reglas para evitar conflictos de tokens
+- **Solución de problemas** — 10 escenarios comunes de síntoma/causa/solución
+
 ## Inicio rápido
 
 ```bash
@@ -310,6 +373,15 @@ Gerenciamento completo do ciclo de vida dos membros de uma equipe de IA. Crie bo
 - **Remover membro** — Remoção limpa em todos os canais e plataformas
 - **Configuração completa** — Do zero: instalar dependências, criar todos os bots, configurar todos os agentes, estabelecer malha, emparelhar
 - **Atualizar malha** — Recalcular e aplicar o grafo de comunicação inter-agentes
+
+### Operações de gateway (enconvo-gw)
+- **Agente Claude Code** — Gerenciamento de sessão (`--session-id`, `--resume`, `/reset`), injeção de prompt do sistema
+- **Manipulação de mídia** — Entrada (uploads do usuário) e saída (arquivos gerados) com upload automático
+- **Políticas de acesso DM** — Aberto, lista de permitidos ou emparelhamento por código
+- **Streaming** — Edição progressiva de mensagens para exibição em tempo real
+- **Especificidades do Discord** — Intent `MessageContent`, fragmentação de 2000 caracteres, comando `!reset`
+- **Coexistência com OpenClaw** — Regras para evitar conflitos de tokens
+- **Solução de problemas** — 10 cenários comuns de sintoma/causa/solução
 
 ## Início rápido
 
