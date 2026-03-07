@@ -123,12 +123,13 @@ setup_enconvo_gw() {
 
 # --- BotFather ---
 setup_botfather() {
-  local bf="$HOME/.claude/skills/botfather/scripts/botfather.sh"
+  local bundled_bf="$SKILL_DIR/skills/botfather"
+  local bf="$bundled_bf/botfather.sh"
   log "Checking BotFather skill..."
 
   if [ ! -f "$bf" ]; then
-    err "BotFather skill not installed."
-    echo "  Install it from ClawHub or copy to ~/.claude/skills/botfather/"
+    err "Bundled BotFather script not found at $bf"
+    err "Reinstall the team-configure skill."
     return 1
   fi
 
@@ -151,12 +152,13 @@ setup_botfather() {
 
 # --- Discord Dev ---
 setup_discord_dev() {
-  local dd="$HOME/.claude/skills/discord-dev/scripts/discord-dev.sh"
+  local bundled_dd="$SKILL_DIR/skills/discord-dev"
+  local dd="$bundled_dd/discord-dev.sh"
   log "Checking Discord Dev skill..."
 
   if [ ! -f "$dd" ]; then
-    err "Discord Dev skill not installed."
-    echo "  Install it from ClawHub or copy to ~/.claude/skills/discord-dev/"
+    err "Bundled Discord Dev script not found at $dd"
+    err "Reinstall the team-configure skill."
     return 1
   fi
 
@@ -215,9 +217,9 @@ show_status() {
   echo ""
 
   # BotFather
-  local bf="$HOME/.claude/skills/botfather/scripts/botfather.sh"
+  local bf="$SKILL_DIR/skills/botfather/botfather.sh"
   if [ -f "$bf" ]; then
-    ok "BotFather: skill installed"
+    ok "BotFather: bundled script found"
     local bf_status
     bf_status=$("$bf" status 2>&1) || true
     if echo "$bf_status" | grep -qi "authenticated\|ready\|logged in\|connected"; then
@@ -226,14 +228,14 @@ show_status() {
       warn "  Auth: not configured (run: setup.sh botfather)"
     fi
   else
-    err "BotFather: skill not installed"
+    err "BotFather: bundled script missing (reinstall team-configure skill)"
   fi
   echo ""
 
   # Discord Dev
-  local dd="$HOME/.claude/skills/discord-dev/scripts/discord-dev.sh"
+  local dd="$SKILL_DIR/skills/discord-dev/discord-dev.sh"
   if [ -f "$dd" ]; then
-    ok "Discord Dev: skill installed"
+    ok "Discord Dev: bundled script found"
     local dd_status
     dd_status=$("$dd" status 2>&1) || true
     if echo "$dd_status" | grep -qi "authenticated\|ready\|valid\|token ok"; then
@@ -242,7 +244,7 @@ show_status() {
       warn "  Auth: not configured (run: setup.sh discord-dev)"
     fi
   else
-    err "Discord Dev: skill not installed"
+    err "Discord Dev: bundled script missing (reinstall team-configure skill)"
   fi
   echo ""
   echo "=== end ==="

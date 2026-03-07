@@ -8,7 +8,7 @@ category: infrastructure
 
 # Team Configure Skill
 
-Orchestrate full team member lifecycle — from channel bot creation to AI agent configuration to pairing. Fully self-contained: bundles enconvo-gw, detects/installs OpenClaw, walks users through first-time setup of all dependencies.
+Orchestrate full team member lifecycle — from channel bot creation to AI agent configuration to pairing. Fully self-contained: bundles enconvo-gw, BotFather scripts, Discord Dev scripts. Detects/installs OpenClaw. Walks users through first-time setup of all dependencies.
 
 **Trigger on:** "team configure", "team setup", "add team member", "remove team member", "team mesh", "setup team from scratch", "team pairing", "new agent setup", "full team setup", "team member lifecycle"
 
@@ -26,6 +26,15 @@ team-configure/
     src/                            # Full source (Node.js ESM)
     package.json                    # grammy + discord.js + commander
     package-lock.json
+  skills/
+    botfather/                      # Bundled BotFather skill (Telegram bot management)
+      botfather.py                  # Python CLI (Telethon + argparse)
+      botfather.sh                  # Shell wrapper (ensures venv + telethon)
+      SKILL.md                      # BotFather-specific docs
+    discord-dev/                    # Bundled Discord Dev skill (Developer Portal API)
+      discord-dev.py                # Python CLI (stdlib only, no deps)
+      discord-dev.sh                # Shell wrapper
+      SKILL.md                      # Discord Dev-specific docs
 ```
 
 ---
@@ -49,8 +58,8 @@ bash <SKILL_DIR>/scripts/setup.sh all
 This handles:
 1. **OpenClaw** — publicly available, installed via `npm install -g openclaw`. If missing, auto-installs. If present, checks for updates.
 2. **enconvo-gw** — NOT public, bundled in this skill at `<SKILL_DIR>/enconvo-gw/`. Deployed to `~/enconvo-gw/`, npm-linked globally. Always syncs latest source from bundle.
-3. **BotFather** — checks if `~/.claude/skills/botfather/` exists and Telethon is authenticated.
-4. **Discord Dev** — checks if `~/.claude/skills/discord-dev/` exists and user token is saved.
+3. **BotFather** — checks bundled BotFather scripts at `<SKILL_DIR>/skills/botfather/` and Telethon auth status.
+4. **Discord Dev** — checks bundled Discord Dev scripts at `<SKILL_DIR>/skills/discord-dev/` and user token status.
 
 ---
 
@@ -111,20 +120,20 @@ BotFather requires Telegram API credentials + Telethon authentication.
 4. AI scrapes `api_id` and `api_hash` from the page (or fills the create-app form if no app exists)
 5. Save credentials:
    ```bash
-   ~/.claude/skills/botfather/scripts/botfather.sh save-creds --api-id <ID> --api-hash <HASH> --skip-auth
+   <SKILL_DIR>/skills/botfather/botfather.sh save-creds --api-id <ID> --api-hash <HASH> --skip-auth
    ```
 6. Run Telethon auth (INTERACTIVE — user must type phone + code in terminal):
    ```bash
-   ~/.claude/skills/botfather/scripts/botfather.sh auth
+   <SKILL_DIR>/skills/botfather/botfather.sh auth
    ```
 
 **Option 2: Manual**
 ```bash
-~/.claude/skills/botfather/scripts/botfather.sh setup
+<SKILL_DIR>/skills/botfather/botfather.sh setup
 ```
 Prompts for api_id, api_hash, then authenticates interactively.
 
-Verify: `~/.claude/skills/botfather/scripts/botfather.sh status`
+Verify: `<SKILL_DIR>/skills/botfather/botfather.sh status`
 
 ### Phase 0E: Setup Discord Dev (Discord bot management)
 
@@ -141,10 +150,10 @@ Discord Dev requires a user session token extracted from the browser.
    Fallback 2: Check `browser_network_requests` for `Authorization` header
 5. Save token:
    ```bash
-   ~/.claude/skills/discord-dev/scripts/discord-dev.sh save-token --token "<TOKEN>"
+   <SKILL_DIR>/skills/discord-dev/discord-dev.sh save-token --token "<TOKEN>"
    ```
 
-Verify: `~/.claude/skills/discord-dev/scripts/discord-dev.sh status`
+Verify: `<SKILL_DIR>/skills/discord-dev/discord-dev.sh status`
 
 ---
 
@@ -170,7 +179,7 @@ All commands needed by this skill, so it works without reading other skill files
 
 ### BotFather (Telegram Bot Management)
 
-Script: `~/.claude/skills/botfather/scripts/botfather.sh`
+Script: `<SKILL_DIR>/skills/botfather/botfather.sh`
 
 ```bash
 # Auth & Status
@@ -207,7 +216,7 @@ All commands support `--json` for machine-readable output.
 
 ### Discord Dev (Discord Application/Bot Management)
 
-Script: `~/.claude/skills/discord-dev/scripts/discord-dev.sh`
+Script: `<SKILL_DIR>/skills/discord-dev/discord-dev.sh`
 
 ```bash
 # Auth
@@ -705,3 +714,171 @@ openclaw config set 'channels.telegram.accounts.<id>.groupPolicy' 'open'  # or '
 8. **Discord dev token needs Playwright** — browser login for extraction
 9. **enconvo-gw is bundled** in this skill at `<SKILL_DIR>/enconvo-gw/` — deploy via `setup.sh enconvo-gw`
 10. **OpenClaw is public** — installed via `npm install -g openclaw`, auto-detected/installed by `setup.sh openclaw`
+
+---
+
+## enconvo-gw Operational Reference
+
+### Claude Code Agent Type
+
+enconvo-gw can spawn the `claude` CLI for each conversation. Config:
+
+```json
+{
+  "name": "Claude Code",
+  "type": "claude-code",
+  "model": "sonnet",
+  "permissionMode": "bypassPermissions",
+  "workingDir": "~",
+  "timeout": 600000
+}
+```
+
+Key behaviors:
+- First message uses `--session-id <uuid>`, subsequent use `--resume <uuid>`
+- `/reset` command creates a fresh session
+- System prompt auto-injected telling Claude to save deliverable files to `~/.enconvo-gw/media/outbound/`
+- After each response, outbound dir is scanned for new files and they're uploaded to the channel
+- User-uploaded files (photos, videos, documents) are downloaded to `~/.enconvo-gw/media/inbound/` and paths passed to Claude
+- `CLAUDECODE=''` env var set to avoid nested session detection
+
+### Media Handling
+
+```
+~/.enconvo-gw/media/
+  inbound/     # Files downloaded from channel (user uploads)
+  outbound/    # Files created by Claude Code for channel delivery
+```
+
+- **Inbound:** When users send photos/videos/documents/voice/audio, they're downloaded here and the local path is passed to the agent as `[File downloaded to: /path]`
+- **Outbound:** Claude Code is instructed via system prompt to save deliverable files here. After each response, new files are auto-uploaded to the channel and cleaned up.
+- Uploadable extensions: `.mp4`, `.mov`, `.avi`, `.mkv`, `.webm`, `.mp3`, `.wav`, `.ogg`, `.m4a`, `.flac`, `.aac`, `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.pdf`, `.docx`, `.xlsx`, `.pptx`, `.csv`, `.zip`, `.tar`, `.gz`
+
+### DM Access Policies
+
+| Policy | Behavior |
+|---|---|
+| `open` | Accept all DMs |
+| `allowlist` | Only accept from `allowFrom` array + `~/.enconvo-gw/allowlists/<account>.json` |
+| `pairing` | Unknown senders get 8-char code, owner approves via `pairing approve` |
+
+- Pairing codes expire after 60 minutes, max 3 pending per account
+- Group policy is separate: `open` = respond when @mentioned or replied to
+
+### Discord-Specific Notes
+
+- `messageContentIntent: true` in channel config enables the privileged `MessageContent` intent (must also be enabled in Discord Developer Portal via `discord-dev.sh intents "<App>" --enable MESSAGE_CONTENT`)
+- Without `MessageContent` intent, DMs and @mentions still work but guild message content won't be readable
+- Discord bot responds to DMs, @mentions, and replies to its own messages
+- `!reset` or `/reset` in Discord clears Claude Code session
+- Discord has a 2000-char message limit (vs Telegram 4096) — long responses are auto-chunked
+- Typing indicator refreshes every 8s (vs 4s for Telegram)
+- Session IDs: `dc-<accountId>-<channelId>` (vs Telegram: `tg-<accountId>-<chatId>`)
+
+### Streaming
+
+`streaming: true` (default for Telegram) enables progressive message editing — response text is revealed in chunks with a typing cursor. This is cosmetic only; the backend returns the full response at once.
+
+Set `streaming: false` per-account to send the complete message immediately instead.
+
+Discord streaming uses edit-in-place with similar progressive reveal.
+
+### enconvo-gw Config Schema (`~/.enconvo-gw/config.json`)
+
+```json
+{
+  "enconvo": {
+    "url": "http://localhost:54535"
+  },
+  "agents": {
+    "<agentId>": {
+      "name": "Display Name",
+      "model": "ext/cmd or sonnet",
+      "type": "claude-code",
+      "permissionMode": "bypassPermissions",
+      "workingDir": "/path",
+      "timeout": 600000,
+      "systemPrompt": "optional custom prompt",
+      "allowedTools": ["tool1"],
+      "disallowedTools": ["tool2"]
+    }
+  },
+  "channels": {
+    "telegram": {
+      "accounts": {
+        "<accountId>": {
+          "enabled": true,
+          "botToken": "...",
+          "agentId": "<agentId>",
+          "dmPolicy": "pairing|allowlist|open",
+          "groupPolicy": "open",
+          "allowFrom": [],
+          "streaming": true
+        }
+      }
+    },
+    "discord": {
+      "accounts": {
+        "<accountId>": {
+          "enabled": true,
+          "botToken": "...",
+          "agentId": "<agentId>",
+          "dmPolicy": "open",
+          "messageContentIntent": false
+        }
+      }
+    }
+  }
+}
+```
+
+### OpenClaw Coexistence
+
+enconvo-gw and OpenClaw **cannot poll the same bot tokens simultaneously**. Before starting enconvo-gw for a token that OpenClaw also uses:
+
+```bash
+openclaw config set channels.telegram.accounts.<id>.enabled false
+openclaw gateway --force
+```
+
+Discord accounts can conflict too if both systems use the same bot token. Always disable one side first.
+
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Bot not responding | Gateway not running | `enconvo-gw gateway status`, start if needed |
+| Bot shows "typing" then nothing | Backend timeout | Check EnConvo is running or increase Claude Code timeout |
+| "Not authorized" reply | User not in allowlist/pairing | `enconvo-gw pairing list` then `pairing approve` |
+| Grammy polling conflict | Same bot token used by OpenClaw | Disable account in OpenClaw first |
+| Gateway won't start | Port/PID conflict | `enconvo-gw gateway --force` |
+| Stale PID file | Process died without cleanup | Delete `~/.enconvo-gw/gateway.pid`, restart |
+| Discord "Used disallowed intents" | MessageContent intent not enabled in portal | `discord-dev.sh intents "App" --enable MESSAGE_CONTENT` or remove `messageContentIntent` from config |
+| Claude Code returns empty | Permission mode `plan` doesn't execute | Use `permissionMode: "bypassPermissions"` |
+| Session error "No conversation found" | Using `--resume` on first call | Check session tracking in `src/claude/session.js` |
+| Output files not uploading | Claude saving outside outbound dir | Check system prompt injection in `src/claude/client.js` |
+
+### Key Source Files
+
+```
+~/enconvo-gw/                          (deployed from <SKILL_DIR>/enconvo-gw/)
+  bin/enconvo-gw.js                    # CLI entry (#!/usr/bin/env node)
+  src/cli.js                           # Commander CLI definitions
+  src/config.js                        # Config load/save (~/.enconvo-gw/config.json)
+  src/gateway.js                       # Bot lifecycle, PID file, auto-restart w/ backoff
+  src/files.js                         # Media inbound/outbound, file download/upload
+  src/enconvo/client.js                # EnConvo HTTP API client (90s timeout)
+  src/claude/client.js                 # Claude Code CLI spawner (session, timeout, system prompt)
+  src/claude/session.js                # UUID session tracking (started flag, reset)
+  src/telegram/bot.js                  # Grammy bot + dedup middleware
+  src/telegram/handlers.js             # Message routing, file download, output upload
+  src/telegram/access.js               # DM policy enforcement
+  src/telegram/send.js                 # Progressive streaming + chunked send
+  src/telegram/session.js              # Session key: tg-<accountId>-<chatId>
+  src/discord/bot.js                   # Discord.js client factory
+  src/discord/handlers.js              # Discord message routing, file download, output upload
+  src/discord/access.js                # Discord DM policy enforcement
+  src/discord/send.js                  # Discord streaming + chunked send
+  src/discord/session.js               # Session key: dc-<accountId>-<channelId>
+  src/pairing/pairing.js               # 8-char codes, 60min TTL, max 3 pending
+```
