@@ -1,16 +1,30 @@
 # team-configure
 
-End-to-end AI team member lifecycle management. Create channel bots, configure AI agents, pair them together, set up inter-agent communication mesh — from a single skill.
+End-to-end AI team member lifecycle management. Tell the AI about your company and it designs the team, creates bots, configures agents with full profiles and portraits, sets up inter-agent mesh, creates group channels, and pairs everything — fully automated.
 
 **Fully self-contained:** Bundles enconvo-gw gateway (not publicly available), BotFather scripts (Telegram bot management), and Discord Dev scripts (Developer Portal API). Auto-installs [OpenClaw](https://github.com/nicepkg/openclaw) and walks through first-time setup of all dependencies.
 
 ## What This Skill Does
 
+### Team Discovery & Design
+- **Understand your business** — Ask about industry, company focus, team goals
+- **Propose team composition** — AI suggests team size, roles, names based on your needs
+- **Designate team lead** — The `main` agent coordinates the team
+- **User approval** — Review and adjust before building
+
+### Agent Identity & Profiles
+- **Generate portraits** — Professional C-suite office portraits per agent, different cities/styles
+- **EnConvo profiles** — Create IDENTITY.md, SOUL.md, USER.md, TOOLS.md, AGENTS.md per agent
+- **OpenClaw workspaces** — TOOLS.md with role, collaborators, office setting
+- **Bot profile photos** — Set portraits as Telegram/Discord bot avatars
+- **EnConvo bot creation** — Custom bot with LLM model, tools, system prompt per agent
+
 ### Channel Side (Telegram & Discord)
 - **Create bots** — Telegram bots via BotFather, Discord apps via Developer Portal
 - **Configure bots** — Set name, description, profile photo, privacy, intents
 - **Get tokens** — Extract and manage bot tokens programmatically
-- **Invite to servers/groups** — Add bots to Discord servers and Telegram groups
+- **Create groups** — Create Telegram groups and Discord servers for the team
+- **Add all bots** — Invite all team member bots to the group, @mention-based interaction
 
 ### AI Agent Platform Side (OpenClaw & EnConvo)
 - **Create agents** — Register new agents with workspace, identity, and model config
@@ -26,7 +40,7 @@ End-to-end AI team member lifecycle management. Create channel bots, configure A
 ### Team Operations
 - **Add member** — Ad-hoc: create bot + agent + bind + mesh update + pair, one member at a time
 - **Remove member** — Clean removal across all channels and platforms
-- **Full team setup** — From absolute scratch: install dependencies, create all bots, configure all agents, mesh everyone, pair all
+- **Full team setup** — From "I run a hedge fund" to fully operational 7-person team with portraits and live bots
 - **Update mesh** — Recalculate and apply full agent-to-agent communication graph
 - **Manage allowlists** — Control group/guild participation per agent
 
@@ -121,17 +135,31 @@ See [SKILL.md](SKILL.md) for the complete reference: bootstrap walkthrough, all 
 
 # team-configure [中文]
 
-端到端 AI 团队成员生命周期管理。创建频道机器人、配置 AI 代理、配对连接、设置代理间通信网络 — 一个技能搞定一切。
+端到端 AI 团队成员生命周期管理。告诉 AI 你的公司情况，它会设计团队、创建机器人、配置完整的代理档案和肖像、建立代理间通信网络、创建群组频道并完成配对 — 全程自动化。
 
 **完全自包含：** 内置 [enconvo-gw](../enconvo-gw/)（非公开项目），自动安装 [OpenClaw](https://github.com/nicepkg/openclaw)，并引导用户完成所有依赖的首次设置。
 
 ## 功能概览
 
+### 团队发现与设计
+- **了解业务** — 询问行业、公司重点、团队目标
+- **提议团队组成** — AI 根据需求建议团队规模、角色、名称
+- **指定团队负责人** — `main` 代理协调整个团队
+- **用户审批** — 构建前审查和调整
+
+### 代理身份与档案
+- **生成肖像** — 每个代理的专业 C-suite 办公室肖像，不同城市/风格
+- **EnConvo 档案** — 为每个代理创建 IDENTITY.md、SOUL.md、USER.md、TOOLS.md、AGENTS.md
+- **OpenClaw 工作区** — 包含角色、协作者、办公环境的 TOOLS.md
+- **机器人头像** — 将肖像设置为 Telegram/Discord 机器人头像
+- **EnConvo 机器人创建** — 为每个代理配置自定义机器人（LLM 模型、工具、系统提示）
+
 ### 频道侧（Telegram 和 Discord）
 - **创建机器人** — 通过 BotFather 创建 Telegram 机器人，通过开发者门户创建 Discord 应用
 - **配置机器人** — 设置名称、描述、头像、隐私模式、权限意图
 - **获取令牌** — 以编程方式提取和管理机器人令牌
-- **邀请加入** — 将机器人添加到 Discord 服务器和 Telegram 群组
+- **创建群组** — 为团队创建 Telegram 群组和 Discord 服务器
+- **添加所有机器人** — 邀请所有团队成员机器人加入群组，基于 @提及 交互
 
 ### AI 代理平台侧（OpenClaw 和 EnConvo）
 - **创建代理** — 注册新代理，配置工作区、身份和模型
@@ -147,7 +175,7 @@ See [SKILL.md](SKILL.md) for the complete reference: bootstrap walkthrough, all 
 ### 团队操作
 - **添加成员** — 临时操作：创建机器人 + 代理 + 绑定 + 网络更新 + 配对
 - **移除成员** — 在所有频道和平台上彻底清除
-- **从零搭建团队** — 完全从头开始：安装依赖、创建所有机器人、配置所有代理、建立通信网络、完成所有配对
+- **从零搭建团队** — 从"我经营一家对冲基金"到拥有肖像和实时机器人的完整 7 人团队
 - **更新通信网络** — 重新计算并应用完整的代理间通信图
 - **管理白名单** — 按代理控制群组/公会参与权限
 
@@ -174,17 +202,24 @@ bash scripts/setup.sh all
 
 # team-configure [Français]
 
-Gestion complète du cycle de vie des membres d'une équipe IA. Créez des bots de messagerie, configurez des agents IA, associez-les, mettez en place la communication inter-agents — le tout depuis un seul skill.
+Gestion complète du cycle de vie d'une équipe IA. Décrivez votre entreprise et l'IA conçoit l'équipe, crée les bots, configure les profils complets avec portraits, établit le maillage inter-agents, crée les groupes et apparie le tout — entièrement automatisé.
 
 **Autonome :** Inclut [enconvo-gw](../enconvo-gw/) (non disponible publiquement), installe automatiquement [OpenClaw](https://github.com/nicepkg/openclaw) et guide l'utilisateur lors de la première configuration de toutes les dépendances.
 
 ## Fonctionnalités
 
+### Découverte et conception d'équipe
+- **Comprendre l'entreprise** — Questions sur l'industrie, les objectifs
+- **Proposer la composition** — Taille, rôles, noms suggérés par l'IA
+- **Profils agents** — IDENTITY.md, SOUL.md, TOOLS.md, portraits par agent
+- **Création bots EnConvo** — Modèle LLM, outils, prompt système par agent
+
 ### Côté canal (Telegram et Discord)
 - **Créer des bots** — Bots Telegram via BotFather, applications Discord via le portail développeur
 - **Configurer les bots** — Nom, description, photo, confidentialité, intents
 - **Obtenir les tokens** — Extraire et gérer les tokens de bot par programmation
-- **Inviter dans les serveurs/groupes** — Ajouter des bots aux serveurs Discord et groupes Telegram
+- **Créer des groupes** — Groupes Telegram et serveurs Discord pour l'équipe
+- **Inviter tous les bots** — Interaction basée sur les @mentions
 
 ### Côté plateforme IA (OpenClaw et EnConvo)
 - **Créer des agents** — Enregistrer de nouveaux agents avec espace de travail, identité et configuration de modèle
@@ -195,7 +230,7 @@ Gestion complète du cycle de vie des membres d'une équipe IA. Créez des bots 
 ### Opérations d'équipe
 - **Ajouter un membre** — Création de bot + agent + liaison + mise à jour du maillage + appairage
 - **Supprimer un membre** — Suppression propre sur tous les canaux et plateformes
-- **Configuration complète** — Depuis zéro : installer les dépendances, créer tous les bots, configurer tous les agents, mailler, appairer
+- **Configuration complète** — De « je dirige un fonds » à une équipe opérationnelle avec portraits et bots actifs
 - **Mettre à jour le maillage** — Recalculer et appliquer le graphe de communication inter-agents
 
 ### Opérations passerelle (enconvo-gw)
@@ -218,17 +253,24 @@ bash scripts/setup.sh all       # Tout installer
 
 # team-configure [Deutsch]
 
-End-to-End-Lebenszyklusverwaltung für KI-Teammitglieder. Erstellen Sie Kanal-Bots, konfigurieren Sie KI-Agenten, koppeln Sie sie miteinander und richten Sie die Inter-Agenten-Kommunikation ein — alles mit einem einzigen Skill.
+End-to-End KI-Team-Aufbau. Beschreiben Sie Ihr Unternehmen und die KI entwirft das Team, erstellt Bots, konfiguriert vollständige Profile mit Porträts, richtet das Inter-Agenten-Netzwerk ein, erstellt Gruppenkanäle und koppelt alles — vollautomatisch.
 
 **Eigenständig:** Enthält [enconvo-gw](../enconvo-gw/) (nicht öffentlich verfügbar), installiert automatisch [OpenClaw](https://github.com/nicepkg/openclaw) und führt durch die Ersteinrichtung aller Abhängigkeiten.
 
 ## Funktionen
 
+### Team-Entdeckung und -Design
+- **Unternehmen verstehen** — Fragen zu Branche, Zielen
+- **Zusammensetzung vorschlagen** — Größe, Rollen, Namen von der KI vorgeschlagen
+- **Agenten-Profile** — IDENTITY.md, SOUL.md, TOOLS.md, Porträts pro Agent
+- **EnConvo-Bot-Erstellung** — LLM-Modell, Tools, System-Prompt pro Agent
+
 ### Kanalseite (Telegram und Discord)
 - **Bots erstellen** — Telegram-Bots über BotFather, Discord-Apps über das Entwicklerportal
 - **Bots konfigurieren** — Name, Beschreibung, Profilbild, Datenschutz, Intents
 - **Tokens verwalten** — Bot-Tokens programmatisch extrahieren und verwalten
-- **Zu Servern/Gruppen einladen** — Bots zu Discord-Servern und Telegram-Gruppen hinzufügen
+- **Gruppen erstellen** — Telegram-Gruppen und Discord-Server für das Team
+- **Alle Bots einladen** — @Mention-basierte Interaktion
 
 ### KI-Agenten-Plattform (OpenClaw und EnConvo)
 - **Agenten erstellen** — Neue Agenten mit Arbeitsbereich, Identität und Modellkonfiguration registrieren
@@ -239,7 +281,7 @@ End-to-End-Lebenszyklusverwaltung für KI-Teammitglieder. Erstellen Sie Kanal-Bo
 ### Team-Operationen
 - **Mitglied hinzufügen** — Bot + Agent + Bindung + Netzwerk-Update + Kopplung
 - **Mitglied entfernen** — Saubere Entfernung über alle Kanäle und Plattformen
-- **Team von Grund auf einrichten** — Komplett neu: Abhängigkeiten installieren, alle Bots erstellen, alle Agenten konfigurieren, vernetzen, koppeln
+- **Team von Grund auf einrichten** — Von „Ich leite einen Hedgefonds" zu einem 7-köpfigen Team mit Porträts und Live-Bots
 - **Netzwerk aktualisieren** — Inter-Agenten-Kommunikationsgraph neu berechnen und anwenden
 
 ### Gateway-Betrieb (enconvo-gw)
@@ -262,17 +304,24 @@ bash scripts/setup.sh all       # Alles installieren
 
 # team-configure [Nederlands]
 
-End-to-end levenscyclusbeheer voor AI-teamleden. Maak kanaal-bots, configureer AI-agenten, koppel ze aan elkaar en stel inter-agent communicatie in — vanuit één enkele skill.
+End-to-end AI-teamopbouw. Vertel de AI over uw bedrijf en het ontwerpt het team, maakt bots, configureert volledige profielen met portretten, stelt inter-agent communicatie in, maakt groepskanalen en koppelt alles — volledig geautomatiseerd.
 
 **Zelfstandig:** Bevat [enconvo-gw](../enconvo-gw/) (niet publiek beschikbaar), installeert automatisch [OpenClaw](https://github.com/nicepkg/openclaw) en begeleidt de gebruiker door de eerste configuratie van alle afhankelijkheden.
 
 ## Functies
 
+### Teamontdekking en -ontwerp
+- **Bedrijf begrijpen** — Vragen over branche, doelen
+- **Samenstelling voorstellen** — Grootte, rollen, namen voorgesteld door AI
+- **Agentprofielen** — IDENTITY.md, SOUL.md, TOOLS.md, portretten per agent
+- **EnConvo-botcreatie** — LLM-model, tools, systeemprompt per agent
+
 ### Kanaalkant (Telegram en Discord)
 - **Bots aanmaken** — Telegram-bots via BotFather, Discord-apps via het ontwikkelaarsportaal
 - **Bots configureren** — Naam, beschrijving, profielfoto, privacy, intents
 - **Tokens beheren** — Bot-tokens programmatisch extraheren en beheren
-- **Uitnodigen voor servers/groepen** — Bots toevoegen aan Discord-servers en Telegram-groepen
+- **Groepen aanmaken** — Telegram-groepen en Discord-servers voor het team
+- **Alle bots uitnodigen** — @Mention-gebaseerde interactie
 
 ### AI-agentplatform (OpenClaw en EnConvo)
 - **Agenten aanmaken** — Nieuwe agenten registreren met werkruimte, identiteit en modelconfiguratie
@@ -283,7 +332,7 @@ End-to-end levenscyclusbeheer voor AI-teamleden. Maak kanaal-bots, configureer A
 ### Teamoperaties
 - **Lid toevoegen** — Bot + agent + binding + mesh-update + koppeling
 - **Lid verwijderen** — Volledige verwijdering over alle kanalen en platformen
-- **Team vanaf nul opzetten** — Helemaal opnieuw: afhankelijkheden installeren, alle bots maken, alle agenten configureren, mesh opzetten, koppelen
+- **Team vanaf nul opzetten** — Van "ik run een hedgefonds" tot een volledig team met portretten en live bots
 - **Mesh bijwerken** — Inter-agent communicatiegraaf herberekenen en toepassen
 
 ### Gateway-operaties (enconvo-gw)
@@ -306,17 +355,24 @@ bash scripts/setup.sh all       # Alles installeren
 
 # team-configure [Español]
 
-Gestión integral del ciclo de vida de los miembros de un equipo de IA. Cree bots de canal, configure agentes de IA, emparéjelos y establezca la comunicación entre agentes — todo desde una sola skill.
+Configuración integral de equipos de IA. Describa su empresa y la IA diseña el equipo, crea bots, configura perfiles completos con retratos, establece la malla inter-agentes, crea grupos y empareja todo — totalmente automatizado.
 
 **Autónomo:** Incluye [enconvo-gw](../enconvo-gw/) (no disponible públicamente), instala automáticamente [OpenClaw](https://github.com/nicepkg/openclaw) y guía al usuario en la configuración inicial de todas las dependencias.
 
 ## Funcionalidades
 
+### Descubrimiento y diseño de equipo
+- **Entender el negocio** — Preguntas sobre industria, objetivos
+- **Proponer composición** — Tamaño, roles, nombres sugeridos por la IA
+- **Perfiles de agentes** — IDENTITY.md, SOUL.md, TOOLS.md, retratos por agente
+- **Creación de bots EnConvo** — Modelo LLM, herramientas, prompt del sistema por agente
+
 ### Lado del canal (Telegram y Discord)
 - **Crear bots** — Bots de Telegram vía BotFather, aplicaciones de Discord vía el portal de desarrolladores
 - **Configurar bots** — Nombre, descripción, foto de perfil, privacidad, intents
 - **Obtener tokens** — Extraer y gestionar tokens de bot programáticamente
-- **Invitar a servidores/grupos** — Añadir bots a servidores de Discord y grupos de Telegram
+- **Crear grupos** — Grupos de Telegram y servidores de Discord para el equipo
+- **Invitar todos los bots** — Interacción basada en @menciones
 
 ### Plataforma de agentes IA (OpenClaw y EnConvo)
 - **Crear agentes** — Registrar nuevos agentes con espacio de trabajo, identidad y configuración de modelo
@@ -327,7 +383,7 @@ Gestión integral del ciclo de vida de los miembros de un equipo de IA. Cree bot
 ### Operaciones de equipo
 - **Añadir miembro** — Bot + agente + vinculación + actualización de malla + emparejamiento
 - **Eliminar miembro** — Eliminación limpia en todos los canales y plataformas
-- **Configuración completa** — Desde cero: instalar dependencias, crear todos los bots, configurar todos los agentes, establecer malla, emparejar
+- **Configuración completa** — De "dirijo un fondo" a un equipo operativo con retratos y bots activos
 - **Actualizar malla** — Recalcular y aplicar el grafo de comunicación inter-agentes
 
 ### Operaciones de pasarela (enconvo-gw)
@@ -350,17 +406,24 @@ bash scripts/setup.sh all       # Instalar todo
 
 # team-configure [Português]
 
-Gerenciamento completo do ciclo de vida dos membros de uma equipe de IA. Crie bots de canal, configure agentes de IA, emparelhe-os e configure a comunicação entre agentes — tudo a partir de uma única skill.
+Configuração completa de equipes de IA. Descreva sua empresa e a IA projeta a equipe, cria bots, configura perfis completos com retratos, estabelece a malha inter-agentes, cria grupos e emparelha tudo — totalmente automatizado.
 
 **Autossuficiente:** Inclui [enconvo-gw](../enconvo-gw/) (não disponível publicamente), instala automaticamente o [OpenClaw](https://github.com/nicepkg/openclaw) e orienta o usuário na configuração inicial de todas as dependências.
 
 ## Funcionalidades
 
+### Descoberta e design de equipe
+- **Entender o negócio** — Perguntas sobre indústria, objetivos
+- **Propor composição** — Tamanho, funções, nomes sugeridos pela IA
+- **Perfis de agentes** — IDENTITY.md, SOUL.md, TOOLS.md, retratos por agente
+- **Criação de bots EnConvo** — Modelo LLM, ferramentas, prompt do sistema por agente
+
 ### Lado do canal (Telegram e Discord)
 - **Criar bots** — Bots do Telegram via BotFather, aplicativos do Discord via Portal do Desenvolvedor
 - **Configurar bots** — Nome, descrição, foto de perfil, privacidade, intents
 - **Obter tokens** — Extrair e gerenciar tokens de bot programaticamente
-- **Convidar para servidores/grupos** — Adicionar bots a servidores do Discord e grupos do Telegram
+- **Criar grupos** — Grupos do Telegram e servidores do Discord para a equipe
+- **Convidar todos os bots** — Interação baseada em @menções
 
 ### Plataforma de agentes IA (OpenClaw e EnConvo)
 - **Criar agentes** — Registrar novos agentes com workspace, identidade e configuração de modelo
@@ -371,7 +434,7 @@ Gerenciamento completo do ciclo de vida dos membros de uma equipe de IA. Crie bo
 ### Operações de equipe
 - **Adicionar membro** — Bot + agente + vinculação + atualização de malha + emparelhamento
 - **Remover membro** — Remoção limpa em todos os canais e plataformas
-- **Configuração completa** — Do zero: instalar dependências, criar todos os bots, configurar todos os agentes, estabelecer malha, emparelhar
+- **Configuração completa** — De "eu dirijo um fundo" a uma equipe operacional com retratos e bots ativos
 - **Atualizar malha** — Recalcular e aplicar o grafo de comunicação inter-agentes
 
 ### Operações de gateway (enconvo-gw)
