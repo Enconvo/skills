@@ -1,0 +1,14 @@
+{
+  "name": "enconvo-gw",
+  "version": "1.0.0",
+  "description": "Direct Telegram↔EnConvo Gateway",
+  "type": "module",
+  "bin": {
+    "enconvo-gw": "./bin/enconvo-gw.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "discord.js": "^14.25.1",
+    "grammy": "^1.31.0"
+  }
+}
