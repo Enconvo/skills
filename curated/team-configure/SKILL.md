@@ -14,6 +14,65 @@ Orchestrate full team member lifecycle — from channel bot creation to AI agent
 
 ---
 
+## AUTOMATION-FIRST PRINCIPLE
+
+**99.9% of all work MUST be done by the AI** — via API calls, CLI commands, or (as fallback) Playwright browser automation. The user should NEVER be asked to manually perform steps that the AI can automate.
+
+### Priority: API → CLI → Browser
+
+Always try the fastest, most reliable method first:
+
+1. **API calls (fastest, most reliable)** — direct HTTP requests via `curl`, no UI dependencies
+2. **CLI tools** — `botfather.sh`, `discord-dev.sh`, `openclaw`, `enconvo-gw`
+3. **Browser automation (fallback only)** — Playwright MCP, for operations that have NO API
+
+### What can be done via API (NO browser needed)
+
+**Telegram Bot API** (`curl https://api.telegram.org/bot<TOKEN>/...`):
+- Set bot name, description, about text, commands, profile photo — all pure `curl`
+- Send messages (for testing) — `sendMessage`
+- Get bot info — `getMe`
+
+**Discord Developer API** (`discord-dev.sh` wraps these):
+- Create/delete/update applications and bot users
+- Set intents, app icon, description
+- Reset bot token
+- Generate OAuth2 invite URLs
+
+**Discord Bot API** (`curl -H "Authorization: Bot <TOKEN>" https://discord.com/api/v9/...`):
+- Create guilds (servers) — `POST /guilds` (bot must be in <10 guilds)
+- Create channels — `POST /guilds/{id}/channels`
+- Send messages — `POST /channels/{id}/messages`
+- Modify guild settings, roles, members
+
+**BotFather CLI** (`botfather.sh`):
+- Create/delete bots, list bots, get/revoke tokens
+
+**OpenClaw / enconvo-gw CLI**:
+- All agent, channel, binding, pairing, gateway operations
+
+### What REQUIRES browser automation (no API exists)
+
+| Operation | Why browser needed |
+|---|---|
+| Telegram bot privacy mode (`/setprivacy`) | BotFather-only, CLI has button-type bug |
+| Telegram group creation | No API for user-initiated group creation |
+| Adding bots to Telegram groups | Must be done by a group admin via client |
+| Telegram pairing (`/start`) | Must message bot as the user's account |
+| Discord bot OAuth2 authorization | Requires user consent UI flow |
+| Discord CAPTCHA completion | Cannot be automated |
+| Telegram QR code / 2FA login | Requires user interaction |
+
+### User only assists with
+- Login QR code scans (Telegram web, Discord web) — first time only
+- Verification code input (SMS, 2FA)
+- CAPTCHAs
+- Confirming destructive actions (deleting bots/agents)
+
+**Never say "user sends /start" or "open the URL in browser" — the AI does it.**
+
+---
+
 ## Skill Contents
 
 ```
@@ -214,6 +273,48 @@ botfather.sh send "/mybots" [--follow-up TEXT] [--click] [--timeout N]
 
 All commands support `--json` for machine-readable output.
 
+**Known CLI bugs:** `botfather.sh set privacy` and `botfather.sh set userpic` fail with `AttributeError: 'KeyboardButton'`. Use Telegram Bot API for profile photos and Playwright for privacy mode instead.
+
+### Telegram Bot API (Direct HTTP — PREFERRED for bot settings)
+
+Once you have a bot token, most bot configuration can be done via direct `curl` calls — no Telethon, no browser, no BotFather interaction needed.
+
+```bash
+TOKEN="<bot_token>"
+API="https://api.telegram.org/bot${TOKEN}"
+
+# Get bot info
+curl -s "$API/getMe" | jq .
+
+# Set bot display name
+curl -s "$API/setMyName" -d "name=<DisplayName>"
+
+# Set bot description (shown on bot profile page)
+curl -s "$API/setMyDescription" -d "description=<role> agent for the team"
+
+# Set bot about/short description (shown in bot list and sharing)
+curl -s "$API/setMyShortDescription" -d "short_description=<role> agent"
+
+# Set bot commands
+curl -s "$API/setMyCommands" \
+  -H "Content-Type: application/json" \
+  -d '{"commands":[{"command":"start","description":"Start conversation"},{"command":"reset","description":"Reset session"}]}'
+
+# Set bot profile photo (upload file)
+curl -s "$API/setMyProfilePhoto" \
+  -F "photo={\"type\":\"static\",\"photo\":\"attach://file\"}" \
+  -F "file=@/path/to/portrait.jpg"
+
+# Remove bot profile photo
+curl -s "$API/removeMyProfilePhoto"
+
+# Send message (useful for testing)
+curl -s "$API/sendMessage" -d "chat_id=<chat_id>&text=Hello"
+```
+
+**What Telegram Bot API CAN do:** name, description, about, commands, profile photo, send messages, get info
+**What Telegram Bot API CANNOT do:** create bots, delete bots, set privacy mode, revoke tokens (these require BotFather)
+
 ### Discord Dev (Discord Application/Bot Management)
 
 Script: `<SKILL_DIR>/skills/discord-dev/discord-dev.sh`
@@ -248,6 +349,50 @@ discord-dev.sh commands-set "App Name" '[{"name":"ping","description":"Pong!"}]'
 ```
 
 Apps referenced by name (case-insensitive) or Discord snowflake ID. All support `--json`.
+
+### Discord Bot API (Direct HTTP — for runtime operations)
+
+Once a bot is created and has a token, many operations can be done via direct API calls without browser automation.
+
+```bash
+BOT_TOKEN="<bot_token>"
+API="https://discord.com/api/v9"
+AUTH="Authorization: Bot ${BOT_TOKEN}"
+
+# Get bot info
+curl -s -H "$AUTH" "$API/users/@me" | jq .
+
+# Create a new guild (server) — bot must be in <10 guilds
+curl -s -H "$AUTH" -H "Content-Type: application/json" \
+  "$API/guilds" -d '{"name":"<Team Name> HQ"}'
+# Returns guild object with id — save this!
+
+# Create a text channel in the guild
+curl -s -H "$AUTH" -H "Content-Type: application/json" \
+  "$API/guilds/<guild_id>/channels" \
+  -d '{"name":"team-hq","type":0}'
+
+# Modify guild (e.g., set icon — base64 encoded image)
+ICON_B64=$(base64 -i /path/to/icon.jpg)
+curl -s -H "$AUTH" -H "Content-Type: application/json" \
+  "$API/guilds/<guild_id>" \
+  -d "{\"icon\":\"data:image/jpeg;base64,${ICON_B64}\"}"
+
+# Send a message in a channel (for testing)
+curl -s -H "$AUTH" -H "Content-Type: application/json" \
+  "$API/channels/<channel_id>/messages" \
+  -d '{"content":"Hello from bot!"}'
+
+# Get guild channels
+curl -s -H "$AUTH" "$API/guilds/<guild_id>/channels" | jq .
+
+# Get guild members
+curl -s -H "$AUTH" "$API/guilds/<guild_id>/members?limit=100" | jq .
+```
+
+**What Discord Bot API CAN do:** create guilds, create channels, send messages, manage roles/permissions, set guild icon, get member lists
+**What Discord Bot API CANNOT do:** create applications, add bot users, set intents, OAuth2 authorization (these need user token via `discord-dev.sh` or browser)
+**Guild creation limit:** Bots can only create guilds if they're in fewer than 10 guilds total.
 
 ### OpenClaw (AI Agent Platform)
 
@@ -424,21 +569,41 @@ Gather from user:
 
 #### Step 2: Channel Side — Create Bots
 
-**Telegram:**
+**Telegram (API-first):**
 ```bash
+# 1. Create bot via BotFather CLI (no API alternative)
 botfather.sh create "<displayName>" "<botUsername>"
 botfather.sh token @<botUsername> --json              # Save this token!
-botfather.sh set privacy @<botUsername> "Disable"     # Bot reads all group msgs
-botfather.sh set description @<botUsername> "<role> agent"
-botfather.sh set about @<botUsername> "<role> agent for the team"
+
+# 2. Configure bot via Telegram Bot API (fast, no browser needed)
+TOKEN="<bot_token>"
+API="https://api.telegram.org/bot${TOKEN}"
+curl -s "$API/setMyDescription" -d "description=<role> agent for the team"
+curl -s "$API/setMyShortDescription" -d "short_description=<role> agent"
+curl -s "$API/setMyCommands" -H "Content-Type: application/json" \
+  -d '{"commands":[{"command":"start","description":"Start conversation"},{"command":"reset","description":"Reset session"}]}'
+
+# 3. Set profile photo via Telegram Bot API (no browser needed)
+curl -s "$API/setMyProfilePhoto" \
+  -F "photo={\"type\":\"static\",\"photo\":\"attach://file\"}" \
+  -F "file=@~/.openclaw/workspace-<agentId>/portrait.jpg"
 ```
 
-**Discord:**
+**CRITICAL: Disable privacy mode for each bot** — new bots have privacy ENABLED by default. No Bot API exists for this — must go through BotFather:
+- **Try CLI first:** `botfather.sh set privacy @<botUsername> "Disable"` (may fail with `KeyboardButton` bug)
+- **Fallback — Playwright on web.telegram.org:** Send `/setprivacy` to BotFather, select the bot, send `Disable`
+
+**Discord (API-first):**
 ```bash
+# 1. Create app + bot via Developer API (no browser needed)
 discord-dev.sh create "<displayName>" --bot          # Save bot token from output!
 discord-dev.sh intents "<displayName>" --enable MESSAGE_CONTENT GUILD_MEMBERS
+
+# 2. Set app icon via Developer API
+discord-dev.sh update "<displayName>" --icon ~/.openclaw/workspace-<agentId>/portrait.jpg
+
+# 3. Generate OAuth2 URL for server invite (browser needed for authorization)
 discord-dev.sh oauth2-url "<displayName>" --permissions 8 --scopes "bot applications.commands"
-# Open the URL in browser to invite to server
 ```
 
 #### Step 3: AI Platform Side — Configure Agent
@@ -497,25 +662,34 @@ openclaw config set 'tools.agentToAgent.allow' '[...existing, "<agentId>"]'
 #### Step 5: Restart & Pair
 
 ```bash
-# Restart gateway
-openclaw gateway stop && sleep 2 && openclaw gateway
-# (or for enconvo-gw: enconvo-gw gateway stop && enconvo-gw gateway --force)
-
-# User sends /start to bot on Telegram (or first message on Discord)
-# Check pending pairing requests:
-openclaw pairing list telegram
-openclaw pairing list discord
-
-# Approve:
-openclaw pairing approve <CODE> --channel telegram --notify
-openclaw pairing approve <CODE> --channel discord --notify
+# Restart gateway (background, wait for boot)
+openclaw gateway stop && sleep 2
+openclaw gateway > /tmp/openclaw-gw.log 2>&1 &
+sleep 25  # Gateway takes 15-30s to fully boot
+tail -5 /tmp/openclaw-gw.log  # Verify connected
 ```
+
+**AI handles pairing automatically via Playwright:**
+
+1. **Telegram pairing** — for each bot:
+   - Use Playwright to navigate to `https://web.telegram.org`
+   - Search for the bot by username (e.g., `@sophia_ailab_bot`)
+   - Open the bot's DM and click "Start" or send `/start`
+   - Check pairing code: `openclaw pairing list telegram`
+   - Approve: `openclaw pairing approve <CODE> --channel telegram --notify`
+
+2. **Discord pairing** — for each bot:
+   - Use Playwright to open the bot's OAuth2 invite URL (generated in Step 2)
+   - Select the target server, authorize with admin permissions
+   - Send a first DM to the bot on Discord
+   - Check pairing code: `openclaw pairing list discord`
+   - Approve: `openclaw pairing approve <CODE> --channel discord --notify`
 
 #### Step 6: Group Membership (Optional)
 
-**Telegram group:** Use Playwright MCP to open `https://web.telegram.org`, navigate to group -> Members -> Add Members, search for bot username.
+**Telegram group:** AI uses Playwright MCP on `https://web.telegram.org` to navigate to group -> Members -> Add Members, search for bot username, and add.
 
-**Discord server:** Open OAuth2 invite URL from Step 2 in browser, select server, authorize.
+**Discord server:** AI uses Playwright to open OAuth2 invite URL, select server, and authorize.
 
 ---
 
@@ -767,21 +941,38 @@ Mesh: full (every agent can call every other)
 
 Compute full mesh: each agent's `allowAgents` = all other agent IDs.
 
-For each member, sequentially:
+**For each member, sequentially:**
 
 ```bash
-# Telegram
-botfather.sh create "<displayName>" "<botUsername>"    # e.g., "isabelle_bot"
-botfather.sh token @<botUsername> --json
-botfather.sh set privacy @<botUsername> "Disable"
+# --- Telegram ---
+# 1. Create bot (BotFather CLI — no API alternative)
+botfather.sh create "<displayName>" "<botUsername>"
+botfather.sh token @<botUsername> --json   # Save token!
 
-# Discord
-discord-dev.sh create "<displayName>" --bot
+# 2. Configure via Telegram Bot API (fast, parallel-safe)
+TOKEN="<bot_token>"
+TG_API="https://api.telegram.org/bot${TOKEN}"
+curl -s "$TG_API/setMyDescription" -d "description=<role> agent for the team"
+curl -s "$TG_API/setMyShortDescription" -d "short_description=<role> agent"
+curl -s "$TG_API/setMyCommands" -H "Content-Type: application/json" \
+  -d '{"commands":[{"command":"start","description":"Start conversation"},{"command":"reset","description":"Reset session"}]}'
+curl -s "$TG_API/setMyProfilePhoto" \
+  -F "photo={\"type\":\"static\",\"photo\":\"attach://file\"}" \
+  -F "file=@~/.openclaw/workspace-<agentId>/portrait.jpg"
+
+# --- Discord ---
+# 1. Create app + bot via Developer API (no browser needed)
+discord-dev.sh create "<displayName>" --bot   # Save bot token — shown ONCE!
 discord-dev.sh intents "<displayName>" --enable MESSAGE_CONTENT GUILD_MEMBERS
-discord-dev.sh oauth2-url "<displayName>" --permissions 8 --scopes "bot applications.commands"
+discord-dev.sh update "<displayName>" --icon ~/.openclaw/workspace-<agentId>/portrait.jpg
 ```
 
 **Collect all tokens in a structured list. Discord bot tokens are shown only once!**
+
+**CRITICAL: Disable privacy mode for EVERY Telegram bot** (default is ENABLED — bots can't see group messages):
+- **Try CLI first:** `botfather.sh set privacy @<botUsername> "Disable"` (may fail with button bug)
+- **Fallback — Playwright:** Open BotFather on web.telegram.org, send `/setprivacy`, select bot, send `Disable`
+- Must be done for EVERY bot before adding to groups
 
 #### Phase 7: Configure AI Platform
 
@@ -819,71 +1010,155 @@ enconvo-gw channels add --channel discord --account <agentId> --token "<DC_TOKEN
 #### Phase 8: Restart & Pair
 
 ```bash
-openclaw gateway stop && sleep 2 && openclaw gateway
+# Restart gateway (background, wait for full boot)
+openclaw gateway stop && sleep 2
+openclaw gateway > /tmp/openclaw-gw.log 2>&1 &
+sleep 25  # Gateway takes 15-30s to connect all bots
+tail -5 /tmp/openclaw-gw.log  # Verify "connected" messages
 ```
 
-For each bot: user sends /start (Telegram) or first message (Discord), then:
-```bash
-openclaw pairing list telegram
-openclaw pairing approve <CODE> --channel telegram --notify
-```
+**AI handles ALL pairing via Playwright — do NOT ask the user to message bots.**
+
+**Telegram pairing** — for each bot, sequentially:
+1. Use Playwright to navigate to `https://web.telegram.org` (user may need to scan QR code on first login only)
+2. Search for the bot by username in the search bar
+3. Open the bot's DM chat
+4. Click the "Start" button (or send `/start` via `pressSequentially`)
+5. Wait 5s, then check: `openclaw pairing list telegram`
+6. Approve the code: `openclaw pairing approve <CODE> --channel telegram --notify`
+
+**Discord pairing** — for each bot:
+1. Generate OAuth2 URL: `discord-dev.sh oauth2-url "<AppName>" --permissions 8 --scopes "bot applications.commands"`
+2. Use Playwright to open the OAuth2 URL
+3. Select the target server, authorize (user may need to complete CAPTCHA)
+4. Navigate to the bot's DM on Discord and send a first message
+5. Check: `openclaw pairing list discord`
+6. Approve: `openclaw pairing approve <CODE> --channel discord --notify`
 
 #### Phase 9: Group Setup (Channel Side)
 
+**AI does ALL of this via Playwright.** User only assists with login if not already authenticated.
+
 Create team channels and add all bots so they can collaborate and be @mentioned.
 
-**Telegram Group:**
+**Telegram Group (AI automates via Playwright on `https://web.telegram.org`):**
 
-1. **Create the group** via Playwright MCP on `https://web.telegram.org`:
-   - Open web.telegram.org
+1. **Disable privacy mode for ALL bots FIRST** (CRITICAL — before adding to any group):
+   - New Telegram bots have privacy mode ENABLED by default
+   - With privacy enabled, bots CANNOT see group messages
+   - **Do NOT use `botfather.sh set privacy`** — it has a known bug (`AttributeError: 'KeyboardButton'`)
+   - AI uses Playwright to open BotFather chat on web.telegram.org:
+     - Send `/setprivacy` (use `pressSequentially`, NOT `fill`)
+     - Click the bot from the button menu
+     - Send `Disable`
+     - Repeat for EVERY bot in the team
+
+2. **Generate group profile icon** — AI creates a branded logo for the team:
+   - Use image generation (baoyu-danger-gemini-web or nanobanana) to create a team logo
+   - Prompt should reflect the team's industry/purpose (e.g., "minimalist AI training academy logo, neural network motif, clean modern design, dark background, suitable for chat group avatar")
+   - Save to `~/.openclaw/workspace/group-icon.jpg`
+
+3. **Create the group** — AI uses Playwright:
    - Click hamburger menu -> "New Group"
    - Name it (e.g., "<Team Name> HQ")
    - Add the user's own account as initial member
    - Create the group
 
-2. **Add all bots to the group** — for each team member bot:
+4. **Set group profile photo** — AI uses Playwright:
+   - Click the group name/header to open group info
+   - Click the group avatar/camera icon
+   - Upload `~/.openclaw/workspace/group-icon.jpg`
+   - Confirm/crop as needed
+
+5. **Add all bots to the group** — AI uses Playwright for each bot:
    - In the group, click group name -> "Add Members"
    - Search for `@<botUsername>` and add
    - Repeat for all bots
 
-3. **Ensure @mention-based interaction:**
-   - Bots with privacy mode **disabled** (done in Phase 6 via `botfather.sh set privacy @bot "Disable"`) can read ALL group messages
-   - With privacy enabled, bots only see messages that @mention them or reply to their messages
-   - For team groups, privacy is typically disabled so bots see context — but they should still only **respond** when @mentioned or replied to
-   - The gateway (OpenClaw/enconvo-gw) handles this: `groupPolicy: "open"` means respond to @mentions and replies in allowed groups
+6. **Verify bots respond** — AI uses Playwright to test:
+   - Type `@` + first letters of bot name, select from autocomplete dropdown (do NOT type the full @mention as plain text — it won't create a mention entity)
+   - Use `pressSequentially` (slowly=true) for any text AFTER selecting from autocomplete (do NOT use `fill()` — it destroys mention entities)
+   - Each bot should respond if gateway is running and pairing is approved
+   - Wait 15-30s for first response (gateway may need boot time)
 
-4. **Verify bots are in the group:**
-   - Send a message in the group @mentioning each bot
-   - Each should respond (if gateway is running and pairing is approved)
+**Discord Server (API-first, browser fallback):**
 
-**Discord Server:**
+1. **Create the server via Bot API** (preferred — no browser needed):
+   ```bash
+   # Use any team bot's token (the first one created)
+   BOT_TOKEN="<first_bot_token>"
+   DC_API="https://discord.com/api/v9"
 
-1. **Create the server** (if needed):
-   - Use Playwright to navigate to Discord, click "+" -> "Create My Own" -> name it
+   # Create guild — returns guild object with id
+   GUILD=$(curl -s -H "Authorization: Bot ${BOT_TOKEN}" \
+     -H "Content-Type: application/json" \
+     "$DC_API/guilds" -d '{"name":"<Team Name> HQ"}')
+   GUILD_ID=$(echo "$GUILD" | jq -r '.id')
+   ```
+   **Fallback** (if bot is in 10+ guilds): Use Playwright on discord.com → "+" → "Create My Own"
 
-2. **Invite all bots** — for each team member:
-   - Use the OAuth2 URL generated in Phase 6:
+2. **Set server icon via Bot API:**
+   ```bash
+   ICON_B64=$(base64 -i ~/.openclaw/workspace/group-icon.jpg)
+   curl -s -H "Authorization: Bot ${BOT_TOKEN}" \
+     -H "Content-Type: application/json" \
+     "$DC_API/guilds/${GUILD_ID}" \
+     -d "{\"icon\":\"data:image/jpeg;base64,${ICON_B64}\"}"
+   ```
+
+3. **Create team channel via Bot API:**
+   ```bash
+   curl -s -H "Authorization: Bot ${BOT_TOKEN}" \
+     -H "Content-Type: application/json" \
+     "$DC_API/guilds/${GUILD_ID}/channels" \
+     -d '{"name":"team-hq","type":0}'
+   ```
+
+4. **Invite other bots** — OAuth2 browser flow (no API alternative):
+   - For each OTHER bot (the creating bot is already in the guild):
      ```bash
-     <SKILL_DIR>/skills/discord-dev/discord-dev.sh oauth2-url "<AppName>" --permissions 8 --scopes "bot applications.commands"
+     discord-dev.sh oauth2-url "<AppName>" --permissions 8 --scopes "bot applications.commands"
      ```
-   - Open each URL in browser, select the server, authorize
+   - Use Playwright to open each URL, select the server, click "Authorize"
+   - User may need to complete CAPTCHA
 
-3. **Discord @mention behavior:**
+5. **Discord @mention behavior:**
    - Bots respond to DMs, @mentions, and replies to their own messages
    - With `messageContentIntent: true` (set in Phase 6), bots can also read all guild messages
    - Without it, bots only see messages that directly mention them
 
-4. **Create team channel** (optional):
-   - Create a `#team` or `#hq` channel in the server for team discussions
+6. **Verify via Bot API:**
+   ```bash
+   # Check guild members
+   curl -s -H "Authorization: Bot ${BOT_TOKEN}" \
+     "$DC_API/guilds/${GUILD_ID}/members?limit=100" | jq '.[].user.username'
+   # Send test message
+   CHANNEL_ID=$(curl -s -H "Authorization: Bot ${BOT_TOKEN}" \
+     "$DC_API/guilds/${GUILD_ID}/channels" | jq -r '.[0].id')
+   curl -s -H "Authorization: Bot ${BOT_TOKEN}" \
+     -H "Content-Type: application/json" \
+     "$DC_API/channels/${CHANNEL_ID}/messages" \
+     -d '{"content":"Team HQ is live!"}'
+   ```
 
 #### Phase 10: Verification
 
+**AI performs all verification automatically:**
+
 ```bash
-openclaw channels status --probe
+# Wait for gateway to be fully booted
+sleep 10
+openclaw channels status --probe    # May timeout if gateway still booting — retry after 20s
 openclaw agents list --bindings --json
 openclaw agents bindings
-openclaw agent --agent main --message "ping" --local
 ```
+
+**Live test via Playwright** (AI does this, not the user):
+1. Open web.telegram.org in Playwright
+2. Navigate to the team group
+3. @mention each bot one by one (using autocomplete dropdown + `pressSequentially`)
+4. Verify each bot responds within 30s
+5. If a bot doesn't respond: check privacy mode, pairing status, gateway logs
 
 ---
 
@@ -924,13 +1199,18 @@ openclaw config set 'channels.telegram.accounts.<id>.groupPolicy' 'open'  # or '
 1. **Gateway restart required** after any config change
 2. **Bot tokens are sensitive** — save immediately, never log plaintext
 3. **Discord bot tokens shown once** — `bot-add` and `bot-reset` return only once
-4. **Pairing is per-user** — each user must pair separately
+4. **Pairing is per-user** — AI handles the owner's pairing automatically via Playwright (send /start, approve code). Additional users pair themselves.
 5. **Full mesh = O(n^2)** — for large teams consider hub-and-spoke
 6. **OpenClaw and enconvo-gw cannot share the same bot token** — disable one first
 7. **BotFather auth is interactive** — needs terminal for phone + 2FA
 8. **Discord dev token needs Playwright** — browser login for extraction
 9. **enconvo-gw is bundled** in this skill at `<SKILL_DIR>/enconvo-gw/` — deploy via `setup.sh enconvo-gw`
 10. **OpenClaw is public** — installed via `npm install -g openclaw`, auto-detected/installed by `setup.sh openclaw`
+11. **Telegram bot privacy mode is ENABLED by default** — new bots cannot see group messages. You MUST disable privacy via BotFather (`/setprivacy` → select bot → `Disable`) for EVERY bot that needs to work in groups. Without this, bots only see /commands and direct @mentions, and even @mention responses may fail.
+12. **BotFather CLI (`botfather.sh`) has known bugs** with `set privacy` and `set userpic` commands — both fail with `AttributeError: 'KeyboardButton' object has no attribute 'data'`. **Always use Telegram web** (`https://web.telegram.org`) for these operations instead. The CLI works fine for `create`, `delete`, `token`, `set name`, `set description`, `set about`, and `set commands`.
+13. **Playwright `fill()` destroys Telegram @mention entities** — when typing in Telegram web after selecting an @mention from autocomplete, use `pressSequentially()` (slowly=true), NOT `fill()`. The `fill()` method replaces the entire input including the mention entity, turning it into plain text that bots won't recognize.
+14. **Gateway boot takes 15-30 seconds** — `openclaw channels status --probe` may timeout (10s default) during startup even though the gateway is actually coming up. Wait 20-30s after `openclaw gateway --force` before testing. Check `tail /tmp/openclaw-gw.log` to confirm bots are connected.
+15. **Always verify bots respond AFTER full setup** — don't assume group messaging works. Send a test @mention in the group and wait for a response. Common failure: privacy mode still enabled, gateway not running, or bot not properly added to group.
 
 ---
 
@@ -1074,6 +1354,13 @@ Discord accounts can conflict too if both systems use the same bot token. Always
 | Claude Code returns empty | Permission mode `plan` doesn't execute | Use `permissionMode: "bypassPermissions"` |
 | Session error "No conversation found" | Using `--resume` on first call | Check session tracking in `src/claude/session.js` |
 | Output files not uploading | Claude saving outside outbound dir | Check system prompt injection in `src/claude/client.js` |
+| Bot not responding in group | Privacy mode enabled (default for new bots) | `/setprivacy` in BotFather → select bot → `Disable`. Must be done via Telegram web, not CLI |
+| Bot responds in DM but not group | Privacy mode enabled OR bot not added to group | Check privacy mode first, then verify bot is a group member |
+| `botfather.sh set privacy` fails | Known CLI bug: `KeyboardButton` has no `data` attribute | Use Telegram web BotFather instead — send `/setprivacy` manually |
+| `botfather.sh set userpic` fails | Same KeyboardButton bug as privacy | Upload photo via Telegram web — send `/setuserpic`, select bot, send photo |
+| @mention in group doesn't trigger bot | Plain text @name vs proper Telegram mention entity | Must use autocomplete dropdown when typing @mention in Telegram web. Type `@` + first letters, click suggestion |
+| `openclaw channels status --probe` timeout | Gateway still booting (takes 15-30s) | Wait 30s, then retry. Check `tail /tmp/openclaw-gw.log` for "logged in" messages |
+| Playwright `fill()` strips @mention | `fill()` replaces entire input, destroying mention entities | Use `pressSequentially()` (slowly=true) to type after selecting an @mention from autocomplete |
 
 ### Key Source Files
 
@@ -1357,3 +1644,13 @@ Margaux (risk)  → stress tests, alerts Octavia on critical exposures
 9. **Reference photos are critical for nanobanana.** The `--reference` flag with a portrait file is what makes face consistency possible. Without it, every generation is a different person. Store reference in workspace AND backup in `~/.openclaw/identity/`.
 
 10. **groupPolicy "open" for team groups.** Set to "open" so bots respond to @mentions and replies in team groups. "allowlist" with an empty list silently drops all group messages.
+
+11. **Telegram privacy mode is the #1 group setup gotcha.** New bots default to privacy ENABLED. This is invisible until you test in a group — DMs work fine, but group @mentions silently fail. Always disable privacy for every bot before adding to groups. Use Telegram web, not the CLI.
+
+12. **BotFather CLI has button-type bugs.** The Python Telethon script fails on BotFather responses that use `KeyboardButton` (regular keyboard) instead of `InlineKeyboardButton`. This affects `set privacy` and `set userpic` — both require clicking buttons that are regular keyboard buttons, not inline. The CLI works for commands that use text input (create, delete, token, set name/description/about/commands).
+
+13. **Test in the actual group, not just DMs.** DM pairing and responses can work perfectly while group messaging is broken (privacy mode, bot not in group, groupPolicy misconfigured). Always end setup with a live group @mention test.
+
+14. **Playwright @mention workflow matters.** In Telegram web, @mentions must be selected from the autocomplete dropdown to create a proper mention entity. Type `@` + first letters slowly (`pressSequentially`), click the suggestion, then type the rest of the message with `pressSequentially` — never `fill()`. A plain-text `@username` in a message does NOT trigger the bot.
+
+15. **Gateway boot order: restart → wait 30s → test.** After `openclaw gateway --force`, the gateway needs 15-30s to connect all Telegram/Discord bots. The `channels status --probe` command has a 10s timeout that's shorter than boot time. Check logs instead: `tail /tmp/openclaw-gw.log` — look for "[telegram] [<account>] starting provider" and "[discord] logged in as" lines.
