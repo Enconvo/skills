@@ -656,18 +656,92 @@ For each team member, generate a professional portrait and set up their identity
    # Discord: discord-dev.sh update "<AppName>" --icon ~/.openclaw/workspace-<agentId>/portrait.jpg
    ```
 
-5. **Create workspace TOOLS.md** for each agent at `~/.openclaw/workspace-<agentId>/TOOLS.md`:
-   - Agent-specific tools and data sources
-   - Role description and collaboration notes (which other agents to work with)
-   - Reference team-standards.md for shared rules
-   - Office setting with their specific city
-   - Selfie/portrait instructions with `--reference ./portrait.jpg`
+5. **Create agent workspace profile files:**
 
-6. **Set agent identity in OpenClaw:**
+   Each agent gets a workspace directory with profile files that define their personality, role, and behavior.
+
+   **For OpenClaw agents** (`~/.openclaw/workspace-<agentId>/`):
+
+   Create these files:
+
+   - **`TOOLS.md`** — Agent-specific tools, data sources, role description, collaboration notes (which other agents to work with), office setting with their specific city, selfie/portrait instructions with `--reference ./portrait.jpg`. Reference `~/.openclaw/workspace/kb/team-standards.md` for shared rules.
+
+   **For EnConvo agents** (`~/.config/enconvo/extension/chat_with_ai/assets/prompts/` or per-bot workspace):
+
+   EnConvo agents use a richer profile system. Create/configure these files:
+
+   - **`IDENTITY.md`** — Name, creature type (AI assistant), vibe (analytical, warm, creative, etc.), signature emoji, avatar path
+   - **`SOUL.md`** — Core personality, values, communication style, boundaries. Start from the template and customize per role.
+   - **`USER.md`** — About the human owner (name, timezone, preferences). Shared across agents or per-agent.
+   - **`TOOLS.md`** — Agent-specific tool notes, environment details, role-specific data sources
+   - **`AGENTS.md`** — Session behavior rules: memory management, group chat etiquette, heartbeat config, safety rules. Usually shared across all agents.
+   - **`MEMORY.md`** — Long-term curated memory (starts empty, agent builds over time)
+   - **`memory/`** — Daily notes directory (created automatically)
+
+   **Template for IDENTITY.md per agent:**
+   ```markdown
+   # IDENTITY.md - <DisplayName>
+
+   - **Name:** <DisplayName>
+   - **Creature:** AI agent — <role> specialist
+   - **Vibe:** <personality traits matching role>
+   - **Emoji:** <emoji>
+   - **Avatar:** portrait.jpg
+   ```
+
+   **Template for SOUL.md per agent** (customize from base):
+   ```markdown
+   # SOUL.md - <DisplayName>
+
+   You are <DisplayName>, the <role> on the team.
+   <2-3 sentences about personality, expertise, how they communicate>
+
+   ## Core Truths
+   - Be genuinely helpful, not performatively helpful
+   - Have opinions — you're the <role> authority
+   - Be resourceful before asking
+   - Work closely with <list collaborating agents>
+
+   ## Boundaries
+   - Private things stay private
+   - Ask before external actions
+   - In group chats, participate don't dominate
+   ```
+
+6. **Create EnConvo custom bot** (if using EnConvo platform):
+
+   For each agent that needs an EnConvo bot (separate from the Telegram/Discord channel bots):
+
+   ```bash
+   # Create bot via EnConvo deep link
+   open "enconvo://enconvo_webapp/new_command"
+   ```
+
+   Or programmatically create the command + preference files:
+
+   ```bash
+   # Command definition: ~/.config/enconvo/installed_commands/custom_bot|<ID>.json
+   # Preference config: ~/.config/enconvo/installed_preferences/custom_bot|<ID>.json
+   ```
+
+   Key preference fields to set per agent:
+   - `llm.commandKey` — LLM provider (e.g., `llm|chat_anthropic`)
+   - `llm.llm|chat_anthropic.modelName` — Model (e.g., `claude-opus-4-6`)
+   - `prompt` — System prompt referencing the agent's SOUL.md and role
+   - `tools` — JSON array of tool assignments for this agent's specialty
+   - `execute_permission` — `"always_allow"` for autonomous agents
+
+7. **Set agent identity in OpenClaw:**
    ```bash
    # Set in openclaw.json agents.list[N].identity:
    # { "name": "<displayName>", "emoji": "<emoji>", "avatar": "portrait.png" }
    ```
+
+8. **Designate the team lead (`main`):**
+   - The `main` agent is the team coordinator — first in `agents.list[]`
+   - `main` has all other agents in `subagents.allowAgents`
+   - `main` is typically the COO/PM/coordinator role
+   - All other agents should also have `main` in their `allowAgents` to report back
 
 #### Phase 5: Planning Summary
 
