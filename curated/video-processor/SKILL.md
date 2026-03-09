@@ -11,7 +11,7 @@ user_invocable: true
 
 Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS.
 
-**Architecture:** Groq Whisper for ASR + Groq Llama 3.3 70B for translation. Condensation, summarization, and filler cleanup are handled by the host agent.
+**Architecture:** Groq Whisper for ASR + EnConvo API for translation. Condensation, summarization, and filler cleanup are handled by the host agent.
 
 **Supports:**
 - **Video files**: MP4, MKV, AVI, MOV, WebM, FLV
@@ -21,11 +21,12 @@ Comprehensive media processing: transcribe, translate, summarize, and dub videos
 ## Activation
 
 Use this skill when the user:
-- Says `/video-transcribe`, `/video-translate`, `/video-dub`, or `/video-summary`
+- Says `/video-transcribe`, `/video-translate`, `/video-dub`, `/video-summary`, or `/video-caption`
 - Asks to "transcribe this video"
 - Wants to "translate and dub a video"
 - Needs "video summary" or "summarize this video"
 - Requests "extract transcript from video"
+- Asks to "caption this video" or "add word-level captions"
 - Asks in ANY language (e.g., "总结这段视频", "résumez cette vidéo", "resume este video")
 
 **Language Detection:**
@@ -54,7 +55,7 @@ Transcribe + translate to target language (no TTS, subtitles only).
 **Pipeline:**
 1. Run: `python3 scripts/transcriber.py <video_file_or_url> [groq_api_key]`
 2. Run: `python3 scripts/clean_srt.py {name}_original.srt --in-place` (removes filler words)
-3. Run: `python3 scripts/translate_srt.py {name}_original.srt <target_lang> [groq_api_key]`
+3. Run: `python3 scripts/translate_srt.py {name}_original.srt <target_lang>`
 4. Agent: Show side-by-side review to user
 
 **Output:**
@@ -69,7 +70,7 @@ Transcribe, translate, review, TTS, create dubbed video.
 **Pipeline:**
 1. Run: `python3 scripts/transcriber.py <video_file_or_url> [groq_api_key]` → `{name}_original.srt`
 2. Run: `python3 scripts/clean_srt.py {name}_original.srt --in-place` (removes filler words)
-3. Run: `python3 scripts/translate_srt.py {name}_original.srt <target_lang> [groq_api_key]` → `{name}_{lang}.srt`
+3. Run: `python3 scripts/translate_srt.py {name}_original.srt <target_lang>` → `{name}_{lang}.srt`
 4. Agent: Show translation review to user, apply any corrections
 5. Run: `bash scripts/generate_tts_and_dub.sh <video> <orig.srt> <trans.srt> <lang> [voice] [voice_name]`
 6. Agent: Read `{name}_timing_report.json` (see Agent Condensation Protocol)
@@ -91,6 +92,67 @@ Transcribe video and generate comprehensive summary.
 2. Agent: Read transcript, generate summary (see Agent Summary Protocol)
 3. Output: `{name}_summary.md`
 
+### 5. Word-Level Captioning
+Burn word-accurate captions into video with karaoke-style highlighting.
+Only use when user **explicitly asks** to caption a video with word-level accuracy.
+
+**Triggers:** `/video-caption`, "caption this video", "add word-level captions", "add captions with word timestamps"
+
+**Pipeline:**
+1. Run: `python3 scripts/caption_video.py <video_file_or_url> [options]`
+2. Output: `{name}_captioned.mp4` + `{name}_captions.ass` + `{name}_words.json`
+
+**Caption Styles (`--style=`):**
+
+| Style | Technique | Description |
+|-------|-----------|-------------|
+| `highlight` *(default)* | Karaoke Fill | Full line shown; current word sweeps from white → yellow as spoken |
+| `appear` | Word Reveal | Words appear one by one and accumulate until line ends |
+| `underline` | Active Underline | Full line visible; current word is yellow + bold + underlined |
+| `bounce` | Spring Physics | Word-by-word pop — each word bounces in (140%→95%→105%→100%) and exits; 1.8× bigger font |
+| `fade` | Fade In/Out | Dim context line persists; current word fades in bright yellow, fades out at end |
+| `zoom` | Zoom In | Word scales from 0% → 115% → 100% with slight overshoot — punchy entrance |
+| `slide` | Slide Up | Word slides up 50px into position, then gently fades out |
+| `wave` | Rock/Oscillate | Dim context line persists; current word rocks −8°→+8°→−4°→0° (settling oscillation) |
+| `typewriter` | Typewriter | Characters appear one by one per word; previous words shown in white, current in yellow |
+
+**Options:**
+- `--style=<style>` — caption animation style (see table above, default: `highlight`)
+- `--bilingual=<lang>` — add secondary language translation below main captions (e.g. `--bilingual=english`)
+- `--main-lang=<lang>` — make translated language the MAIN (top, karaoke) caption; original becomes secondary below
+- `--position=bottom|top|center` — caption position (default: bottom)
+- `--font-size=<size>` — font size (default: auto-calculated from video resolution; `bounce` auto-scales 1.8×)
+- `--words-per-line=8` — max words per caption line (default: 8)
+- `--color=BBGGRR` — text color in ASS hex (default: 00FFFFFF = white)
+- `--highlight=BBGGRR` — highlight color in ASS hex (default: 0000FFFF = yellow)
+- `--output=file.mp4` — custom output filename
+- `--srt-only` — only generate ASS subtitle file, don't burn into video
+- `--lang=en` — source language code (default: auto-detect)
+- `--words-json=<file>` — skip re-transcription; load cached `_words.json` from a previous run
+
+**Auto-sizing:** The script probes video resolution via ffprobe and auto-calculates optimal font size, margins, and outline thickness based on the video's height (scaled from 1080p baseline). Aspect ratio is also considered — ultrawide (>2.0) gets tighter margins, portrait (<1.0) gets compact margins. User CLI flags (`--font-size`, `--position`) override auto values.
+
+**Fonts:** Cinema-style defaults — PingFang SC for CJK, Helvetica Neue for Latin. Regular weight, clean outline. Matches the bilingual subtitle style used in Chinese cinemas for Hollywood films.
+
+**Bilingual layout:** Main language on top (larger, karaoke highlighting) + secondary language below (smaller, white). Both bottom-aligned with proper spacing.
+
+**Example Sessions:**
+```
+User: "Caption this video with word-level timestamps"
+Claude: python3 scripts/caption_video.py video.mp4
+→ video_captioned.mp4 (karaoke-style word highlighting)
+
+User: "Caption with bilingual Chinese + English"
+Claude: python3 scripts/caption_video.py video.mp4 --bilingual=english
+→ Chinese karaoke on top, English translation below
+
+User: "Add word captions to this video, style: appear, position: top"
+Claude: python3 scripts/caption_video.py video.mp4 --style=appear --position=top
+
+User: "Caption https://youtube.com/watch?v=xxx"
+Claude: python3 scripts/caption_video.py "https://youtube.com/watch?v=xxx"
+```
+
 ## Agent Protocols
 
 ### Transcript Cleanup (Filler Removal)
@@ -111,12 +173,12 @@ Preserves meaning, tone, and natural phrasing. Same timestamps, cleaned text.
 
 **Important:** This happens BEFORE translation so filler words don't propagate into the target language (e.g., "you know" → "你知道"). The translation prompt also drops any remaining fillers as a second safety net.
 
-### Script Translation (Groq Llama 3.3 70B)
+### Script Translation (EnConvo API)
 
-Translation is handled by `scripts/translate_srt.py` using Groq Llama 3.3 70B:
+Translation is handled by `scripts/translate_srt.py` using EnConvo API (localhost:54535):
 
 ```bash
-python3 scripts/translate_srt.py <srt_file> <target_lang> [groq_api_key]
+python3 scripts/translate_srt.py <srt_file> <target_lang>
 ```
 
 The script translates segment-by-segment with quality rules baked in:
@@ -173,30 +235,30 @@ The agent reads the transcript and generates a structured summary:
 - **Audio + Video support** (MP4, MP3, WAV, M4A, and more)
 - **URL download** (YouTube, Twitter, TikTok, 1000+ sites)
 - Ultra-fast transcription (Groq Whisper Large V3)
-- Natural translation via Groq Llama 3.3 70B (context-aware, preserves technical terms)
+- Natural translation via EnConvo API (context-aware, preserves technical terms)
 - **Transcript cleanup** (removes filler words and verbal tics before translation)
 - **Segment-by-segment TTS** (precise timing per subtitle)
 - **Agent-driven condensation** (shortens overlong translations via agent instead of external LLM)
 - **Perfect audio sync** (natural speed with conservative adjustment)
 - **Voice cloning support** (use any voicebox profile)
 - Translation review (edit before TTS generation)
-- **Auto subtitle embedding** (always adds original language subs)
-- Dual subtitle support (original + translated)
+- **Burned-in dual subtitles** (original top/yellow + translated bottom/white, always visible)
 - Multi-language TTS (Kokoro + edge-tts + voicebox)
 - Intelligent summaries (with timestamps and key points)
 - **Language-aware detection** (auto-detects request language)
+- **Word-level captioning** (karaoke-style word highlighting with Groq Whisper word timestamps)
 
 ## Requirements
 
 ### Required
 - **ffmpeg** (video/audio processing): `brew install ffmpeg`
 - **yt-dlp** (URL downloads): `brew install yt-dlp`
-- **Groq API key** (Whisper ASR + Llama translation): Free at [console.groq.com](https://console.groq.com)
+- **Groq API key** (Whisper ASR): Free at [console.groq.com](https://console.groq.com)
   - Whisper Large V3 for transcription — fast, free, supports SRT output, stable for long videos
-  - Llama 3.3 70B for subtitle translation — natural, context-aware
   - Set: `export GROQ_API_KEY=gsk_xxx` or add to `.env` file in skill root
+- **EnConvo** (translation): Must be running on `localhost:54535`
 - **edge-tts** (default TTS engine): `pip install edge-tts`
-- **Python packages**: `pip install groq numpy soundfile`
+- **Python packages**: `pip install groq numpy soundfile` (groq needed for Whisper ASR only)
 
 ### Optional TTS Engines
 
@@ -274,7 +336,8 @@ The dubbing system uses a pipeline that scales to 1500+ segments:
    - Most segments need no adjustment after condensation
 4. **Numpy Timeline Assembly** - Places each adjusted segment at its exact SRT start position
    in a pre-allocated numpy array. Scales to any number of segments without ffmpeg input limits.
-5. **Video Mux** - Uses `-c:v copy` (no re-encode) + soft subtitle tracks for speed
+5. **Subtitle Burn-In** - Burns dual subtitles into video (original top/yellow + translated bottom/white)
+   using ffmpeg `subtitles` filter. Requires video re-encode (`-c:v libx264 -crf 20 -preset fast`)
 
 **Performance (tested on 2h22m video, 1,554 segments):**
 - edge-tts TTS generation: ~12 min (parallel batches of 10)
@@ -288,8 +351,7 @@ The dubbing system uses a pipeline that scales to 1500+ segments:
 - Natural-sounding audio (no slow-motion or chipmunk effect)
 - Scales to 1500+ segments (numpy, not ffmpeg amix)
 - edge-tts parallel batches for 10x faster generation
-- No video re-encoding (`-c:v copy`)
-- Soft subtitle tracks (toggle in player)
+- Burned-in dual subtitles (always visible, no player support needed)
 - Resume support (skips already-generated segments)
 
 ### TTS Engine Selection
@@ -363,10 +425,9 @@ generate_tts_and_dub.sh video.mp4 transcript.srt transcript.srt english none en-
 ## Notes
 
 - All modes start with transcription (Groq Whisper ASR)
-- Translation via Groq Llama 3.3 70B (natural, context-aware phrasing)
+- Translation via EnConvo API (natural, context-aware phrasing)
 - Transcript cleanup removes filler words before translation
 - Dubbing includes perfect audio-subtitle sync (segment-by-segment)
-- **Always embeds original language subtitles** in output video (soft subs)
+- **Burns in dual subtitles** (original top/yellow + translated bottom/white, always visible)
 - Summaries are comprehensive but concise
-- Original video quality is preserved (`-c:v copy`, no re-encode)
 - Long videos (1000+ segments) handled efficiently via numpy timeline

@@ -114,9 +114,9 @@ ffmpeg -y -i "$COMBINED_WAV" -t "$VIDEO_DUR" -af "volume=1.5" -ar 24000 -ac 1 "$
 echo "Synced audio: ${BASE_NAME}_${TARGET_LANG}_audio.wav"
 echo ""
 
-# Create dubbed video with subtitle tracks
+# Create dubbed video with burned-in subtitles
 echo "========================================"
-echo "  Creating Dubbed Video"
+echo "  Creating Dubbed Video (Burned-In Subs)"
 echo "========================================"
 echo ""
 
@@ -140,47 +140,54 @@ echo ""
 MUX_LOG="$WORK_DIR/mux.log"
 MUX_OK=false
 
-# Try with dual subtitle tracks first
+# Escape SRT paths for ffmpeg filter (colons, backslashes, single quotes, brackets)
+escape_srt_path() {
+    echo "$1" | sed "s/\\\\/\\\\\\\\\\\\\\\\/g; s/:/\\\\\\\\:/g; s/'/\\\\\\\\'/g; s/\\[/\\\\\\\\[/g; s/\\]/\\\\\\\\]/g"
+}
+
+# Try burning in dual subtitles (original on top, translated on bottom)
 if $HAVE_ORIG_SRT && $HAVE_TRANS_SRT; then
-    echo "Muxing audio + dual subtitles onto video..."
+    echo "Burning in dual subtitles (original top + translated bottom)..."
+    ORIG_ESC=$(escape_srt_path "$ORIGINAL_SRT")
+    TRANS_ESC=$(escape_srt_path "$TRANSLATED_SRT")
+    # Original (English) at top: smaller, semi-transparent
+    # Translated (target lang) at bottom: larger, full opacity
+    FILTER="subtitles='${TRANS_ESC}':force_style='FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,Shadow=1,MarginV=30',subtitles='${ORIG_ESC}':force_style='FontSize=16,PrimaryColour=&H0080FFFF,OutlineColour=&H00000000,Outline=2,Shadow=1,Alignment=6,MarginV=30'"
     if ffmpeg -y \
         -i "$VIDEO_FILE" \
         -i "${BASE_NAME}_${TARGET_LANG}_audio.wav" \
-        -i "$ORIGINAL_SRT" \
-        -i "$TRANSLATED_SRT" \
-        -map 0:v:0 -map 1:a:0 -map 2:0 -map 3:0 \
-        -c:v copy \
+        -map 0:v:0 -map 1:a:0 \
+        -vf "$FILTER" \
+        -c:v libx264 -crf 20 -preset fast \
         -c:a aac -b:a 192k \
-        -c:s mov_text \
-        -metadata:s:s:0 language=eng -metadata:s:s:0 title="Original" \
-        -metadata:s:s:1 language="${TARGET_LANG}" -metadata:s:s:1 title="${TARGET_LANG}" \
         -shortest \
         "${BASE_NAME}_dubbed.mp4" > "$MUX_LOG" 2>&1; then
         MUX_OK=true
-        echo "  Dual subtitle mux succeeded."
+        echo "  Dual burned-in subtitles succeeded."
     else
-        echo "  Dual subtitle mux failed:"
+        echo "  Dual burn-in failed, trying single..."
         tail -3 "$MUX_LOG"
     fi
 fi
 
-# Fallback: single translated subtitle track
+# Fallback: burn in translated subtitle only
 if ! $MUX_OK && $HAVE_TRANS_SRT; then
-    echo "Trying single subtitle track..."
+    echo "Burning in translated subtitles only..."
+    TRANS_ESC=$(escape_srt_path "$TRANSLATED_SRT")
+    FILTER="subtitles='${TRANS_ESC}':force_style='FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,Shadow=1,MarginV=30'"
     if ffmpeg -y \
         -i "$VIDEO_FILE" \
         -i "${BASE_NAME}_${TARGET_LANG}_audio.wav" \
-        -i "$TRANSLATED_SRT" \
-        -map 0:v:0 -map 1:a:0 -map 2:0 \
-        -c:v copy \
+        -map 0:v:0 -map 1:a:0 \
+        -vf "$FILTER" \
+        -c:v libx264 -crf 20 -preset fast \
         -c:a aac -b:a 192k \
-        -c:s mov_text -metadata:s:s:0 language="${TARGET_LANG}" \
         -shortest \
         "${BASE_NAME}_dubbed.mp4" > "$MUX_LOG" 2>&1; then
         MUX_OK=true
-        echo "  Single subtitle mux succeeded."
+        echo "  Single burned-in subtitle succeeded."
     else
-        echo "  Single subtitle mux failed:"
+        echo "  Single burn-in failed:"
         tail -3 "$MUX_LOG"
     fi
 fi
@@ -188,7 +195,7 @@ fi
 # Last resort: no subtitles
 if ! $MUX_OK; then
     echo ""
-    echo "WARNING: All subtitle muxing failed — creating video WITHOUT subtitles."
+    echo "WARNING: All subtitle burning failed — creating video WITHOUT subtitles."
     echo "   SRT files are still available separately."
     echo "   Full ffmpeg log: $MUX_LOG"
     ffmpeg -y \
@@ -231,6 +238,7 @@ echo "  - ${BASE_NAME}_original.srt"
 echo "  - ${BASE_NAME}_${TARGET_LANG}.srt"
 echo "  - ${BASE_NAME}_dubbed.mp4"
 echo ""
-echo "Video uses -c:v copy (no re-encode, fast)."
-echo "Subtitle tracks embedded as soft subs (toggle in player)."
+echo "Subtitles burned into video (always visible)."
+echo "  Original (English): top, yellow"
+echo "  Translated (${TARGET_LANG}): bottom, white"
 echo ""
