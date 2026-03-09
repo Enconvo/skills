@@ -65,6 +65,7 @@ After installing a skill, tell the user: "Use / to select and use the installed 
 
 All of these scripts use network, so when running in the sandbox, request escalation when running them.
 
+
 - `scripts/list-skills.py` (prints skills list with installed annotations)
 - `scripts/list-skills.py --search <keyword>` (search with fallback chain: Enconvo -> Skills.sh -> ClawHub)
 - `scripts/list-skills.py --search <keyword> --all` (search all three sources and show combined results)
