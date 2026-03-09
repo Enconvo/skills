@@ -1,0 +1,21 @@
+name: self-improvement
+version: 1.1.0
+description: >
+  Captures learnings, errors, and corrections to enable continuous improvement
+  for AI coding agents. Logs to .learnings/ markdown files with structured
+  formats, promotes recurring patterns to system prompts, and extracts
+  high-value learnings into reusable skills.
+type: skill
+author: zanearcher
+license: MIT
+tags:
+  - self-improvement
+  - learning
+  - error-tracking
+  - continuous-improvement
+  - multi-agent
+upstream:
+  repo: https://github.com/peterskoett/self-improving-agent
+  author: peterskoett
+  version: "1.0.0"
+  note: "Forked with fixes: consistent naming, ESM/CJS dual handler, removed redundant .ts"
