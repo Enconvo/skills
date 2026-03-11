@@ -1,7 +1,7 @@
 ---
 name: team-configure
 description: "End-to-end team member lifecycle management: create channel bots (Telegram/Discord), configure AI agents (OpenClaw/EnConvo), pair channels to agents, set up agent2agent mesh, manage group allowlists. Supports ad-hoc add/remove and full team setup from scratch. Self-contained: bundles enconvo-gw, auto-installs OpenClaw, walks through all first-time setup."
-version: 2.0.0
+version: 2.1.0
 author: zanearcher
 category: infrastructure
 ---
@@ -51,14 +51,34 @@ Always try the fastest, most reliable method first:
 **OpenClaw / enconvo-gw CLI**:
 - All agent, channel, binding, pairing, gateway operations
 
+### What can be done via Telethon (user-account API)
+
+**Telegram pairing (`/start`)** — AI sends `/start` to the bot as the user's Telegram account via Telethon. No browser needed:
+```bash
+$HOME/.botfather/venv/bin/python3 -c "
+import asyncio, json, os
+from telethon import TelegramClient
+with open(os.path.expanduser('~/.botfather/config.json')) as f:
+    creds = json.load(f)
+async def main():
+    client = TelegramClient(os.path.expanduser('~/.botfather/session'), int(creds['api_id']), creds['api_hash'])
+    await client.connect()
+    entity = await client.get_entity('<botUsername>')
+    await client.send_message(entity, '/start')
+    await asyncio.sleep(5)
+    msgs = await client.get_messages(entity, limit=3)
+    for m in msgs: print(f'[{m.sender_id}] {m.text}')
+    await client.disconnect()
+asyncio.run(main())
+"
+```
+
 ### What REQUIRES browser automation (no API exists)
 
 | Operation | Why browser needed |
 |---|---|
-| Telegram bot privacy mode (`/setprivacy`) | BotFather-only, CLI has button-type bug |
 | Telegram group creation | No API for user-initiated group creation |
 | Adding bots to Telegram groups | Must be done by a group admin via client |
-| Telegram pairing (`/start`) | Must message bot as the user's account |
 | Discord bot OAuth2 authorization | Requires user consent UI flow |
 | Discord CAPTCHA completion | Cannot be automated |
 | Telegram QR code / 2FA login | Requires user interaction |
@@ -273,7 +293,7 @@ botfather.sh send "/mybots" [--follow-up TEXT] [--click] [--timeout N]
 
 All commands support `--json` for machine-readable output.
 
-**Known CLI bugs:** `botfather.sh set privacy` and `botfather.sh set userpic` fail with `AttributeError: 'KeyboardButton'`. Use Telegram Bot API for profile photos and Playwright for privacy mode instead.
+**Known CLI bugs:** `botfather.sh set userpic` fails with `AttributeError: 'KeyboardButton'`. Use Telegram Bot API for profile photos instead. **`botfather.sh set privacy` is now fixed** — it correctly detects reply keyboards and sends text instead of trying to click inline buttons.
 
 ### Telegram Bot API (Direct HTTP — PREFERRED for bot settings)
 
@@ -342,6 +362,14 @@ discord-dev.sh intents "App Name" --disable PRESENCE
 
 # OAuth2 / Invite
 discord-dev.sh oauth2-url "App Name" --permissions 8 --scopes "bot applications.commands"
+
+# Bot User ID
+discord-dev.sh bot-id "App Name"                    # Get bot's Discord user ID
+
+# DM (send message as user — triggers pairing, NO browser needed)
+discord-dev.sh dm --app "App Name"                  # Sends "/start" by default
+discord-dev.sh dm --app "App Name" -m "hello"       # Custom message
+discord-dev.sh dm --bot-id 123456789 -m "/start"    # Direct by bot user ID
 
 # Slash Commands
 discord-dev.sh commands-list "App Name"
@@ -414,7 +442,9 @@ openclaw agents set-identity                    # Interactive: name/emoji/avatar
 
 # Bindings (route channel accounts to agents)
 openclaw agents bindings                        # List all bindings
-openclaw agents bind --agentId <id> --channel <ch> --accountId <id>
+# NOTE: `openclaw agents bind` CLI flags vary between versions and may error.
+# RECOMMENDED: Edit bindings[] in ~/.openclaw/openclaw.json directly.
+# Add: {"agentId": "<id>", "match": {"channel": "telegram", "accountId": "<id>"}}
 openclaw agents unbind <agentId> --channel <ch> --accountId <id>
 
 # Pairing
@@ -530,9 +560,12 @@ enconvo-gw channels remove --channel <ch> --account <id>
 # Agents
 enconvo-gw agents list
 enconvo-gw agents add --id <id> --name "Name" --model "ext/cmd" \
-  [--type claude-code] \
+  [--type claude-code|enconvo] \
   [--permission-mode bypassPermissions|plan] \
   [--working-dir /path] [--timeout 600000]
+# For EnConvo agents, model must use / separator (not |):
+#   --model "custom_bot/<commandName>" --type enconvo
+#   --model "chat_with_ai/<sessionId>" --type enconvo
 enconvo-gw agents remove --id <id>
 
 # Pairing
@@ -590,7 +623,7 @@ curl -s "$API/setMyProfilePhoto" \
 ```
 
 **CRITICAL: Disable privacy mode for each bot** — new bots have privacy ENABLED by default. No Bot API exists for this — must go through BotFather:
-- **Try CLI first:** `botfather.sh set privacy @<botUsername> "Disable"` (may fail with `KeyboardButton` bug)
+- **CLI (recommended):** `botfather.sh set privacy @<botUsername> "Disable"` (KeyboardButton bug is fixed)
 - **Fallback — Playwright on web.telegram.org:** Send `/setprivacy` to BotFather, select the bot, send `Disable`
 
 **Discord (API-first):**
@@ -605,6 +638,34 @@ discord-dev.sh update "<displayName>" --icon ~/.openclaw/workspace-<agentId>/por
 # 3. Generate OAuth2 URL for server invite (browser needed for authorization)
 discord-dev.sh oauth2-url "<displayName>" --permissions 8 --scopes "bot applications.commands"
 ```
+
+#### Step 2.5: Generate Portrait & Set Bot Profile Photo (MANDATORY)
+
+**DO NOT SKIP THIS STEP.** Every bot needs a profile photo.
+
+1. **Generate a portrait** (1:1 aspect ratio) using image generation:
+   - Primary: `baoyu-danger-gemini-web` (Gemini)
+   - Fallback: `nanobanana`
+   - Last resort: `grok-image-gen`
+   - Or: built-in `text_to_image` tool
+
+2. **Save to workspace:**
+   ```bash
+   # Image should be saved to:
+   ~/.openclaw/workspace-<agentId>/portrait.jpg
+   ```
+
+3. **Set as Telegram bot profile photo** via Bot API:
+   ```bash
+   curl -s "$API/setMyProfilePhoto" \
+     -F "photo={\"type\":\"static\",\"photo\":\"attach://file\"}" \
+     -F "file=@~/.openclaw/workspace-<agentId>/portrait.jpg"
+   ```
+
+4. **Set as Discord app icon** (if applicable):
+   ```bash
+   discord-dev.sh update "<displayName>" --icon ~/.openclaw/workspace-<agentId>/portrait.jpg
+   ```
 
 #### Step 3: AI Platform Side — Configure Agent
 
@@ -625,15 +686,19 @@ mkdir -p ~/.openclaw/agents/<agentId>/agent
 # 4. Add agent to openclaw.json agents.list[]
 #    (Edit JSON directly — add the agent entry object)
 
-# 5. Add bindings
-openclaw agents bind --agentId <agentId> --channel telegram --accountId <agentId>
-openclaw agents bind --agentId <agentId> --channel discord --accountId <agentId>
+# 5. Add bindings (edit ~/.openclaw/openclaw.json directly — CLI flags are unreliable)
+#    Add to bindings[]: {"agentId": "<agentId>", "match": {"channel": "telegram", "accountId": "<agentId>"}}
+#    Add to bindings[]: {"agentId": "<agentId>", "match": {"channel": "discord", "accountId": "<agentId>"}}
 ```
 
 **enconvo-gw:**
 ```bash
+# For Claude Code agents:
 enconvo-gw agents add --id <agentId> --name "<displayName>" --model "ext/cmd" \
   --type claude-code --permission-mode bypassPermissions --working-dir ~
+# For EnConvo agents (CRITICAL: use / not | in model path):
+enconvo-gw agents add --id <agentId> --name "<displayName>" \
+  --model "custom_bot/<commandName>" --type enconvo
 enconvo-gw channels add --channel telegram --account <agentId> \
   --token "<TG_TOKEN>" --agent <agentId> --dm-policy pairing
 enconvo-gw channels add --channel discord --account <agentId> \
@@ -669,21 +734,38 @@ sleep 25  # Gateway takes 15-30s to fully boot
 tail -5 /tmp/openclaw-gw.log  # Verify connected
 ```
 
-**AI handles pairing automatically via Playwright:**
+**AI handles ALL pairing automatically — do NOT ask the user to message bots.**
 
-1. **Telegram pairing** — for each bot:
-   - Use Playwright to navigate to `https://web.telegram.org`
-   - Search for the bot by username (e.g., `@sophia_ailab_bot`)
-   - Open the bot's DM and click "Start" or send `/start`
-   - Check pairing code: `openclaw pairing list telegram`
+1. **Telegram pairing (via Telethon — primary method, no browser needed):**
+   ```bash
+   $HOME/.botfather/venv/bin/python3 -c "
+   import asyncio, json, os
+   from telethon import TelegramClient
+   with open(os.path.expanduser('~/.botfather/config.json')) as f:
+       creds = json.load(f)
+   async def main():
+       client = TelegramClient(os.path.expanduser('~/.botfather/session'), int(creds['api_id']), creds['api_hash'])
+       await client.connect()
+       entity = await client.get_entity('<botUsername>')
+       await client.send_message(entity, '/start')
+       await asyncio.sleep(5)
+       msgs = await client.get_messages(entity, limit=3)
+       for m in msgs: print(f'[{m.sender_id}] {m.text}')
+       await client.disconnect()
+   asyncio.run(main())
+   "
+   ```
+   - Extract the pairing code from the bot's reply
    - Approve: `openclaw pairing approve <CODE> --channel telegram --notify`
+   - **Fallback:** If Telethon is not authenticated, use Playwright on `https://web.telegram.org`
 
-2. **Discord pairing** — for each bot:
-   - Use Playwright to open the bot's OAuth2 invite URL (generated in Step 2)
-   - Select the target server, authorize with admin permissions
-   - Send a first DM to the bot on Discord
-   - Check pairing code: `openclaw pairing list discord`
+2. **Discord pairing (API-first — no browser needed for DM):**
+   ```bash
+   discord-dev.sh dm --app "<AppName>"    # Sends "/start" as the user
+   ```
+   - Check: `openclaw pairing list discord`
    - Approve: `openclaw pairing approve <CODE> --channel discord --notify`
+   - **Fallback:** Use Playwright to navigate to the bot's DM on discord.com
 
 #### Step 6: Group Membership (Optional)
 
@@ -713,9 +795,9 @@ openclaw agents unbind <agentId> --channel discord --accountId <agentId>
 # - Remove from tools.agentToAgent.allow
 # - Remove from every other agent's subagents.allowAgents
 
-# Optional (confirm with user first):
-# rm -rf ~/.openclaw/workspace-<agentId>
-# rm -rf ~/.openclaw/agents/<agentId>
+# ALWAYS clean up workspace and agent state directories:
+rm -rf ~/.openclaw/workspace-<agentId>
+rm -rf ~/.openclaw/agents/<agentId>
 
 openclaw gateway stop && sleep 2 && openclaw gateway
 ```
@@ -886,24 +968,53 @@ For each team member, generate a professional portrait and set up their identity
 
    For each agent that needs an EnConvo bot (separate from the Telegram/Discord channel bots):
 
+   **Option A: API (preferred — fully programmatic):**
    ```bash
-   # Create bot via EnConvo deep link
+   # CRITICAL: All fields must be wrapped in a "params" object
+   curl -X POST http://localhost:54535/enconvo_webapp/create_new_agent \
+     -H "Content-Type: application/json" \
+     -d '{
+       "params": {
+         "title": "<DisplayName>",
+         "commandName": "<agent_id>",
+         "description": "<role description>",
+         "run_mode": "agent",
+         "prompt": "<system prompt referencing SOUL.md and role>",
+         "user_prompt_1": "{{input_text}}",
+         "llm": {
+           "isUseGlobalDefaultCommand": true
+         },
+         "tools": [
+           {"tool_name": "file_system|read_file"},
+           {"tool_name": "code_runner|bash"},
+           {"tool_name": "internet_browsing|web_search"}
+         ],
+         "tts_providers": {
+           "isUseGlobalDefaultCommand": true
+         }
+       }
+     }'
+   ```
+
+   **Option B: Deep link (opens EnConvo UI):**
+   ```bash
    open "enconvo://enconvo_webapp/new_command"
    ```
 
-   Or programmatically create the command + preference files:
-
+   **Option C: Direct file creation:**
    ```bash
    # Command definition: ~/.config/enconvo/installed_commands/custom_bot|<ID>.json
    # Preference config: ~/.config/enconvo/installed_preferences/custom_bot|<ID>.json
    ```
 
-   Key preference fields to set per agent:
+   Key preference fields to set per agent (via API or direct file edit):
    - `llm.commandKey` — LLM provider (e.g., `llm|chat_anthropic`)
    - `llm.llm|chat_anthropic.modelName` — Model (e.g., `claude-opus-4-6`)
    - `prompt` — System prompt referencing the agent's SOUL.md and role
    - `tools` — JSON array of tool assignments for this agent's specialty
    - `execute_permission` — `"always_allow"` for autonomous agents
+
+   **API schema reference:** `~/.config/enconvo/extension/enconvo_webapp/skills/schemas.json` (full parameter spec for `create_new_agent`)
 
 7. **Set agent identity in OpenClaw:**
    ```bash
@@ -970,7 +1081,7 @@ discord-dev.sh update "<displayName>" --icon ~/.openclaw/workspace-<agentId>/por
 **Collect all tokens in a structured list. Discord bot tokens are shown only once!**
 
 **CRITICAL: Disable privacy mode for EVERY Telegram bot** (default is ENABLED — bots can't see group messages):
-- **Try CLI first:** `botfather.sh set privacy @<botUsername> "Disable"` (may fail with button bug)
+- **CLI (recommended):** `botfather.sh set privacy @<botUsername> "Disable"` (bug fixed — works reliably)
 - **Fallback — Playwright:** Open BotFather on web.telegram.org, send `/setprivacy`, select bot, send `Disable`
 - Must be done for EVERY bot before adding to groups
 
@@ -1017,23 +1128,25 @@ sleep 25  # Gateway takes 15-30s to connect all bots
 tail -5 /tmp/openclaw-gw.log  # Verify "connected" messages
 ```
 
-**AI handles ALL pairing via Playwright — do NOT ask the user to message bots.**
+**AI handles ALL pairing automatically — do NOT ask the user to message bots.**
 
-**Telegram pairing** — for each bot, sequentially:
-1. Use Playwright to navigate to `https://web.telegram.org` (user may need to scan QR code on first login only)
-2. Search for the bot by username in the search bar
-3. Open the bot's DM chat
-4. Click the "Start" button (or send `/start` via `pressSequentially`)
-5. Wait 5s, then check: `openclaw pairing list telegram`
-6. Approve the code: `openclaw pairing approve <CODE> --channel telegram --notify`
+**Telegram pairing (via Telethon — primary method, no browser needed):**
 
-**Discord pairing** — for each bot:
-1. Generate OAuth2 URL: `discord-dev.sh oauth2-url "<AppName>" --permissions 8 --scopes "bot applications.commands"`
-2. Use Playwright to open the OAuth2 URL
-3. Select the target server, authorize (user may need to complete CAPTCHA)
-4. Navigate to the bot's DM on Discord and send a first message
-5. Check: `openclaw pairing list discord`
-6. Approve: `openclaw pairing approve <CODE> --channel discord --notify`
+For each bot, sequentially:
+1. Send `/start` via Telethon (see Telethon snippet in "What can be done via Telethon" section above)
+2. Extract the pairing code from the bot's reply message
+3. Approve: `openclaw pairing approve <CODE> --channel telegram --notify`
+4. **Fallback:** If Telethon is not authenticated, use Playwright on `https://web.telegram.org`
+
+**Discord pairing (API-first — no browser needed for DM):**
+1. Bot must already be in a server (via OAuth2 invite in Phase 6/9)
+2. Send DM via API to trigger pairing:
+   ```bash
+   discord-dev.sh dm --app "<AppName>"    # Sends "/start" as the user
+   ```
+3. Check: `openclaw pairing list discord`
+4. Approve: `openclaw pairing approve <CODE> --channel discord --notify`
+5. **Fallback** (if API DM fails): Use Playwright to navigate to the bot's DM on discord.com.
 
 #### Phase 9: Group Setup (Channel Side)
 
@@ -1046,12 +1159,9 @@ Create team channels and add all bots so they can collaborate and be @mentioned.
 1. **Disable privacy mode for ALL bots FIRST** (CRITICAL — before adding to any group):
    - New Telegram bots have privacy mode ENABLED by default
    - With privacy enabled, bots CANNOT see group messages
-   - **Do NOT use `botfather.sh set privacy`** — it has a known bug (`AttributeError: 'KeyboardButton'`)
-   - AI uses Playwright to open BotFather chat on web.telegram.org:
-     - Send `/setprivacy` (use `pressSequentially`, NOT `fill`)
-     - Click the bot from the button menu
-     - Send `Disable`
-     - Repeat for EVERY bot in the team
+   - **CLI (recommended):** `botfather.sh set privacy @<botUsername> "Disable"` (bug is fixed)
+   - **Fallback — Playwright on web.telegram.org:** Send `/setprivacy` to BotFather, select bot, send `Disable`
+   - Repeat for EVERY bot in the team
 
 2. **Generate group profile icon** — AI creates a branded logo for the team:
    - Use image generation (baoyu-danger-gemini-web or nanobanana) to create a team logo
@@ -1199,7 +1309,7 @@ openclaw config set 'channels.telegram.accounts.<id>.groupPolicy' 'open'  # or '
 1. **Gateway restart required** after any config change
 2. **Bot tokens are sensitive** — save immediately, never log plaintext
 3. **Discord bot tokens shown once** — `bot-add` and `bot-reset` return only once
-4. **Pairing is per-user** — AI handles the owner's pairing automatically via Playwright (send /start, approve code). Additional users pair themselves.
+4. **Pairing is per-user** — AI handles the owner's pairing automatically via Telethon (send /start, read code, approve). Playwright is a fallback only. Additional users pair themselves.
 5. **Full mesh = O(n^2)** — for large teams consider hub-and-spoke
 6. **OpenClaw and enconvo-gw cannot share the same bot token** — disable one first
 7. **BotFather auth is interactive** — needs terminal for phone + 2FA
@@ -1207,7 +1317,7 @@ openclaw config set 'channels.telegram.accounts.<id>.groupPolicy' 'open'  # or '
 9. **enconvo-gw is bundled** in this skill at `<SKILL_DIR>/enconvo-gw/` — deploy via `setup.sh enconvo-gw`
 10. **OpenClaw is public** — installed via `npm install -g openclaw`, auto-detected/installed by `setup.sh openclaw`
 11. **Telegram bot privacy mode is ENABLED by default** — new bots cannot see group messages. You MUST disable privacy via BotFather (`/setprivacy` → select bot → `Disable`) for EVERY bot that needs to work in groups. Without this, bots only see /commands and direct @mentions, and even @mention responses may fail.
-12. **BotFather CLI (`botfather.sh`) has known bugs** with `set privacy` and `set userpic` commands — both fail with `AttributeError: 'KeyboardButton' object has no attribute 'data'`. **Always use Telegram web** (`https://web.telegram.org`) for these operations instead. The CLI works fine for `create`, `delete`, `token`, `set name`, `set description`, `set about`, and `set commands`.
+12. **BotFather CLI (`botfather.sh`)** — `set userpic` still fails with `AttributeError: 'KeyboardButton'` (use Telegram Bot API instead). **`set privacy` bug is fixed** — it now correctly handles BotFather's reply keyboard by sending text. The CLI works for: `create`, `delete`, `token`, `set name`, `set description`, `set about`, `set commands`, and `set privacy`.
 13. **Playwright `fill()` destroys Telegram @mention entities** — when typing in Telegram web after selecting an @mention from autocomplete, use `pressSequentially()` (slowly=true), NOT `fill()`. The `fill()` method replaces the entire input including the mention entity, turning it into plain text that bots won't recognize.
 14. **Gateway boot takes 15-30 seconds** — `openclaw channels status --probe` may timeout (10s default) during startup even though the gateway is actually coming up. Wait 20-30s after `openclaw gateway --force` before testing. Check `tail /tmp/openclaw-gw.log` to confirm bots are connected.
 15. **Always verify bots respond AFTER full setup** — don't assume group messaging works. Send a test @mention in the group and wait for a response. Common failure: privacy mode still enabled, gateway not running, or bot not properly added to group.
@@ -1356,11 +1466,13 @@ Discord accounts can conflict too if both systems use the same bot token. Always
 | Output files not uploading | Claude saving outside outbound dir | Check system prompt injection in `src/claude/client.js` |
 | Bot not responding in group | Privacy mode enabled (default for new bots) | `/setprivacy` in BotFather → select bot → `Disable`. Must be done via Telegram web, not CLI |
 | Bot responds in DM but not group | Privacy mode enabled OR bot not added to group | Check privacy mode first, then verify bot is a group member |
-| `botfather.sh set privacy` fails | Known CLI bug: `KeyboardButton` has no `data` attribute | Use Telegram web BotFather instead — send `/setprivacy` manually |
+| `botfather.sh set privacy` fails | Old bug (now fixed in botfather.py) | Run `botfather.sh set privacy @bot "Disable"` — should work. If still fails, use Telegram web BotFather |
 | `botfather.sh set userpic` fails | Same KeyboardButton bug as privacy | Upload photo via Telegram web — send `/setuserpic`, select bot, send photo |
 | @mention in group doesn't trigger bot | Plain text @name vs proper Telegram mention entity | Must use autocomplete dropdown when typing @mention in Telegram web. Type `@` + first letters, click suggestion |
 | `openclaw channels status --probe` timeout | Gateway still booting (takes 15-30s) | Wait 30s, then retry. Check `tail /tmp/openclaw-gw.log` for "logged in" messages |
 | Playwright `fill()` strips @mention | `fill()` replaces entire input, destroying mention entities | Use `pressSequentially()` (slowly=true) to type after selecting an @mention from autocomplete |
+| EnConvo agent returns "api not found" | Model path uses `\|` instead of `/` | Change model from `custom_bot\|name` to `custom_bot/name` via `enconvo-gw config set agents.<id>.model "custom_bot/name"` |
+| `create_new_agent` API returns `run_mode` error | Missing `params` wrapper in request body | Wrap all fields in `{"params": {...}}` |
 
 ### Key Source Files
 
@@ -1647,10 +1759,15 @@ Margaux (risk)  → stress tests, alerts Octavia on critical exposures
 
 11. **Telegram privacy mode is the #1 group setup gotcha.** New bots default to privacy ENABLED. This is invisible until you test in a group — DMs work fine, but group @mentions silently fail. Always disable privacy for every bot before adding to groups. Use Telegram web, not the CLI.
 
-12. **BotFather CLI has button-type bugs.** The Python Telethon script fails on BotFather responses that use `KeyboardButton` (regular keyboard) instead of `InlineKeyboardButton`. This affects `set privacy` and `set userpic` — both require clicking buttons that are regular keyboard buttons, not inline. The CLI works for commands that use text input (create, delete, token, set name/description/about/commands).
+12. **BotFather CLI button-type bug** — `set userpic` still fails (use Telegram Bot API). **`set privacy` is fixed** — `botfather.py` now detects reply keyboards and sends text instead of trying to click. The CLI works for: create, delete, token, set name/description/about/commands, set privacy.
 
 13. **Test in the actual group, not just DMs.** DM pairing and responses can work perfectly while group messaging is broken (privacy mode, bot not in group, groupPolicy misconfigured). Always end setup with a live group @mention test.
 
 14. **Playwright @mention workflow matters.** In Telegram web, @mentions must be selected from the autocomplete dropdown to create a proper mention entity. Type `@` + first letters slowly (`pressSequentially`), click the suggestion, then type the rest of the message with `pressSequentially` — never `fill()`. A plain-text `@username` in a message does NOT trigger the bot.
 
 15. **Gateway boot order: restart → wait 30s → test.** After `openclaw gateway --force`, the gateway needs 15-30s to connect all Telegram/Discord bots. The `channels status --probe` command has a 10s timeout that's shorter than boot time. Check logs instead: `tail /tmp/openclaw-gw.log` — look for "[telegram] [<account>] starting provider" and "[discord] logged in as" lines.
+16. **enconvo-gw model path must use `/` not `|`** — EnConvo command keys use `|` separator (e.g., `custom_bot|my_agent`), but enconvo-gw's EnConvo client splits on `/` to build the API URL. When adding EnConvo-type agents to enconvo-gw, always convert `|` to `/`: `--model "custom_bot/my_agent"` (not `custom_bot|my_agent`). The `enconvo-gw agents add --type enconvo` CLI does NOT auto-convert this.
+17. **Portrait generation is MANDATORY for every new bot** — never skip the profile photo step. Generate a 1:1 image, save to `~/.openclaw/workspace-<agentId>/portrait.jpg`, set via Bot API (`setMyProfilePhoto`), and update `identity.avatar` in openclaw.json. A bot without a profile photo looks unprofessional and is hard to find in search.
+18. **BotFather config paths** — credentials are at `~/.botfather/config.json` (NOT `credentials.json`). The Telethon session is at `~/.botfather/session` (SQLite file, NOT `session.string`). The Python venv is at `$HOME/.botfather/venv/bin/python3`.
+19. **`openclaw agents bind` CLI flags are unreliable** — the CLI flag names (`--agentId`, `--agent`, `--channel`) change between OpenClaw versions. Always edit `bindings[]` in `~/.openclaw/openclaw.json` directly instead of relying on the CLI.
+20. **EnConvo API path is `/<ext>/<cmd>`** — The EnConvo local API routes commands at `http://localhost:54535/<extension>/<command>` (e.g., `/custom_bot/enconvo_little_helper`). There is NO `/command/call/` prefix. The `create_new_agent` API (for creating bots) is at `/enconvo_webapp/create_new_agent` and requires a `params` wrapper object.

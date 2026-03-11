@@ -115,7 +115,7 @@ enconvo-gw config set <dot.path> <value>
 
 ### EnConvo Agent (default)
 
-Routes messages to EnConvo's local API. Config:
+Routes messages to EnConvo's local API via `POST /command/call/{ext}/{cmd}`. Config:
 
 ```json
 {
@@ -123,6 +123,25 @@ Routes messages to EnConvo's local API. Config:
   "model": "ext/cmd_id"
 }
 ```
+
+#### EnConvo API Parameters
+
+The gateway currently sends `{ input_text, sessionId }`. The full API schema (from `extension/*/skills/schemas.json`) supports richer params:
+
+| Parameter | Type | Description |
+|---|---|---|
+| `user_input_text` | string | **Required** — primary user input |
+| `input_text` | string | Secondary input text (also accepted as primary) |
+| `selection_text` | string | Selected text from active app |
+| `context_files` | string[] | File paths to include as context |
+| `user_input_files` | string[] | User-uploaded file paths |
+| `structure_output` | boolean | Return structured JSON output |
+| `context_screen` | string | Screenshot of current screen |
+| `current_browser_tab` | object | Current browser tab info |
+
+**Opportunity:** Inbound media files (currently passed as text `[File downloaded to: /path]`) could be sent via `context_files` or `user_input_files` for native file handling by EnConvo agents.
+
+**API schema source of truth:** `~/.config/enconvo/extension/{ext}/skills/schemas.json`
 
 ### Claude Code Agent
 
@@ -310,11 +329,19 @@ All commands support `--json`. Full path: `~/.claude/skills/botfather/scripts/bo
 
 Manage Discord applications and bots via the Discord REST API.
 
-### Discord Dev Setup
+### Discord Dev Setup — Playwright Token Extraction
 
-1. Obtain your Discord user token (see discord-dev skill docs for methods)
-2. Save: `~/.claude/skills/discord-dev/scripts/discord-dev.sh save-token --token "<token>"`
-3. Verify: `discord-dev.sh status`
+1. Navigate to `https://discord.com/login` via Playwright
+2. User logs in
+3. Navigate to `https://discord.com/developers/applications`
+4. Extract token via `browser_evaluate`:
+   ```js
+   (webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken()
+   ```
+   Fallback: `document.body.appendChild(document.createElement('iframe')).contentWindow.localStorage.token?.replace(/"/g, '')`
+   Fallback 2: Check `browser_network_requests` for `Authorization` header
+5. Save: `~/.claude/skills/discord-dev/scripts/discord-dev.sh save-token --token "<token>"`
+6. Verify: `discord-dev.sh status`
 
 ### Discord Dev Quick Reference
 
