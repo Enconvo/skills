@@ -160,7 +160,9 @@ def load_words(path):
         return []
     with open(p) as f:
         data = json.load(f)
-    return data.get("words", data if isinstance(data, list) else [])
+    if isinstance(data, list):
+        return data
+    return data.get("words", [])
 
 
 def active_word(words, t):
@@ -174,6 +176,33 @@ def word_progress(word, t):
     if not word:
         return 0
     return min(1.0, (t - word["start"]) / max(word["end"] - word["start"], 0.05))
+
+
+def active_word_group(words, t, window=6):
+    """For karaoke: return (group_of_words, active_index) where group is nearby words."""
+    idx = None
+    for i, w in enumerate(words):
+        if w["start"] <= t <= w["end"] + 0.15:
+            idx = i
+            break
+    if idx is None:
+        return None, -1
+    # Build group: words in the same "line" (within time window, up to `window` words)
+    # Find line start: go back to find a natural break (gap > 0.5s or start of words)
+    line_start = idx
+    while line_start > 0 and (words[line_start]["start"] - words[line_start - 1]["end"]) < 0.5:
+        if idx - line_start >= window - 1:
+            break
+        line_start -= 1
+    # Find line end
+    line_end = idx
+    while line_end < len(words) - 1 and (words[line_end + 1]["start"] - words[line_end]["end"]) < 0.5:
+        if line_end - line_start >= window - 1:
+            break
+        line_end += 1
+    group = words[line_start:line_end + 1]
+    active_in_group = idx - line_start
+    return group, active_in_group
 
 
 # ---------------------------------------------------------------------------
@@ -340,8 +369,21 @@ class Compositor:
         return img
 
     def _apply_zoom(self, img, seg, local_t):
-        """Apply zoom based on segment zoom config with AR lock."""
-        z = seg.get("zoom")
+        """Apply zoom based on segment zoom config with AR lock.
+        Supports single zoom dict or a list of zooms (first active wins)."""
+        zoom_cfg = seg.get("zoom") or seg.get("zooms")
+        if not zoom_cfg:
+            return img
+
+        # Normalize to list
+        zoom_list = zoom_cfg if isinstance(zoom_cfg, list) else [zoom_cfg]
+
+        # Find first active zoom at this time
+        z = None
+        for candidate in zoom_list:
+            if candidate["in_start"] <= local_t < candidate["out_end"]:
+                z = candidate
+                break
         if not z:
             return img
 
@@ -401,12 +443,18 @@ class Compositor:
                 return Image.blend(pre_img, post_img, p)
         return img
 
-    def _draw_caption(self, img, word_text, t_in_word):
-        """Draw pop/static caption with cached fonts."""
-        if not word_text or not self.cap_cfg.get("enabled") or not self.font:
+    def _draw_caption(self, img, word_text, t_in_word, word_group=None, active_idx=-1):
+        """Draw pop/static/karaoke caption with cached fonts."""
+        if not self.cap_cfg.get("enabled") or not self.font:
             return img
         cc = self.cap_cfg
         style = cc.get("style", "pop")
+
+        if style == "karaoke" and word_group and active_idx >= 0:
+            return self._draw_karaoke(img, word_group, active_idx, t_in_word)
+
+        if not word_text:
+            return img
 
         # Pop scale bounce at word onset
         if style == "pop" and t_in_word < 0.3:
@@ -433,12 +481,14 @@ class Compositor:
         oc = tuple(cc.get("outline_color", [0, 0, 0]))
         tc = tuple(cc.get("color", [255, 255, 255]))
         ac = tuple(cc.get("accent_color", [255, 200, 50]))
+        no_outline = cc.get("no_outline", False)
 
-        # Outline (3px stroke)
-        for dx in range(-3, 4):
-            for dy in range(-3, 4):
-                if dx * dx + dy * dy <= 9:  # circular outline, skip corners
-                    d.text((x + dx, y + dy), text, fill=oc, font=f)
+        # Outline (3px stroke) — skip if no_outline
+        if not no_outline:
+            for dx in range(-3, 4):
+                for dy in range(-3, 4):
+                    if dx * dx + dy * dy <= 9:
+                        d.text((x + dx, y + dy), text, fill=oc, font=f)
         d.text((x, y), text, fill=tc, font=f)
 
         # Accent underline swipe
@@ -447,6 +497,89 @@ class Compositor:
             lw = int(tw * lp)
             lx = x + (tw - lw) // 2
             d.rectangle([lx, y + th + 4, lx + lw, y + th + 8], fill=ac)
+
+        return img
+
+    def _draw_karaoke(self, img, word_group, active_idx, t_in_word):
+        """Draw karaoke-style caption: full line visible, active word highlighted with pop."""
+        cc = self.cap_cfg
+        base_size = cc.get("font_size", 52)
+        f = self.font
+        d = ImageDraw.Draw(img)
+        oc = tuple(cc.get("outline_color", [0, 0, 0]))
+        tc = tuple(cc.get("color", [255, 255, 255]))
+        ac = tuple(cc.get("accent_color", [255, 200, 50]))
+        dim = tuple(max(0, c - 80) for c in tc)  # dimmed white for inactive words
+        no_outline = cc.get("no_outline", False)
+
+        # Build full line text and measure
+        words_text = [w["word"] for w in word_group]
+        sep = ""  # no space for CJK; detect if Latin
+        sample = "".join(words_text)
+        is_cjk = any('\u4e00' <= c <= '\u9fff' for c in sample)
+        sep = "" if is_cjk else " "
+        full_line = sep.join(words_text)
+
+        bb = d.textbbox((0, 0), full_line, font=f)
+        total_w = bb[2] - bb[0]
+        th = bb[3] - bb[1]
+        line_x = (self.W - total_w) // 2
+        y = self.H + cc.get("position_y", -130)
+
+        # Active word pop scale
+        pop_scale = 1.0
+        if t_in_word < 0.3:
+            pop_scale = 1.0 + 0.12 * math.sin(min(t_in_word / 0.3, 1.0) * math.pi)
+
+        # Draw each word individually
+        cursor_x = line_x
+        for i, wt in enumerate(words_text):
+            wbb = d.textbbox((0, 0), wt, font=f)
+            ww = wbb[2] - wbb[0]
+
+            if i == active_idx:
+                # Active word: accent color + pop scale
+                if pop_scale > 1.0:
+                    pop_fs = int(base_size * pop_scale)
+                    pop_f = _resolve_font(max(20, pop_fs), self._font_path)
+                    pbb = d.textbbox((0, 0), wt, font=pop_f)
+                    pw, ph = pbb[2] - pbb[0], pbb[3] - pbb[1]
+                    px = cursor_x - (pw - ww) // 2
+                    py = y - (ph - th) // 2
+                    if not no_outline:
+                        for dx in range(-3, 4):
+                            for dy in range(-3, 4):
+                                if dx * dx + dy * dy <= 9:
+                                    d.text((px + dx, py + dy), wt, fill=oc, font=pop_f)
+                    d.text((px, py), wt, fill=ac, font=pop_f)
+                else:
+                    if not no_outline:
+                        for dx in range(-3, 4):
+                            for dy in range(-3, 4):
+                                if dx * dx + dy * dy <= 9:
+                                    d.text((cursor_x + dx, y + dy), wt, fill=oc, font=f)
+                    d.text((cursor_x, y), wt, fill=ac, font=f)
+
+                # Underline swipe on active word
+                if t_in_word > 0.15:
+                    lp = min(1.0, (t_in_word - 0.15) / 0.25)
+                    lw = int(ww * lp)
+                    lx = cursor_x + (ww - lw) // 2
+                    d.rectangle([lx, y + th + 4, lx + lw, y + th + 8], fill=ac)
+            else:
+                # Inactive word: dimmed or white
+                word_color = tc if i < active_idx else dim
+                if not no_outline:
+                    for dx in range(-3, 4):
+                        for dy in range(-3, 4):
+                            if dx * dx + dy * dy <= 9:
+                                d.text((cursor_x + dx, y + dy), wt, fill=oc, font=f)
+                d.text((cursor_x, y), wt, fill=word_color, font=f)
+
+            cursor_x += ww
+            if sep:
+                sbb = d.textbbox((0, 0), sep, font=f)
+                cursor_x += sbb[2] - sbb[0]
 
         return img
 
@@ -518,9 +651,16 @@ class Compositor:
                         img = self._get_screenrec_frame(seg, local_t)
                         img = self._smooth_jump(seg, img, local_t)
                         img = self._apply_zoom(img, seg, local_t)
-                        w = active_word(seg["_words"], local_t)
-                        if w:
-                            img = self._draw_caption(img, w["word"], word_progress(w, local_t))
+                        cap_style = self.cap_cfg.get("style", "pop")
+                        if cap_style == "karaoke":
+                            grp, aidx = active_word_group(seg["_words"], local_t)
+                            if grp and aidx >= 0:
+                                img = self._draw_caption(img, grp[aidx]["word"],
+                                    word_progress(grp[aidx], local_t), grp, aidx)
+                        else:
+                            w = active_word(seg["_words"], local_t)
+                            if w:
+                                img = self._draw_caption(img, w["word"], word_progress(w, local_t))
 
                     elif seg["type"] == "transition":
                         img = self._render_transition(seg, self.cfg["segments"], timeline, local_t)
