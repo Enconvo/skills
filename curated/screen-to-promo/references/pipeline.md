@@ -47,6 +47,10 @@ bash scripts/audio_mix.sh output.m4a -25 hook.wav gap explain_vo.wav transition_
 
 ### 7. Encode Final Video
 ```bash
+# Option A: Use compose.py --output for one-step compose+encode
+python3 scripts/compose.py --config config.json --output final.mp4 --audio output.m4a
+
+# Option B: Manual encode from frames
 ffmpeg -y -r 30 \
   -i ./frames/output/f_%04d.jpg \
   -i output.m4a \
