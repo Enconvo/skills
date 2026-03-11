@@ -1,7 +1,7 @@
 ---
 name: openclaw-configure
 description: "Expert-level OpenClaw CLI configuration skill. Covers channels, models, plugins, gateway, agents, hooks, cron, security, sandbox, memory, browser, nodes, DNS, webhooks, approvals, ClawHub skill registry, and more. Self-evolving: updates itself after learning new patterns."
-version: 1.8.0
+version: 1.9.0
 author: zanearcher
 category: infrastructure
 ---
@@ -796,6 +796,13 @@ Major security overhaul with 40+ fixes:
 - TTS model-driven provider switching now opt-in by default
 - Sandbox browser containers default to dedicated Docker network
 
+### Security Hardening (v2026.3.8+)
+- `system.run` approved scripts pinned to on-disk file snapshots — post-approval rewrites denied before execution
+- Skills download installs pin validated per-skill tools root — path rebinding cannot redirect writes outside tools dir
+- MS Teams `groupPolicy: "allowlist"` now enforces sender allowlists even when route allowlists are configured
+- Browser SSRF: private-network intermediate redirect hops blocked in strict navigation flows
+- Cron files enforced to owner-only (`0600`), directories to `0700`
+
 ### Heartbeat DM Delivery Control (v2026.2.25+)
 Replace the old boolean DM toggle with explicit policy field:
 ```json
@@ -918,6 +925,9 @@ browser profiles / create-profile / delete-profile / reset-profile
 browser extension / responsebody / waitfordownload / trace
 ```
 
+**v2026.3.8 config:**
+- `browser.relayBindHost` — bind Chrome relay to explicit non-loopback address for WSL2/cross-namespace setups (default: loopback only)
+
 ---
 
 ## Nodes
@@ -976,8 +986,11 @@ webhooks gmail                           Gmail Pub/Sub hooks (via gogcli)
 ```
 acp [--url --token --session --verbose]  Run ACP bridge
 acp client                               Interactive ACP client
+acp --provenance off|meta|meta+receipt   ACP provenance mode (v2026.3.8+)
 ```
 **NEW in v2026.2.26:** ACP agents are now first-class runtimes for thread sessions with `acp` spawn/send dispatch integration, acpx backend bridging, lifecycle controls, startup reconciliation, runtime cleanup, and coalesced thread replies. Thread-bound subagents can now be dispatched via ACP for enhanced realtime capabilities.
+
+**NEW in v2026.3.8:** ACP provenance metadata — agents can retain and report ACP-origin context with session trace IDs. Modes: `off` (disabled), `meta` (ingress metadata only), `meta+receipt` (metadata + visible receipt injection).
 
 ### Skills (Runtime — `openclaw skills`)
 
@@ -1011,6 +1024,23 @@ health [--json]                          Gateway health
 status [--deep] [--usage]                Channel health + sessions
 logs [--follow] [--limit <n>]            Tail gateway logs
 ```
+
+### Backup (v2026.3.8+)
+```
+backup create [--only-config] [--no-include-workspace]   Create local state archive
+backup verify <path>                     Validate manifest + payload of archive
+```
+**Features:** Full local backup of OpenClaw state (config, workspace, agents). `--only-config` for config-only snapshots. Archives named for date sorting. Guidance shown in destructive flows (reset, uninstall).
+
+### New Config Keys (v2026.3.8+)
+
+| Config Path | Type | Description |
+|---|---|---|
+| `talk.silenceTimeoutMs` | number | How long Talk mode waits for silence before auto-sending transcript. Platform default used when unset. |
+| `tools.web.search.brave.mode` | string | Set to `"llm-context"` to use Brave's LLM Context endpoint (returns extracted grounding snippets with source metadata instead of raw search results). |
+| `browser.relayBindHost` | string | Bind Chrome relay to non-loopback address for WSL2/cross-namespace setups. Default: loopback only. |
+
+**TUI theme (v2026.3.8+):** Auto-detects light terminal backgrounds via `COLORFGBG` and picks a WCAG AA-compliant light palette. Override with `OPENCLAW_THEME=light|dark`.
 
 ### Other
 ```
@@ -1304,6 +1334,10 @@ clawhub update --all
 | Zalo Personal broken after upgrade | CLI dependency removed | Run `openclaw channels login --channel zalouser` |
 | Plugin HTTP handler "unknown route" | `registerHttpHandler` removed | Use `registerHttpRoute({ path, auth, match, handler })` |
 | Telegram streaming not working | Old `streaming: true` format | Use `streaming: "partial"` (new default) |
+| Telegram DM duplicate replies (v2026.3.8) | Both `agent:main:main` and `agent:main:telegram:direct:<id>` match | Fixed: DMs now deduped per agent, not per session key |
+| `system.run` script modified post-approval | Security: script rewrites after approval | v2026.3.8 pins approved scripts to on-disk snapshots; rewrites denied |
+| MS Teams group policy bypassed by route match | `groupPolicy: "allowlist"` ignored when route allowlist set | v2026.3.8 fix: sender allowlists enforced even with route allowlists |
+| Cron announce says `delivered: true` but no message sent | Text-only Telegram announce not routed through adapters | v2026.3.8 fix: routes through real outbound adapters |
 
 ---
 
@@ -1327,7 +1361,7 @@ This skill grows with every use. Never let hard-won knowledge be lost.
 
 ## Version Check & Auto-Update Protocol
 
-**This skill was last updated for:** `v2026.3.7`
+**This skill was last updated for:** `v2026.3.8`
 
 ### Version Check (MANDATORY — run at start of every OpenClaw session)
 
@@ -1341,7 +1375,7 @@ INSTALLED=$(openclaw --version 2>&1 | head -1)
 LATEST=$(openclaw update status --json 2>&1 | python3 -c "import sys,json; print(json.load(sys.stdin).get('registry',{}).get('latestVersion','unknown'))" 2>/dev/null || echo "unknown")
 
 # 3. Check what this skill documents
-SKILL_VERSION="v2026.3.7"
+SKILL_VERSION="v2026.3.8"
 ```
 
 **Decision matrix:**
