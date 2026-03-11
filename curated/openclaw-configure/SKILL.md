@@ -1,7 +1,7 @@
 ---
 name: openclaw-configure
 description: "Expert-level OpenClaw CLI configuration skill. Covers channels, models, plugins, gateway, agents, hooks, cron, security, sandbox, memory, browser, nodes, DNS, webhooks, approvals, ClawHub skill registry, and more. Self-evolving: updates itself after learning new patterns."
-version: 1.4.0
+version: 1.8.0
 author: zanearcher
 category: infrastructure
 ---
@@ -10,7 +10,7 @@ category: infrastructure
 
 Configure any aspect of OpenClaw via CLI. Battle-tested from real setup sessions.
 
-**Trigger on:** "openclaw", "clawhub", "add channel", "switch model", "configure gateway", "openclaw setup", "add telegram", "switch to claude", "openclaw cron", "openclaw hooks", "openclaw doctor", "install skill", "publish skill", "search skills", or any OpenClaw/ClawHub configuration task.
+**Trigger on:** "openclaw", "clawhub", "add channel", "switch model", "configure gateway", "openclaw setup", "add telegram", "switch to claude", "openclaw cron", "openclaw hooks", "openclaw doctor", "install skill", "publish skill", "search skills", "enconvo deeplink", "enconvo setup", "add enconvo agent", `enconvo://` URLs, or any OpenClaw/ClawHub configuration task.
 
 **Reference files** (same directory as this skill):
 - `commands.md` — condensed CLI reference, all 25 domains
@@ -67,7 +67,7 @@ telegram, whatsapp, discord, irc, googlechat, slack, signal, imessage, feishu, n
 
 ### Channel-Specific Notes
 
-**Telegram:** Bot token from @BotFather. `--token <token>`. Default dmPolicy: "pairing" (users /start then get approved). Streaming: `channels.telegram.streaming: true` (simplified in v2026.2.21). Lifecycle status reactions: configurable emoji for queued/thinking/tool/done/error phases. Plugin: `telegram`.
+**Telegram:** Bot token from @BotFather. `--token <token>`. Default dmPolicy: "pairing" (users /start then get approved). Streaming: `channels.telegram.streaming: "partial"` (default since v2026.3.2; uses `sendMessageDraft` for live preview with separated reasoning/answer lanes). Lifecycle status reactions: configurable emoji for queued/thinking/tool/done/error phases. Per-topic `agentId` overrides for forum groups and DM topics (v2026.3.7). Voice mention gating: `disableAudioPreflight` to skip transcription-based mention detection. Plugin: `telegram`.
 
 **WhatsApp:** `openclaw channels login --channel whatsapp` (QR code). dmPolicy: "allowlist" with E.164 numbers. `selfChatMode: true` for self-messaging. Plugin: `whatsapp`.
 
@@ -79,6 +79,11 @@ telegram, whatsapp, discord, irc, googlechat, slack, signal, imessage, feishu, n
 - **Forum tag management**: `available_tags` editing
 - **Channel topics**: Included in trusted inbound metadata
 - **Thread-bound subagents**: Per-thread sessions with focus/list controls
+- **Thread lifecycle (v2026.3.1+)**: Inactivity-based lifecycle (`idleHours` default 24h) + optional `maxAgeHours` hard limit, `/session idle` + `/session max-age` commands
+
+**Telegram DM Topics (v2026.3.1+):** Per-DM `direct` + topic config (allowlists, `dmPolicy`, `skills`, `systemPrompt`, `requireTopic`). DM topics route as distinct sessions.
+
+**Feishu (v2026.3.1+):** Docx table creation/cell writing, image/file uploads, reactions, chat tooling, group session scopes (`group`/`group_sender`/`group_topic`/`group_topic_sender`), `replyInThread` config, multi-account `defaultAccount` routing.
 
 **iMessage:** Uses `imsg` CLI. `--cli-path imsg`. dmPolicy: "allowlist". Plugin: `imessage`.
 
@@ -145,6 +150,7 @@ channels logs         --channel <name> --lines <n> --json
 - `"anthropic-messages"` — Anthropic direct + MiniMax Portal
 - `"ollama"` — Ollama native (baseUrl WITHOUT /v1)
 - `"openai-completions"` — OpenAI-compatible
+- `"enconvo"` — EnConvo via proxy: use `"openai-completions"` + proxy at `127.0.0.1:54536` (see EnConvo section below)
 
 ### Provider Setup Recipes
 
@@ -210,6 +216,172 @@ channels logs         --channel <name> --lines <n> --json
 **Vercel AI Gateway (v2026.2.23+):**
 - Accepts Claude shorthand refs: `vercel-ai-gateway/claude-*` (auto-normalized to canonical Anthropic IDs)
 - Configure like any OpenAI-compatible provider
+
+**EnConvo (macOS AI agent platform via proxy):**
+- EnConvo runs at `http://localhost:54535` but doesn't speak OpenAI format
+- **Solution:** a bundled proxy at `~/.claude/skills/enconvo-openclaw-setup/enconvo-proxy.mjs` translates OpenAI ↔ EnConvo
+- Proxy listens on `http://127.0.0.1:54536`, forwards to EnConvo at `:54535`
+- api: `"openai-completions"` (stock OpenClaw, no custom build needed)
+- Deeplink format: `enconvo://{ext}/{cmd}` → model ID = `{ext}/{cmd}`
+- No API key needed; use dummy `"token": "n/a"` in auth profiles
+- **Proxy must be running** before the gateway starts
+
+Start proxy: `nohup node ~/.claude/skills/enconvo-openclaw-setup/enconvo-proxy.mjs > /tmp/enconvo-proxy.log 2>&1 &`
+Check proxy: `curl -s http://127.0.0.1:54536/health`
+
+**EnConvo API Parameters** (full spec from extension schemas):
+
+| Parameter | Type | Description |
+|---|---|---|
+| `user_input_text` | string | **Required** — primary user input |
+| `input_text` | string | Secondary input (also accepted as primary) |
+| `context_files` | string[] | File paths to include as context |
+| `user_input_files` | string[] | User-uploaded file paths |
+| `structure_output` | boolean | Return structured JSON output |
+| `sessionId` | string | Session ID for conversation continuity |
+
+**Discovering available EnConvo commands:**
+```bash
+# List all commands an extension exposes (source of truth)
+python3 -c "
+import json
+d = json.load(open('$HOME/.config/enconvo/extension/{ext}/skills/schemas.json'))
+for cmd in d:
+    print(f'{cmd[\"route\"]:40s} | {cmd[\"title\"]}')
+"
+```
+Schema files: `~/.config/enconvo/extension/{ext}/skills/schemas.json`
+
+**Creating EnConvo agents programmatically** (no UI needed):
+```bash
+# CRITICAL: all fields must be wrapped in a "params" object
+curl -X POST http://localhost:54535/enconvo_webapp/create_new_agent \
+  -H "Content-Type: application/json" \
+  -d '{
+    "params": {
+      "title": "My Agent",
+      "commandName": "my_agent",
+      "description": "A helpful agent",
+      "run_mode": "agent",
+      "prompt": "You are a helpful assistant.",
+      "user_prompt_1": "{{input_text}}",
+      "llm": {"isUseGlobalDefaultCommand": true},
+      "tools": [{"tool_name": "file_system|read_file"}, {"tool_name": "code_runner|bash"}],
+      "tts_providers": {"isUseGlobalDefaultCommand": true}
+    }
+  }'
+# Creates: ~/.config/enconvo/installed_commands/custom_bot|my_agent.json
+# Model ID for OpenClaw: custom_bot/my_agent
+```
+
+```json
+"enconvo": {
+  "baseUrl": "http://127.0.0.1:54536/v1",
+  "apiKey": "n/a",
+  "api": "openai-completions",
+  "authHeader": false,
+  "models": [
+    {
+      "id": "chat_with_ai/chat",
+      "name": "Mavis (Team Lead)",
+      "api": "openai-completions",
+      "reasoning": false,
+      "input": ["text"],
+      "cost": {"input":0,"output":0,"cacheRead":0,"cacheWrite":0},
+      "contextWindow": 128000,
+      "maxTokens": 8192
+    }
+  ]
+}
+```
+
+### EnConvo Agent Setup from Deeplink — Full Recipe
+
+When user provides an `enconvo://` deeplink, follow this complete procedure. **Self-contained — no custom OpenClaw build needed.**
+
+**Input needed:** deeplink (`enconvo://{ext}/{cmd}`), agent display name, agent ID (slug), optional Telegram bot token, optional Discord bot token.
+
+**Step 1 — Parse deeplink:** Extract `{ext}/{cmd}` from `enconvo://{ext}/{cmd}`. This is the model ID.
+
+**Step 2 — Verify EnConvo reachable:**
+```bash
+curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:54535/command/call/{ext}/{cmd} \
+  -H "Content-Type: application/json" -d '{"input_text":"ping","sessionId":"setup-test"}'
+```
+
+**Step 3 — Start the EnConvo proxy (if not running):**
+```bash
+curl -s http://127.0.0.1:54536/health > /dev/null 2>&1 || \
+  nohup node ~/.claude/skills/enconvo-openclaw-setup/enconvo-proxy.mjs > /tmp/enconvo-proxy.log 2>&1 &
+sleep 2 && curl -s http://127.0.0.1:54536/health
+```
+
+**Step 4 — Edit `~/.openclaw/openclaw.json`:**
+
+a) **Ensure enconvo provider exists** in `models.providers`. If missing, add the full block (see EnConvo provider recipe above — baseUrl `http://127.0.0.1:54536/v1`, api `"openai-completions"`).
+
+b) **Add model** to `models.providers.enconvo.models[]` (skip if same `id` exists):
+```json
+{"id":"{ext}/{cmd}","name":"{displayName}","api":"openai-completions","reasoning":false,
+ "input":["text"],"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0},
+ "contextWindow":128000,"maxTokens":8192}
+```
+
+c) **Add agent** to `agents.list[]`:
+```json
+{"id":"{agentId}","name":"{agentId}",
+ "workspace":"~/.openclaw/workspace-{agentId}",
+ "agentDir":"~/.openclaw/agents/{agentId}/agent",
+ "model":{"primary":"enconvo/{ext}/{cmd}"},
+ "identity":{"name":"{displayName}","emoji":"\ud83d\udce6"},
+ "subagents":{"allowAgents":["main","dev","content","ops","law","finance"]}}
+```
+
+d) **Add agent ID** to every other agent's `subagents.allowAgents` and to `tools.agentToAgent.allow`.
+
+e) **Add Telegram account** (if token provided) to `channels.telegram.accounts`:
+```json
+"{agentId}":{"enabled":true,"dmPolicy":"pairing","botToken":"{token}","groupPolicy":"allowlist","streaming":"off"}
+```
+
+f) **Add Discord account** (if token provided) to `channels.discord.accounts`:
+```json
+"{agentId}":{"enabled":true,"token":"{token}","groupPolicy":"allowlist","streaming":"off","guilds":{copy from existing accounts}}
+```
+
+g) **Add bindings** to `bindings[]`:
+```json
+{"agentId":"{agentId}","match":{"channel":"telegram","accountId":"{agentId}"}}
+{"agentId":"{agentId}","match":{"channel":"discord","accountId":"{agentId}"}}
+```
+
+h) **Enable plugin:** Ensure `plugins.entries.enconvo` is `{"enabled":true}`.
+
+**Step 5 — Create agent directory + auth profile:**
+```bash
+mkdir -p ~/.openclaw/agents/{agentId}/agent ~/.openclaw/workspace-{agentId}
+```
+Write (or merge into existing) `~/.openclaw/agents/{agentId}/agent/auth-profiles.json`:
+```json
+{
+  "version": 1,
+  "profiles": {
+    "enconvo:local": {"type":"token","provider":"enconvo","token":"n/a"}
+  },
+  "lastGood": {"enconvo":"enconvo:local"}
+}
+```
+**IMPORTANT:** If auth-profiles.json already exists, READ it first and ADD the `enconvo:local` profile — don't overwrite other profiles.
+
+**Step 6 — Restart gateway:**
+```bash
+pkill -9 -f "openclaw gateway" 2>/dev/null; sleep 1
+openclaw gateway --force &
+# Or: nohup pnpm openclaw gateway run --bind loopback --port 18789 --force > /tmp/openclaw-gateway.log 2>&1 &
+sleep 8 && lsof -i :18789 | head -3
+```
+
+**Step 7 — Confirm:** Print summary of what was configured.
 
 ### Model Switching — Full Workflow
 Switching the default model requires more than `models set`:
@@ -326,7 +498,7 @@ plugins doctor                           Report load issues
 
 ### Key Plugin IDs
 Channels: telegram, whatsapp, discord, imessage, signal, slack, matrix, googlechat, msteams, mattermost, irc, nostr, feishu, line, zalo, zalouser, tlon, bluebubbles, nextcloud-talk, twitch
-Auth: minimax-portal-auth, google-gemini-cli-auth, google-antigravity-auth, copilot-proxy
+Auth: minimax-portal-auth, google-gemini-cli-auth, google-antigravity-auth, copilot-proxy, enconvo
 Features: memory-core, memory-lancedb, device-pair, phone-control, talk-voice, diagnostics-otel, voice-call, open-prose, lobster, llm-task, thread-ownership
 
 ---
@@ -349,6 +521,12 @@ gateway probe                            Reachability + health summary
 gateway usage-cost                       Usage cost from session logs
 ```
 
+### Container Probes (v2026.3.1+)
+Built-in HTTP liveness/readiness endpoints for Docker/Kubernetes:
+- `/health`, `/healthz` — liveness
+- `/ready`, `/readyz` — readiness
+Fallback routing preserves existing handlers on those paths.
+
 ### Config (openclaw.json -> gateway)
 ```json
 "gateway": {
@@ -368,7 +546,13 @@ agents list [--bindings] [--json]        List agents
 agents add                               Add new agent (interactive)
 agents delete <id> [--force]             Delete agent
 agents set-identity                      Update name/theme/emoji/avatar
+agents bindings                          List routing bindings
+agents bind                              Add routing binding for an agent
+agents unbind                            Remove routing binding for an agent
 ```
+
+### Thinking Defaults (v2026.3.1+)
+Claude 4.6 models now default to `adaptive` thinking level. Other reasoning-capable models default to `low` unless configured.
 
 ### Config (openclaw.json -> agents.defaults)
 ```json
@@ -409,7 +593,7 @@ openclaw agents add --workspace ~/.openclaw/workspace-<agent-id> --bind telegram
 openclaw agents set-identity  # interactive — pick the agent, set name/emoji/avatar
 ```
 
-### Agent Routing via Bindings
+### Agent Routing via Bindings (v2026.2.26+)
 
 Route channel messages to specific agents with the top-level `bindings` array in `openclaw.json`:
 ```json
@@ -420,6 +604,14 @@ Route channel messages to specific agents with the top-level `bindings` array in
 ]
 ```
 Each Telegram account routes to the matching agent. The `main` agent also serves as the default (no explicit rules needed beyond the binding).
+
+**CLI Management (v2026.2.26+):**
+```bash
+openclaw agents bindings                 # List all bindings
+openclaw agents bind --agentId <id> --channel <ch> --accountId <id>
+openclaw agents unbind <agentId> --channel <ch> --accountId <id>
+```
+**Features:** Account-scoped route management, channel-only to account-scoped binding upgrades, role-aware binding identity handling, plugin-resolved binding account IDs, and optional account-binding prompts in `openclaw channels add`.
 
 ### Telegram Multi-Account Config
 
@@ -539,6 +731,7 @@ openclaw agent \
 config get <dot.path>                    Read config value
 config set <dot.path> <value>            Set config value
 config unset <dot.path>                  Remove config value
+config file                              Print active config file path (v2026.3.1+)
 configure [--section <name>]             Interactive wizard
 ```
 Sections: workspace, model, web, gateway, daemon, channels, skills, health
@@ -602,6 +795,27 @@ Major security overhaul with 40+ fixes:
 - ACP resource link prompt injection prevention
 - TTS model-driven provider switching now opt-in by default
 - Sandbox browser containers default to dedicated Docker network
+
+### Heartbeat DM Delivery Control (v2026.2.25+)
+Replace the old boolean DM toggle with explicit policy field:
+```json
+"agents": {
+  "defaults": {
+    "heartbeat": {
+      "directPolicy": "allow"   // "allow" (default) | "block"
+    }
+  }
+}
+```
+Also supported per-agent via `agents.list[].heartbeat.directPolicy`. Default is `allow` (DMs permitted).
+
+### Slack Session Thread Token Limit (v2026.2.25+)
+Cap parent-session token inheritance for thread sessions to avoid bricking new threads:
+```json
+"session": {
+  "parentForkMaxTokens": 100000   // default 100000; set 0 to disable limit
+}
+```
 
 ### Multi-User / Shared Runtime Hardening (v2026.2.24+)
 For shared-user setups (multiple people using one OpenClaw instance):
@@ -725,6 +939,15 @@ nodes camera / canvas / screen / location / notify / push
 
 ## Other Domains
 
+### Secrets (v2026.2.26+)
+```
+secrets audit [--deep] [--fix]           Audit secrets storage
+secrets configure                        Interactive secrets setup
+secrets apply [--file <path>]            Apply secrets snapshot (target-path validation)
+secrets reload                           Hot-reload running gateway secrets
+```
+**Features:** Full external secrets management workflow with runtime snapshot activation, strict target-path validation, safer migration scrubbing, ref-only auth-profile support, and dedicated docs.
+
 ### DNS
 ```
 dns setup --domain <domain> [--apply]    CoreDNS for wide-area Bonjour
@@ -749,18 +972,30 @@ system presence [--json]                 Presence entries
 webhooks gmail                           Gmail Pub/Sub hooks (via gogcli)
 ```
 
-### ACP
+### ACP (Agent Control Protocol) (v2026.2.26+)
 ```
 acp [--url --token --session --verbose]  Run ACP bridge
 acp client                               Interactive ACP client
 ```
+**NEW in v2026.2.26:** ACP agents are now first-class runtimes for thread sessions with `acp` spawn/send dispatch integration, acpx backend bridging, lifecycle controls, startup reconciliation, runtime cleanup, and coalesced thread replies. Thread-bound subagents can now be dispatched via ACP for enhanced realtime capabilities.
 
-### Skills
+### Skills (Runtime — `openclaw skills`)
+
+OpenClaw's built-in skill commands manage **locally installed** skills at runtime:
 ```
-skills list [--eligible] [--json]        List skills
-skills info <name>                       Skill details
-skills check                             Ready vs missing requirements
+skills list [--eligible] [--json]        List skills available to agents
+skills info <name>                       Skill details + requirements
+skills check                             Check which skills are ready vs missing requirements
 ```
+
+**Relationship to ClawHub:** `openclaw skills` reads from the local skills directory. `clawhub` (separate CLI) manages the **registry** — install, publish, search, update. Typical flow:
+```bash
+clawhub install <slug>          # download skill from ClawHub registry
+openclaw skills list            # verify it appears locally
+openclaw skills check           # confirm requirements met
+openclaw gateway stop && openclaw gateway  # restart to pick up new skill
+```
+See the **ClawHub** section below for the full registry CLI.
 
 ### Update
 ```
@@ -791,6 +1026,36 @@ uninstall [--all]                        Remove gateway + data
 qr [--json]                              iOS pairing QR
 completion                               Shell completion
 docs <query>                             Search live docs
+```
+
+---
+
+## External Secrets Management (v2026.2.26+)
+
+Manage credentials and auth profiles via external secrets providers (HashiCorp Vault, AWS Secrets Manager, etc.)
+
+```bash
+openclaw secrets audit                   # Audit current secrets storage
+openclaw secrets configure               # Interactive setup wizard
+openclaw secrets apply --file <path>     # Apply snapshot with strict target-path validation
+openclaw secrets reload                  # Hot-reload running gateway
+```
+
+**Key Features:**
+- **Runtime snapshot activation:** Secrets applied at runtime without restart
+- **Strict target-path validation:** Prevents accidental overwrites to wrong config paths
+- **Safer migration scrubbing:** Cleaner transitions from inline keys to external refs
+- **Ref-only auth-profiles:** Auth profiles can now reference external secret values via `$secret:provider/path` syntax
+- **Built-in providers:** Vault, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault
+
+**Example Auth Profile with External Secret:**
+```json
+"auth-profiles.json": {
+  "anthropic:vault": {
+    "type": "anthropic-bearer",
+    "key": "$secret:vault/secret/data/anthropic#api_key"
+  }
+}
 ```
 
 ---
@@ -974,10 +1239,71 @@ clawhub update --all
 | `sessions_spawn` works from main but not between other agents | Only main has `subagents.allowAgents` | Add `subagents.allowAgents` to ALL agents that need to spawn others |
 | `openclaw gateway stop` doesn't kill old process | PID still holding port | `kill -9 <pid>` then `openclaw gateway install --force` |
 | Config changes not taking effect after restart | Old gateway process still running on port | Check `lsof -i :18789`, kill stale PID, then restart |
-| Heartbeat sending to DMs (v2026.2.24+) | **BREAKING**: Heartbeat now blocks DM targets | Use channel/group targets only; DM delivery is silently skipped |
+| iMessage `imsg rpc exited (code 1)` in gateway health | Node.js LaunchAgent lacks Full Disk Access to `chat.db` | System Settings → Privacy & Security → Full Disk Access → add `/opt/homebrew/bin/node` (symlink survives upgrades) |
+| Heartbeat sending to DMs (v2026.2.25+) | Default is `allow` again (v2026.2.24 block is reverted) | To block DM heartbeat: set `agents.defaults.heartbeat.directPolicy: "block"` (or per-agent `agents.list[].heartbeat.directPolicy`) |
 | Browser `network: "container:<id>"` blocked | **BREAKING**: Docker container-namespace join blocked by default | Set `agents.defaults.sandbox.docker.dangerouslyAllowContainerNamespaceJoin: true` to re-enable |
 | Browser SSRF private network errors (v2026.2.23+) | **BREAKING**: `browser.ssrfPolicy.allowPrivateNetwork` renamed | Use `browser.ssrfPolicy.dangerouslyAllowPrivateNetwork`; run `openclaw doctor --fix` to auto-migrate |
 | `memory search "query"` errors | v2026.2.24+ accepts both positional and `--query <text>` | Both forms work: `memory search "text"` or `memory search --query "text"` |
+| Secrets `apply` fails with "invalid target" | Target path doesn't exist or is restricted | Run `openclaw secrets audit` to see valid paths; use `--fix` to auto-correct |
+| Secrets not reloading after `apply` | Gateway not responding to reload signal | Run `openclaw secrets reload` or restart gateway manually |
+| ACP agent won't initialize in thread | Missing startup reconciliation config | Ensure agent has `subagents.allowAgents` includes the ACP agent ID |
+| Thread-bound subagent spawns to wrong channel | ACP dispatch not honoring thread context | Check `acp` config in agent workspace and verify thread session metadata |
+| Bindings command errors with "account not found" | Plugin registry hasn't populated account IDs | Run `openclaw plugins doctor` to check plugin health and retry bindings command |
+| EnConvo agent "No API key found for provider enconvo" | Missing `enconvo:local` auth profile | Add `{"type":"token","provider":"enconvo","token":"n/a"}` to agent's `auth-profiles.json` + `lastGood.enconvo` |
+| EnConvo agent returns empty/502 | Proxy not running | Start: `nohup node ~/.claude/skills/enconvo-openclaw-setup/enconvo-proxy.mjs > /tmp/enconvo-proxy.log 2>&1 &` then check: `curl -s http://127.0.0.1:54536/health` |
+| EnConvo agent returns garbled response | Provider baseUrl points to EnConvo directly instead of proxy | Fix: `baseUrl` must be `http://127.0.0.1:54536/v1` (proxy), not `http://localhost:54535` |
+| `create_new_agent` API returns `run_mode` error | Missing `params` wrapper in request body | Wrap all fields in `{"params": {...}}` — see EnConvo section above |
+| `create_new_bot` returns success but no file created | Wrong API endpoint | Use `create_new_agent` instead — `create_new_bot` doesn't persist properly |
+| Can't find available EnConvo commands | Need to discover command routes | Read `~/.config/enconvo/extension/{ext}/skills/schemas.json` for each extension's API schema |
+| EnConvo curl works but OpenClaw agent fails | Proxy or EnConvo not running, or model ID mismatch | Test proxy: `curl -s -X POST http://127.0.0.1:54536/v1/chat/completions -H "Content-Type: application/json" -d '{"model":"{ext}/{cmd}","messages":[{"role":"user","content":"test"}]}'` |
+| **BREAKING** Node exec approval fails (v2026.3.1+) | Approval payloads now require `systemRunPlan` | Add `systemRunPlan` to node `host=node` approval requests |
+| **BREAKING** Node `system.run` path mismatch (v2026.3.1+) | Commands now pinned to canonical `realpath` | Update allowlists/tests to use canonical paths (e.g. `/usr/bin/tr` not `tr`) |
+| OpenAI streaming fails silently (v2026.3.1+) | WebSocket transport is now default for OpenAI | Set `params.openaiWsWarmup: false` per-model if WS issues; or configure `transport: "sse"` to force SSE |
+| Gateway WS insecure on private network (v2026.3.1+) | Plaintext `ws://` now loopback-only by default | Set `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` for private network access |
+| Cron job runs at ~1/3 of configured timeout (v2026.3.1+) | Stale CLI session ID reused | Fixed in v2026.3.1 — isolated cron runs use fresh watchdog profiles |
+| `cron run` returns 0 on failure | Exit code was always 0 | Fixed in v2026.3.1 — returns exit 1 for non-run/error outcomes |
+
+---
+
+## What's New in v2026.3.2–3.7
+
+### Breaking Changes
+- **`tools.profile` default** (v2026.3.2): Now defaults to `messaging` for new local installs (was broad). Set `tools.profile: "coding"` to restore.
+- **ACP dispatch** (v2026.3.2): Now enabled by default. Set `acp.dispatch.enabled: false` to disable.
+- **Plugin HTTP registration** (v2026.3.2): `api.registerHttpHandler(...)` removed. Use `api.registerHttpRoute({ path, auth, match, handler })`.
+- **Zalo Personal** (v2026.3.2): No longer depends on external `zca` CLI. Run `openclaw channels login --channel zalouser` after upgrade.
+- **Gateway auth mode** (v2026.3.7): Explicit `gateway.auth.mode` required when both `token` and `password` are configured. Set to `"token"` or `"password"`.
+
+### New Features
+- **ContextEngine plugin** (v2026.3.7): Pluggable context management with lifecycle hooks (`bootstrap`, `ingest`, `assemble`, `compact`, `afterTurn`, `prepareSubagentSpawn`, `onSubagentEnded`). Config: `agents.defaults.contextEngine`.
+- **PDF tool** (v2026.3.2): First-class with Anthropic/Google provider support. Config: `agents.defaults.pdfModel`, `pdfMaxBytesMb`, `pdfMaxPages`.
+- **Session attachments** (v2026.3.2): Inline file attachments for `sessions_spawn`. Config: `tools.sessions_spawn.attachments`.
+- **Audio echo** (v2026.3.2): Pre-agent transcript confirmation. Config: `tools.media.audio.echoTranscript` + `echoFormat`.
+- **ACP persistent bindings** (v2026.3.7): Durable Discord/Telegram topic bindings that survive restarts.
+- **Telegram topic agent routing** (v2026.3.7): Per-topic `agentId` overrides for forum groups and DM topics.
+- **Telegram streaming default** (v2026.3.2): `channels.telegram.streaming` now defaults to `"partial"` with `sendMessageDraft` live preview.
+- **Config validation CLI** (v2026.3.7): `openclaw config validate [--json]` to check config before starting gateway.
+- **Compaction tuning**: `agents.defaults.compaction.postCompactionSections`, `recentTurnsPreserve`, `qualityGuard`.
+- **Custom provider headers**: `models.providers.<name>.headers` propagated across all resolution paths.
+- **Ollama improvements**: Custom headers, compaction/summarization support, memory embeddings (`memorySearch.provider: "ollama"`).
+- **Plugin SDK extensions**: `channelRuntime`, `runtime.stt.transcribeAudioFile()`, `runtime.system.requestHeartbeatNow()`, `runtime.events.onAgentEvent`, `runtime.events.onSessionTranscriptUpdate`.
+- **Plugin context injection**: `prependSystemContext` and `appendSystemContext` for static system prompt guidance.
+- **Hook lifecycle events**: `session:compact:before/after`, `message:transcribed`, `message:preprocessed`, `message:sent`, sessionKey in session events.
+- **Banner control**: `cli.banner.taglineMode` (`random` | `default` | `off`).
+- **OpenAI-compatible TTS**: `messages.tts.openai.baseUrl` config.
+- **MiniMax-M2.5-highspeed**: First-class support across catalogs.
+- **Google Gemini 3.1 Flash-Lite**: `google/gemini-3.1-flash-lite-preview`.
+- **Docker improvements**: Multi-stage builds, `OPENCLAW_VARIANT=slim`, `OPENCLAW_EXTENSIONS` for preinstalling deps, health checks.
+
+### New Troubleshooting Entries
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| **BREAKING** Gateway auth ambiguous (v2026.3.7) | Both token and password configured without mode | Set `gateway.auth.mode: "token"` or `"password"` |
+| **BREAKING** Tools profile too restrictive (v2026.3.2) | Default changed to `messaging` | Set `tools.profile: "coding"` for dev tools |
+| **BREAKING** ACP dispatch unexpected | Enabled by default in v2026.3.2 | Set `acp.dispatch.enabled: false` to disable |
+| Zalo Personal broken after upgrade | CLI dependency removed | Run `openclaw channels login --channel zalouser` |
+| Plugin HTTP handler "unknown route" | `registerHttpHandler` removed | Use `registerHttpRoute({ path, auth, match, handler })` |
+| Telegram streaming not working | Old `streaming: true` format | Use `streaming: "partial"` (new default) |
 
 ---
 
@@ -1001,27 +1327,32 @@ This skill grows with every use. Never let hard-won knowledge be lost.
 
 ## Version Check & Auto-Update Protocol
 
-**This skill was last updated for:** `v2026.2.24`
+**This skill was last updated for:** `v2026.3.7`
 
 ### Version Check (MANDATORY — run at start of every OpenClaw session)
 
-Before answering any OpenClaw question, Claude MUST:
+Before answering any OpenClaw question, Claude MUST check both installed AND registry versions:
 
 ```bash
 # 1. Get installed version
 INSTALLED=$(openclaw --version 2>&1 | head -1)
 
-# 2. Check what this skill documents
-SKILL_VERSION="v2026.2.24"
+# 2. Check latest available version from official registry
+LATEST=$(openclaw update status --json 2>&1 | python3 -c "import sys,json; print(json.load(sys.stdin).get('registry',{}).get('latestVersion','unknown'))" 2>/dev/null || echo "unknown")
+
+# 3. Check what this skill documents
+SKILL_VERSION="v2026.3.7"
 ```
 
-Compare the installed version against `SKILL_VERSION` above. If the installed version is NEWER than the skill version, trigger the **Skill Refresh** procedure below.
-
-If the versions match, proceed normally — no refresh needed.
+**Decision matrix:**
+- If `INSTALLED` matches `SKILL_VERSION` AND no newer `LATEST` → proceed normally
+- If `INSTALLED` is NEWER than `SKILL_VERSION` → trigger **Skill Refresh** (local update already happened)
+- If `LATEST` is NEWER than `INSTALLED` → inform user: "OpenClaw vX.X.X available. Update with `openclaw update --yes`"
+- If `LATEST` is NEWER than `SKILL_VERSION` AND `INSTALLED` matches `LATEST` → trigger **Skill Refresh** (user updated outside this session)
 
 ### Skill Refresh Procedure
 
-When a newer OpenClaw version is detected:
+When a newer OpenClaw version is detected (installed or available):
 
 1. **Notify the user:** "OpenClaw updated to vX.X.X — refreshing skill knowledge..."
 
@@ -1061,11 +1392,3 @@ When a newer OpenClaw version is detected:
    - Bump the `version:` in the YAML frontmatter
 
 6. **Confirm:** "Skill refreshed for vX.X.X. Ready."
-
-### Checking for Available Updates (not yet installed)
-
-To check if a newer version is available upstream (without installing):
-```bash
-openclaw update status --json
-```
-The `registry.latestVersion` field shows the latest published version. If newer than installed, inform the user they can upgrade with `openclaw update --yes`.
