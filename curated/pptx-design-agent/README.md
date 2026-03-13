@@ -3,6 +3,52 @@
 A Claude Code skill for creating and editing professional PowerPoint presentations on macOS with premium design quality.
 macOS 上的专业 PowerPoint 演示文稿创建与编辑技能，具备高品质视觉设计。
 
+## Demo Gallery
+
+All demos are generated entirely by this skill — no manual editing. Download any `.pptx` from the [`demo/`](demo/) folder and open in PowerPoint to see the full design.
+
+### Text & Shape Only (No Background Images)
+
+Pure python-pptx output — gradients, cards, shapes, and typography only. Tiny file sizes (~36KB each).
+
+| Style | File | Description |
+|-------|------|-------------|
+| **STYLE-01** Strategy Consulting | [Demo](demo/PPTX_Demo_Style01_Strategy_Consulting.pptx) | Clean consulting deck with structured layouts and KPI panels |
+| **STYLE-02** Executive Editorial | [Demo](demo/PPTX_Demo_Style02_Executive_Editorial.pptx) | Sophisticated serif typography with editorial spacing |
+| **STYLE-03** Sketch Hand-Drawn | [Demo](demo/PPTX_Demo_Style03_Sketch_Hand_Drawn.pptx) | Playful hand-drawn aesthetic with organic shapes |
+| **STYLE-04** Kawaii Cute | [Demo](demo/PPTX_Demo_Style04_Kawaii_Cute.pptx) | Pastel colors with rounded, friendly design elements |
+| **STYLE-05** Corporate Modern | [Demo](demo/PPTX_Demo_Style05_Corporate_Modern.pptx) | Professional and clean with modern grid layouts |
+| **STYLE-06** Anime Manga | [Demo](demo/PPTX_Demo_Style06_Anime_Manga.pptx) | Bold, dynamic panels inspired by manga aesthetics |
+| **STYLE-08** Editorial Magazine | [Demo](demo/PPTX_Demo_Style08_Editorial_Magazine.pptx) | Magazine-style spreads with editorial typography |
+| **STYLE-09** Storyboard Sequential | [Demo](demo/PPTX_Demo_Style09_Storyboard_Sequential.pptx) | Comic/storyboard panel flow with sequential narrative |
+| **STYLE-10** Bento Grid | [Demo](demo/PPTX_Demo_Style10_Bento_Grid.pptx) | Japanese bento-box inspired grid layouts |
+| **STYLE-11** Bricks Masonry | [Demo](demo/PPTX_Demo_Style11_Bricks_Masonry.pptx) | Pinterest-style masonry card layouts |
+| **STYLE-12** Retro Risograph | [Demo](demo/PPTX_Demo_Style12_Retro_Risograph.pptx) | Vintage risograph print aesthetic with halftone textures |
+
+### With AI-Generated Background Images
+
+Full composition design — AI-generated backgrounds with semi-transparent overlay cards, text scrims, and intentional negative space for content placement.
+
+| Style | File | Description |
+|-------|------|-------------|
+| **Coffee 3D Clay** | [Demo](demo/Coffee_Style07_3D_Clay_BG.pptx) | 3D clay render backgrounds with warm earth tones and transparent cards — "The World of Coffee" |
+| **Coffee Fashion Editorial** | [Demo](demo/With%20Back_Ground_IMG-Coffee_Fashion_Editorial.pptx) | Fashion editorial photography backgrounds with coffee theme |
+| **K-Beauty BG (Fixed)** | [Demo](demo/With_Background_Img-PPTX_Demo_BG_Fixed.pptx) | Bold anime-style backgrounds with K-Beauty content |
+| **Executive Editorial BG** | [Demo](demo/With_Background_Img-PPTX_Demo_Style02_Executive_Editorial_BG.pptx) | Sophisticated editorial backgrounds with light overlay |
+| **Executive Editorial BG Dark** | [Demo](demo/With_Background_Img-PPTX_Demo_Style02_Executive_Editorial_BG_Dark.pptx) | Same editorial style with dark mood variant |
+| **Editorial Magazine BG** | [Demo](demo/With_Background_Img-PPTX_Demo_Style08_Editorial_Magazine_BG.pptx) | Magazine-style backgrounds with editorial composition |
+
+### Background Images Used
+
+The `coffee_style07_images/` folder contains the 5 AI-generated background images used in the Coffee 3D Clay demo:
+- `slide1_title_bg.png` — Title slide background
+- `slide2_origin_bg.png` — Origin story background
+- `slide3_beans_bg.png` — Bean varieties background
+- `slide4_brewing_bg.png` — Brewing methods background
+- `slide5_closing_bg.png` — Closing slide background
+
+---
+
 ## Architecture
 
 **Dual-engine approach** for macOS PowerPoint automation:
@@ -23,7 +69,7 @@ macOS 上的专业 PowerPoint 演示文稿创建与编辑技能，具备高品�
 - **Composition-first design** — Plan image + overlay as one design with intentional negative space / 构图优先设计，图片与叠加层统一规划留白区域
 - **AI image generation** — Slide backgrounds and content illustrations / AI 生成幻灯片背景与内容插图
 - **5 built-in color palettes** — Dark Premium, Light Clean, Warm Earth, Bold Vibrant, Tropical Dark / 五套内置配色方案
-- **10 creative layout patterns** — Layout rhythm across slides / 十种创意版式，幻灯片间节奏变化
+- **10 creative layout patterns** — Layout rhythm across slides / ���种创意版式，幻灯片间节奏变化
 - **26 critical rules** — Including width-first text box sizing to prevent wrapping cascades / 26 条核心规则，含宽度优先文本框计算，防止换行溢出级联问题
 - **12 curated design styles** — Strategy Consulting to Retro Risograph / 12 种精选设计风格
 - **3-phase pre-build workflow** — Content analysis → style selection → image strategy / 三阶段预构建流程
@@ -54,6 +100,11 @@ python3 -m pip install python-pptx lxml
 pptx-design-agent/
 ├── README.md                              # This file
 ├── SKILL.md                               # Main skill configuration & 26 critical rules
+├── demo/                                  # 18 demo presentations (downloadable)
+│   ├── PPTX_Demo_Style01-12_*.pptx       # Text/shape-only demos (12 styles)
+│   ├── With_Background_Img-*.pptx         # AI background image demos
+│   ├── Coffee_Style07_3D_Clay_BG.pptx    # 3D clay render demo
+│   └── coffee_style07_images/             # AI-generated background PNGs
 └── references/
     ├── python-pptx-reference.md           # python-pptx API reference, helpers, overlap checker
     ├── applescript-patterns.md            # Full live IPC capability reference & decision matrix
