@@ -34,7 +34,7 @@
 import os
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
-from pptx.dml.color import RGBColor
+from pptx.dml.color import RGBColor  # ⚠ See "Common Pitfalls" — no .red/.green/.blue attrs
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.oxml.ns import qn
@@ -1135,6 +1135,37 @@ def add_gradient_shape(slide, left, top, width, height, hex_start, hex_end,
     lin.set('ang', str(angle)); lin.set('scaled', '1')
     return shape
 ```
+
+## Common Pitfalls
+
+### 1. RGBColor has NO `.red`, `.green`, `.blue` attributes
+
+`pptx.dml.color.RGBColor` inherits from `int`, NOT a named-tuple. Accessing `.red` raises `AttributeError` and crashes the build script.
+
+```python
+color = RGBColor(0xFA, 0xF7, 0xF2)
+
+# ❌ WRONG — crashes with AttributeError
+srgb.set('val', f'{color.red:02X}{color.green:02X}{color.blue:02X}')
+
+# ✅ RIGHT — str() returns 'FAF7F2'
+srgb.set('val', str(color))
+
+# ✅ RIGHT — indexing works for int components
+r, g, b = color[0], color[1], color[2]
+```
+
+**Rule for lxml helpers:** Any function that builds XML elements needing a hex color string (gradients, transparency, glow, shadow) should accept `hex_color: str` as the parameter type, NOT `RGBColor`. Convert at the call site with `str(my_rgb_color)` if needed.
+
+### 2. Gradient fills via python-pptx API can fail silently
+
+Always use the lxml approach for gradient fills (see `set_gradient_bg()` and shape gradient examples). The `fill.gradient()` API can produce empty/broken fills that render as solid opaque shapes in PowerPoint.
+
+### 3. `add_picture()` silently distorts images
+
+`slide.shapes.add_picture(path, left, top, width, height)` stretches the image to fit W×H regardless of native AR. Use `add_picture_fit()` for all non-full-bleed placements. See Rule #22.
+
+---
 
 ## EMU Quick Reference
 

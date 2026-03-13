@@ -392,49 +392,6 @@ A textured, print-inspired aesthetic evoking risograph duplication, vintage post
 
 ---
 
-## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## STYLE-13 │ Premium Dark Editorial
-### Reference: Apple Keynotes / Linear / Stripe Press
-## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-**Overview:**
-A refined dark-mode editorial style built on restraint, typography-driven hierarchy, and a single warm accent. Inspired by Apple dark keynotes, Linear's product design, and Stripe Press publications. Uses true-dark backgrounds with champagne gold as the sole accent color. No competing colors, no borders on cards — just shade differentiation and precise spacing. Ideal for product showcases, technical overviews, open-source project presentations, and anything that should feel premium without being flashy.
-
-### § LAYOUT
-- **Grid System** — Generous margins (0.75" minimum). Cards use shade differentiation (surface vs. background), never visible borders. Gold accent line (3px) at top of each card for subtle premium detail.
-- **Framing** — Title and closing slides use gold bookend lines (top + bottom edges) and L-shaped corner accents for visual containment.
-- **Visual Depth** — Subtle ambient glow shapes (low-opacity gold ovals) behind key content areas. Gold dot connectors between architecture/process layers instead of grey lines.
-- **Slide Numbers** — Right-aligned in footer, Georgia font, muted color.
-
-### § TYPOGRAPHY
-- **Headlines** — Georgia serif. Bold, generous letter spacing (150–400 tracking). Sizes: 34pt (section headers), 60–64pt (title/closing).
-- **Body** — Calibri sans-serif. Clean, readable. 14–18pt.
-- **Accent Text** — Georgia italic for quotes, Georgia bold for KPI values. Gold color for emphasis labels.
-- **Hierarchy** — Achieved through font family switching (serif vs. sans), size, weight, and color value (white → warm grey → muted grey).
-
-### § COLOR PALETTE
-- **Background** — True dark `#0C0C0E` (not navy, not pure black).
-- **Surface** — Card surface `#1A1A1E` (shade difference from bg, no borders). Elevated surface `#222226`.
-- **Primary Accent** — Champagne gold `#D4A853`. Used for rules, accent lines, labels, dots, value text.
-- **Gold Light** — `#E8C87C` for emphasized values and titles within cards.
-- **Gold Dim** — `#8A7240` for subtle accents (card top lines, corner brackets, dim connectors).
-- **Secondary** — Soft muted sky blue `#8ABED6` (used very sparingly — code text, links only).
-- **Text Hierarchy** — Primary `#EDEDED` (soft white), Secondary `#9A9AA0` (warm grey), Tertiary `#5C5C64` (very quiet).
-- **Dividers** — `#2A2A30` for rules and separators.
-
-### § GRAPHIC TREATMENT
-- **Cards** — Rounded rectangles (radius 8000), solid fill, NO borders. Gold-dim top accent line (3px) at card top.
-- **Connectors** — Gold dots (small ovals) between process/architecture layers. Thin gold-dim lines for flow.
-- **Ambient Glow** — Low-opacity (2–3%) gold ovals behind hero content for subtle depth.
-- **Corner Accents** — L-shaped gold-dim bracket shapes on title/closing slides.
-- **Rules** — Thin horizontal rules (`#2A2A30`) for section division. Gold rules (8–10px) under headers.
-- **No drop shadows, no gradients on shapes, no 3D effects.** Depth comes from shade layering and glow.
-
-### § BACKGROUND IMPLEMENTATION
-- **CRITICAL**: Uses a full-slide solid-fill rectangle at z-index 0 (first shape per slide), NOT `sl.background._element`. The python-pptx `s.fill.solid()` approach is 100% reliable across all themes, unlike the `p:bgPr`/`p:bgRef` approach which fails inconsistently.
-
----
-
 # ══════════════════════════════════════
 #  QUICK REFERENCE — STYLE SELECTOR
 # ══════════════════════════════════════
@@ -453,4 +410,3 @@ A refined dark-mode editorial style built on restraint, typography-driven hierar
 | STYLE-10 | Bento Grid | Modular, tile-based, self-contained units | Feature overviews, dashboards, social carousels | Clean, organized, modern |
 | STYLE-11 | Bricks / Masonry | Cascading, image-first, discovery-oriented | Portfolios, mood boards, galleries, catalogs | Visual, explorative, curated |
 | STYLE-12 | Retro / Risograph | Textured, analog, print-inspired | Event posters, zines, indie branding, music visuals | Nostalgic, raw, counter-cultural |
-| STYLE-13 | Premium Dark Editorial | Dark, typography-driven, gold accent | Product showcases, tech overviews, open-source decks | Premium, restrained, luxurious |

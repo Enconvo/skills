@@ -84,7 +84,7 @@ Every slide should have at least 2-3 of these:
 - **Accent bar**: thin vertical/horizontal stripe in accent color
 - **Title underline**: short horizontal bar under the title
 - **Card panels**: rounded rectangles with subtle border. Use `adj=10000` for moderate rounded corners (default). Scale: 3000=barely visible, 10000=moderate, 16667=PowerPoint default, 50000=pill shape (too extreme for content cards)
-- **Top-bar on cards**: thin accent line at top of each card
+- **Top-bar on cards**: thin accent line at top of each card. **MUST be positioned inside the card boundary** (inset from the card's top edge), never floating above or detached from the card. The bar should visually belong to the card, not hover above it.
 - **Transparency accents**: background shapes at 6-15% opacity (circles, rectangles)
 - **Gradient backgrounds**: never flat solid color (unless an image background is used)
 - **AI-generated images**: hero backgrounds, section illustrations, thematic visuals
@@ -499,6 +499,61 @@ What does this slide communicate?
 5. **Targeted > full-bleed overlays.** A semi-transparent rectangle covering just the text zone is better than darkening the entire slide. It preserves more of the image.
 
 6. **Gradient overlays > solid overlays.** A gradient that fades from 40% opacity to 0% looks more natural than a hard-edged solid rectangle.
+
+### Text Readability Over Backgrounds (Runtime Decision Tree)
+
+After placing a background image, evaluate the text zone's brightness/busyness and apply the appropriate readability strategy. This is a **runtime decision** — the right choice depends on what the generated image actually looks like, not just what was requested.
+
+**Decision tree:**
+
+```
+Is the BG dark-toned in the text zone?
+├─ YES → Text is naturally readable on dark backgrounds
+│        → Use light/white text directly, NO overlay needed
+│        → Optionally add subtle text shadow for extra crispness
+│
+└─ NO (bright, busy, or light-toned BG in text zone)
+         │
+         ├─ Are you using content cards (rounded rects, semi-transparent panels)?
+         │   ├─ YES → Cards already provide contrast. Do NOT add an additional overlay.
+         │   │        One layer of contrast is enough.
+         │   └─ NO → Add a semi-transparent dark overlay (~30-50% opacity)
+         │            ONLY behind the text area (targeted, not full-bleed).
+         │            Prefer gradient overlays that fade to transparent.
+         │
+         └─ ALWAYS: Add text shadow/glow as a lightweight contrast safety net
+```
+
+**Text shadow/glow implementation (lxml):**
+
+```python
+# Add dark outer glow to text run for readability over any background
+def add_text_shadow(run, blur_radius=38100, color='000000', alpha=60):
+    """Add a dark glow/shadow effect behind text for readability.
+    blur_radius: EMU (38100 = 3pt, 50800 = 4pt)
+    alpha: opacity 0-100 (60 = subtle, 80 = strong)
+    """
+    rPr = run._r.get_or_add_rPr()
+    effectLst = rPr.find(qn('a:effectLst'))
+    if effectLst is None:
+        effectLst = etree.SubElement(rPr, qn('a:effectLst'))
+    outerShdw = etree.SubElement(effectLst, qn('a:outerShdw'))
+    outerShdw.set('blurRad', str(blur_radius))
+    outerShdw.set('dist', '0')
+    outerShdw.set('dir', '0')
+    srgbClr = etree.SubElement(outerShdw, qn('a:srgbClr'))
+    srgbClr.set('val', color)
+    alphaEl = etree.SubElement(srgbClr, qn('a:alpha'))
+    alphaEl.set('val', str(int(alpha * 1000)))
+```
+
+**When to use text shadow/glow:**
+- **Always recommended** for text placed directly on photo/image backgrounds without content cards
+- **Optional but helpful** for text on gradient backgrounds or through semi-transparent cards
+- **Skip** for text on solid-color backgrounds (no need)
+- Use dark shadow (`000000`) for light text on dark BGs, light shadow (`FFFFFF`) for dark text on light BGs
+- Keep blur radius moderate (3-4pt / 38100-50800 EMU) — too much looks like a halo
+- Keep alpha subtle (50-70%) — the shadow should be felt, not seen
 
 ### Theme Pairing: Image + Content Styling
 

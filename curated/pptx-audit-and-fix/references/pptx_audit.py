@@ -420,6 +420,70 @@ def phase4_consistency(all_slides_shapes, slide_w, slide_h):
     return issues
 
 
+# ── Phase 5: Composition Coverage ─────────────────────────────────────────────
+
+def phase5_composition_coverage(shapes, slide_num, slide_w, slide_h):
+    """
+    Check whether overlay shapes on slides with full-bleed BG images cover
+    too much of the slide, blocking the image's visual content.
+    """
+    issues = []
+    slide_area = slide_w * slide_h
+    if slide_area <= 0:
+        return issues
+
+    # Find full-bleed background image (picture at ~0,0 covering >=90% of slide)
+    bg_image = None
+    for s in shapes:
+        if s.shape_type == "image" and s.is_background:
+            if s.bbox.left <= 5 and s.bbox.top <= 5:  # near origin
+                bg_image = s
+                break
+
+    if bg_image is None:
+        return issues
+
+    # Find overlay shapes: non-picture, non-background shapes with a solid fill
+    # Exclude text-only shapes (textboxes without fill) and the BG image itself
+    overlay_shapes = []
+    for s in shapes:
+        if s is bg_image or s.is_background:
+            continue
+        if s.shape_type == "image":
+            continue
+        if not s.has_fill:
+            continue
+        # Include filled shapes (rectangles, rounded rects, cards, scrims, etc.)
+        overlay_shapes.append(s)
+
+    if not overlay_shapes:
+        return issues
+
+    # Check individual overlay coverage
+    total_overlay_area = 0
+    for s in overlay_shapes:
+        shape_area = s.bbox.width * s.bbox.height
+        pct = (shape_area / slide_area) * 100
+        total_overlay_area += shape_area
+
+        if pct > 30:
+            issues.append(Issue(
+                slide_num, Severity.WARNING, "composition",
+                f"'{s.name}' covers {pct:.0f}% of slide with full-bleed BG image "
+                f"— may block key visual content. Consider reducing size or removing.",
+                s.name))
+
+    # Check combined overlay coverage
+    total_pct = (total_overlay_area / slide_area) * 100
+    if total_pct > 50:
+        issues.append(Issue(
+            slide_num, Severity.CRITICAL, "composition",
+            f"Combined overlay shapes cover {total_pct:.0f}% of slide "
+            f"— BG image is mostly hidden. Consider removing overlays."))
+
+    return issues
+
+
 # ── Fix Engine ────────────────────────────────────────────────────────────────
 
 REFLOW_GAP_PT = 4  # Minimum gap between shapes after reflow nudge
@@ -773,6 +837,8 @@ class PptxAuditor:
             report.issues.extend(phase2_text_truth_check(shapes, slide_num,
                                  self.slide_width_pt, self.slide_height_pt))
             report.issues.extend(phase3_visual_audit(shapes, slide_num, has_bg_image))
+            report.issues.extend(phase5_composition_coverage(shapes, slide_num,
+                                 self.slide_width_pt, self.slide_height_pt))
         report.issues.extend(phase4_consistency(self.all_slides_shapes,
                              self.slide_width_pt, self.slide_height_pt))
         print(f"\nAudit complete: {report.critical_count} critical, "
@@ -816,6 +882,8 @@ class PptxAuditor:
                 report.issues.extend(phase2_text_truth_check(shapes, slide_num,
                                      self.slide_width_pt, self.slide_height_pt))
                 report.issues.extend(phase3_visual_audit(shapes, slide_num, has_bg_image))
+                report.issues.extend(phase5_composition_coverage(shapes, slide_num,
+                                     self.slide_width_pt, self.slide_height_pt))
             report.issues.extend(phase4_consistency(self.all_slides_shapes,
                                  self.slide_width_pt, self.slide_height_pt))
 
@@ -850,6 +918,8 @@ class PptxAuditor:
             final_report.issues.extend(phase2_text_truth_check(shapes, slide_num,
                                        self.slide_width_pt, self.slide_height_pt))
             final_report.issues.extend(phase3_visual_audit(shapes, slide_num, has_bg_image))
+            final_report.issues.extend(phase5_composition_coverage(shapes, slide_num,
+                                       self.slide_width_pt, self.slide_height_pt))
         final_report.issues.extend(phase4_consistency(self.all_slides_shapes,
                                    self.slide_width_pt, self.slide_height_pt))
 

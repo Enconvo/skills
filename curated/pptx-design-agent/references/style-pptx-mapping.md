@@ -185,8 +185,8 @@ STYLE_07 = {
     "name": "3D Clay / Claymation",
     "slide_bg": RGBColor(0xFF, 0xEC, 0xD2),  # Pale peach
     "fonts": {
-        "title": {"name": "Calibri", "size": Pt(32), "bold": True, "color": RGBColor(0xE0, 0x7A, 0x5F)},
-        "body": {"name": "Calibri", "size": Pt(16), "bold": False, "color": RGBColor(0x4A, 0x3A, 0x2E)},
+        "title": {"name": "Chalkboard SE", "size": Pt(32), "bold": True, "color": RGBColor(0xE0, 0x7A, 0x5F)},
+        "body": {"name": "Avenir Next", "size": Pt(16), "bold": False, "color": RGBColor(0x4A, 0x3A, 0x2E)},
     },
     "palette": {
         "bg_peach": RGBColor(0xFF, 0xEC, 0xD2),
@@ -332,61 +332,6 @@ STYLE_12 = {
         "dark_navy": RGBColor(0x1B, 0x28, 0x38),  # No pure black
     },
     "design_notes": "2-3 color max. No pure black — use dark navy. Bold flat shapes. Overlap elements for overprint effect. Paper texture tone bg. Typewriter font for body.",
-}
-```
-
----
-
-## STYLE-13 │ Premium Dark Editorial
-
-```python
-STYLE_13 = {
-    "name": "Premium Dark Editorial",
-    "slide_bg": RGBColor(0x0C, 0x0C, 0x0E),  # True dark
-    "fonts": {
-        "title": {"name": "Georgia", "size": Pt(34), "bold": True, "color": RGBColor(0xED, 0xED, 0xED)},
-        "hero_title": {"name": "Georgia", "size": Pt(64), "bold": True, "color": RGBColor(0xFF, 0xFF, 0xFF)},
-        "subtitle": {"name": "Georgia", "size": Pt(26), "bold": False, "color": RGBColor(0xD4, 0xA8, 0x53)},
-        "body": {"name": "Calibri", "size": Pt(17), "bold": False, "color": RGBColor(0xED, 0xED, 0xED)},
-        "label": {"name": "Calibri", "size": Pt(14), "bold": True, "color": RGBColor(0x9A, 0x9A, 0xA0)},
-        "kpi_value": {"name": "Georgia", "size": Pt(44), "bold": True, "color": RGBColor(0xE8, 0xC8, 0x7C)},
-        "card_title": {"name": "Georgia", "size": Pt(22), "bold": True, "color": RGBColor(0xE8, 0xC8, 0x7C)},
-        "code": {"name": "Calibri", "size": Pt(14), "bold": False, "color": RGBColor(0x8A, 0xBE, 0xD6)},
-        "quote": {"name": "Georgia", "size": Pt(36), "bold": False, "italic": True, "color": RGBColor(0xED, 0xED, 0xED)},
-    },
-    "palette": {
-        "bg1": RGBColor(0x0C, 0x0C, 0x0E),         # primary background
-        "bg2": RGBColor(0x11, 0x11, 0x13),         # subtle bg variant
-        "surface": RGBColor(0x1A, 0x1A, 0x1E),     # card surface
-        "surface2": RGBColor(0x22, 0x22, 0x26),    # elevated surface
-        "surface3": RGBColor(0x2A, 0x2A, 0x30),    # highest elevation
-        "gold": RGBColor(0xD4, 0xA8, 0x53),        # primary accent
-        "gold_light": RGBColor(0xE8, 0xC8, 0x7C),  # emphasis gold
-        "gold_dim": RGBColor(0x8A, 0x72, 0x40),    # subtle gold (card accent lines, corners)
-        "blue": RGBColor(0x8A, 0xBE, 0xD6),        # secondary (code/links only)
-        "text": RGBColor(0xED, 0xED, 0xED),         # primary text
-        "text2": RGBColor(0x9A, 0x9A, 0xA0),       # secondary text
-        "text3": RGBColor(0x5C, 0x5C, 0x64),       # muted text
-        "rule": RGBColor(0x2A, 0x2A, 0x30),        # divider lines
-        "white": RGBColor(0xFF, 0xFF, 0xFF),        # hero titles
-    },
-    "card": {
-        "corner_radius": 8000,   # adj value for rounded rect
-        "accent_line_height": 9000,  # EMU, gold-dim top accent
-        "accent_line_inset": 60000,  # EMU, inset from card edges
-    },
-    "accent_bar": None,  # No accent bars — uses gold rules instead
-    "gold_rule": {"color": RGBColor(0xD4, 0xA8, 0x53), "height": 8000},  # EMU
-    "glow": {"color": RGBColor(0xD4, 0xA8, 0x53), "opacity_pct": 3, "default_size": 5500000},
-    "corner_accent": {"color": RGBColor(0x8A, 0x72, 0x40), "line_w": 5000, "arm_h": 400000, "arm_w": 600000},
-    "design_notes": (
-        "True-dark bg via full-slide solid-fill rect (NEVER use sl.background). "
-        "Single gold accent — no competing colors. Cards use shade not borders. "
-        "Gold-dim accent line at top of every card. Georgia serif for titles and values, "
-        "Calibri for body. Ambient gold glow on hero slides (2-3% opacity). "
-        "Corner L-accents on title/closing. Gold dot connectors between layers. "
-        "Blue used sparingly for code/link text only. No shadows, no gradients on shapes."
-    ),
 }
 ```
 

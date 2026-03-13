@@ -1,50 +1,57 @@
 # pptx-audit-and-fix
 
-A Claude Code skill for auditing and fixing PowerPoint (.pptx) layout issues directly on files using python-pptx. No PowerPoint application needed.
+Standalone Python tool for auditing and fixing PowerPoint (.pptx) layout issues directly on files. No PowerPoint application needed.
 
-## What It Does
+## Features
 
-4-phase audit that detects common layout bugs, plus an auto-fix engine that resolves what it can:
+- **5-phase audit** covering structural, text, visual, layout, and composition issues
+- **Auto-fix engine** with iterative vertical reflow to prevent cascading overlaps
+- **No PowerPoint required** — works entirely with python-pptx and lxml
+- **CLI and Python API** — use from command line or import as a module
 
-| Phase | Focus | Detects |
-|-------|-------|---------|
-| **1. Structural Scan** | Shape geometry | Overlaps, boundary violations, decorative lines cutting through text |
-| **2. Text Truth Check** | Hidden overflows | Text that overflows its box but PowerPoint hasn't updated the box dimensions |
-| **3. Visual & Readability** | Contrast & fonts | Font sizes below 14pt, low contrast text (WCAG), red-on-dark warnings |
-| **4. Layout Consistency** | Margins & spacing | Shapes too close to edges, uneven vertical spacing, empty placeholders |
+## 5 Audit Phases
 
-### Auto-Fix Engine
+| Phase | What it checks |
+|-------|---------------|
+| **1. Structural Scan** | Shape-on-shape overlaps, out-of-bounds shapes, decorative lines cutting through text |
+| **2. Text Truth Check** | Estimates true rendered text height via font metrics — catches hidden overflow where text spills beyond its box |
+| **3. Visual & Readability** | Font sizes below 14pt, low contrast text (WCAG luminance), red-on-dark warnings |
+| **4. Layout Consistency** | Shapes too close to edges (<36pt margin), uneven vertical spacing, empty placeholders |
+| **5. Composition Coverage** | Overlay shapes blocking full-bleed BG images — single shape >30% = WARNING, combined >50% = CRITICAL |
 
-Runs in 4 ordered passes:
+## Auto-Fix Capabilities
 
-1. **Font size fixes** — increase to minimum 14pt
-2. **Empty placeholder deletion**
-3. **Text box resizing** — only significant overflows (>8pt)
-4. **Vertical reflow** — iteratively cascades shapes down to prevent new overlaps (max 20 iterations)
-
-Issues requiring design decisions (contrast fixes, cross-slide alignment) are flagged for manual review.
+- Text boxes resized to fit content (overflows >8pt)
+- Iterative vertical reflow after resizing — cascades shapes down to prevent new overlaps
+- Font sizes increased to minimum 14pt
+- Empty placeholders deleted
 
 ## Requirements
-
-- **Python 3** with `python-pptx`, `Pillow`, and `lxml`
 
 ```bash
 pip install python-pptx Pillow lxml
 ```
 
-## Installation
-
-Copy the `pptx-audit-and-fix/` folder into your Claude Code skills directory:
-
-```bash
-cp -r pptx-audit-and-fix ~/.claude/skills/
-```
-
 ## Usage
 
-### As a Python module
+### CLI
+
+```bash
+# Audit only (report)
+python ~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py deck.pptx
+
+# Audit + fix
+python ~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py deck.pptx --fix
+
+# Audit + fix with custom output
+python ~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py deck.pptx --fix --output deck_fixed.pptx
+```
+
+### Python API
 
 ```python
+import sys
+sys.path.insert(0, "~/.claude/skills/pptx-audit-and-fix/references")
 from pptx_audit import PptxAuditor
 
 auditor = PptxAuditor("presentation.pptx")
@@ -56,38 +63,28 @@ auditor.fix_all(report)
 auditor.save("presentation_fixed.pptx")
 ```
 
-### As a CLI tool
-
-```bash
-# Audit only
-python pptx_audit.py deck.pptx
-
-# Audit + fix
-python pptx_audit.py deck.pptx --fix
-
-# Audit + fix with custom output
-python pptx_audit.py deck.pptx --fix --output deck_fixed.pptx
-```
-
 ## Severity Levels
 
-- **CRITICAL** — Visible to audience (overlaps, overflow, tiny fonts, very low contrast)
-- **WARNING** — Likely problematic (borderline font sizes, moderate contrast)
+- **CRITICAL** — Visible to audience (overlaps, overflow, tiny fonts, BG image mostly hidden)
+- **WARNING** — Likely problematic (text overflow, borderline fonts, single overlay >30%)
 - **INFO** — Style suggestions (margins, spacing, unused shapes)
 
-## Known Limitations
+## Skill Structure
 
-- **Text height estimation** overestimates by ~30% (font metrics vs PowerPoint renderer) — trust PowerPoint's stored heights for manual fixes
-- **Dense slides (8+ shapes)** — auto-fix reflow can cascade content off-slide; use manual reflow instead
-- **Color/opacity** — detects contrast issues but doesn't fix alpha transparency or card overlay opacity
-- **No visual verification** — operates on XML structure only, no screenshot/AI review
+```
+pptx-audit-and-fix/
+├── README.md            # This file
+├── skill.md             # Skill configuration and documentation
+└── references/
+    └── pptx_audit.py    # Complete audit + fix tool (CLI + Python API)
+```
 
-## Integration with pptx-design-agent
+## Limitations
 
-Use after creating slides with the [pptx-design-agent](../pptx-design-agent/) skill:
+- **Text height**: Estimated via font metrics (~90% accurate) vs exact from PowerPoint renderer
+- **Visual verification**: No screenshot/AI review — structural analysis only
+- **Composition coverage**: Detects overlay area ratios but cannot assess whether the BG image focal point is blocked
 
-1. Run audit on the output file
-2. Review CRITICAL and WARNING issues
-3. Sparse slides (< 8 shapes): apply `fix_all()`
-4. Dense slides (8+ shapes): use manual reflow
-5. Address color/opacity issues manually
+## License
+
+MIT

@@ -1,6 +1,6 @@
 ---
 name: pptx-audit-and-fix
-description: "Audit and fix PowerPoint (.pptx) layout issues directly on files using python-pptx. No PowerPoint app needed. Detects overlaps, text overflow, low contrast, small fonts, margin violations, and uneven spacing. Auto-fixes what it can (resize text boxes, increase fonts, delete empty placeholders). Use when: (1) User wants to check a .pptx for layout problems, (2) User asks to fix or clean up a PowerPoint file, (3) After creating/editing a presentation to validate quality, (4) User says 'audit pptx', 'fix pptx', 'check my slides', or similar."
+description: "Audit and fix PowerPoint (.pptx) layout issues directly on files using python-pptx. No PowerPoint app needed. 5-phase audit: (1) structural scan for overlaps and out-of-bounds shapes, (2) text truth check for hidden overflow via font metrics, (3) visual/readability audit for font size and contrast, (4) layout consistency for margins and spacing, (5) composition coverage detection — flags overlay shapes blocking full-bleed background images (>30% single shape = WARNING, >50% combined = CRITICAL). Auto-fixes text box sizing, font sizes, empty placeholders, and vertical reflow. Use when: (1) User wants to check a .pptx for layout problems, (2) User asks to fix or clean up a PowerPoint file, (3) After creating/editing a presentation to validate quality, (4) User says 'audit pptx', 'fix pptx', 'check my slides', or similar."
 ---
 
 # PPTX Audit & Fix Skill
@@ -46,7 +46,7 @@ python ~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py deck.pptx --
 python ~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py deck.pptx --fix --output deck_fixed.pptx
 ```
 
-## What It Detects (4 Phases)
+## What It Detects (5 Phases)
 
 ### Phase 1 — Structural Scan
 - Shape-on-shape overlaps (using stored bounding boxes)
@@ -67,6 +67,12 @@ python ~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py deck.pptx --
 - Shapes too close to slide edges (< 36pt margin)
 - Uneven vertical spacing rhythm
 - Empty/unused text placeholders
+
+### Phase 5 — Composition Coverage
+- Detects overlay shapes that block too much of a full-bleed background image
+- Single shape covering >30% of slide area: WARNING
+- Combined overlays covering >50% of slide area: CRITICAL
+- Helps catch design issues where cards/scrims hide the BG image's focal content
 
 ## What It Fixes Automatically
 - Text boxes resized to fit content (only significant overflows >8pt — small ones PowerPoint handles)
