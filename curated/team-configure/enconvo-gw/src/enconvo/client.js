@@ -9,7 +9,7 @@ export class EnConvoClient {
 
   async call(model, inputText, sessionId) {
     const [ext, cmd] = model.split('/');
-    const url = `${this.baseUrl}/command/call/${ext}/${cmd}`;
+    const url = `${this.baseUrl}/${ext}/${cmd}`;
 
     log('enconvo', `POST ${ext}/${cmd} session=${sessionId}`);
 

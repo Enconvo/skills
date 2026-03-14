@@ -1146,7 +1146,7 @@ For each bot, sequentially:
    ```
 3. Check: `openclaw pairing list discord`
 4. Approve: `openclaw pairing approve <CODE> --channel discord --notify`
-5. **Fallback** (if API DM fails): Use Playwright to navigate to the bot's DM on discord.com and send a message manually.
+5. **Fallback** (if API DM fails): Use Playwright to navigate to the bot's DM on discord.com.
 
 #### Phase 9: Group Setup (Channel Side)
 
