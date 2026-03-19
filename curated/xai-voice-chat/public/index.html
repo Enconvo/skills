@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grok Voice Chat</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    width: 100%;
+    max-width: 500px;
+    padding: 24px;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+
+  h1 span { color: #666; font-weight: 400; }
+
+  /* Orb */
+  .orb-wrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .orb {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #333, #111);
+    box-shadow: 0 0 60px rgba(255,255,255,0.03);
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+
+  .orb-wrap.listening .orb {
+    background: radial-gradient(circle at 35% 35%, #1a3a5c, #0a1a2e);
+    box-shadow: 0 0 80px rgba(59,130,246,0.25);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .orb-wrap.speaking .orb {
+    background: radial-gradient(circle at 35% 35%, #3b2a5c, #1a0a2e);
+    box-shadow: 0 0 80px rgba(147,51,234,0.3);
+    animation: speak-pulse 0.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  @keyframes speak-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  /* Mic level ring */
+  .level-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: border-color 0.1s;
+  }
+
+  .orb-wrap.listening .level-ring {
+    border-color: rgba(59,130,246,0.4);
+  }
+
+  .status {
+    font-size: 14px;
+    color: #666;
+    min-height: 20px;
+    text-align: center;
+  }
+
+  .status.active { color: #3b82f6; }
+  .status.error { color: #ef4444; }
+
+  /* Transcript */
+  .transcript {
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .transcript::-webkit-scrollbar { width: 4px; }
+  .transcript::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .msg {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 90%;
+    word-wrap: break-word;
+  }
+
+  .msg.user {
+    align-self: flex-end;
+    background: #1a2a3a;
+    color: #93c5fd;
+  }
+
+  .msg.assistant {
+    align-self: flex-start;
+    background: #1a1a2a;
+    color: #c4b5fd;
+  }
+
+  .voice-select {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .voice-select button {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    background: transparent;
+    color: #999;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .voice-select button:hover { border-color: #666; color: #ccc; }
+  .voice-select button.active { border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,0.1); }
+
+  .hint {
+    font-size: 12px;
+    color: #444;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Grok <span>Voice</span></h1>
+
+  <div class="voice-select" id="voices"></div>
+
+  <div class="orb-wrap" id="orbWrap" title="Click to start">
+    <div class="level-ring" id="levelRing"></div>
+    <div class="orb" id="orb"></div>
+  </div>
+
+  <div class="status" id="status">Click the orb to connect</div>
+
+  <div class="transcript" id="transcript"></div>
+
+  <div class="hint">Uses server VAD — just talk naturally</div>
+</div>
+
+<script>
+const SAMPLE_RATE = 24000;
+const VOICES = ["Eve", "Ara", "Rex", "Sal", "Leo"];
+let selectedVoice = "Eve";
+let ws = null;
+let audioCtx = null;
+let micStream = null;
+let scriptProcessor = null;
+let isConnected = false;
+let playQueue = [];
+let isPlaying = false;
+
+// --- UI ---
+const orbWrap = document.getElementById("orbWrap");
+const status = document.getElementById("status");
+const transcript = document.getElementById("transcript");
+const voicesDiv = document.getElementById("voices");
+
+VOICES.forEach((v) => {
+  const btn = document.createElement("button");
+  btn.textContent = v;
+  btn.className = v === selectedVoice ? "active" : "";
+  btn.onclick = () => {
+    selectedVoice = v;
+    voicesDiv.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+  };
+  voicesDiv.appendChild(btn);
+});
+
+function setStatus(text, cls = "") {
+  status.textContent = text;
+  status.className = "status " + cls;
+}
+
+function addMessage(role, text) {
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.textContent = text;
+  transcript.appendChild(div);
+  transcript.scrollTop = transcript.scrollHeight;
+}
+
+orbWrap.addEventListener("click", () => {
+  if (!isConnected) connect();
+  else disconnect();
+});
+
+// --- WebSocket ---
+function connect() {
+  setStatus("Connecting...", "active");
+
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(`${proto}//${location.host}`);
+
+  ws.onopen = () => startMic();
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleServerEvent(msg);
+  };
+
+  ws.onerror = () => setStatus("Connection error", "error");
+
+  ws.onclose = () => {
+    isConnected = false;
+    orbWrap.classList.remove("listening", "speaking");
+    setStatus("Disconnected — click to reconnect");
+    stopMic();
+  };
+}
+
+function disconnect() {
+  if (ws) ws.close();
+  stopMic();
+  isConnected = false;
+  orbWrap.classList.remove("listening", "speaking");
+  setStatus("Click the orb to connect");
+}
+
+// --- Mic Capture ---
+async function startMic() {
+  try {
+    audioCtx = new AudioContext({ sampleRate: SAMPLE_RATE });
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+
+    const source = audioCtx.createMediaStreamSource(micStream);
+    scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
+
+    scriptProcessor.onaudioprocess = (e) => {
+      if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+      const float32 = e.inputBuffer.getChannelData(0);
+      const pcm16 = new Int16Array(float32.length);
+      for (let i = 0; i < float32.length; i++) {
+        pcm16[i] = Math.max(-32768, Math.min(32767, Math.round(float32[i] * 32767)));
+      }
+
+      const base64 = arrayBufferToBase64(pcm16.buffer);
+      ws.send(JSON.stringify({
+        type: "input_audio_buffer.append",
+        audio: base64,
+      }));
+    };
+
+    source.connect(scriptProcessor);
+    scriptProcessor.connect(audioCtx.destination);
+  } catch (err) {
+    setStatus("Mic access denied", "error");
+  }
+}
+
+function stopMic() {
+  if (scriptProcessor) { scriptProcessor.disconnect(); scriptProcessor = null; }
+  if (micStream) { micStream.getTracks().forEach((t) => t.stop()); micStream = null; }
+  if (audioCtx) { audioCtx.close(); audioCtx = null; }
+}
+
+// --- Server Events ---
+let currentTranscript = "";
+let assistantTranscript = "";
+let assistantMsgEl = null;
+
+function handleServerEvent(ev) {
+  switch (ev.type) {
+    case "connected":
+      isConnected = true;
+      orbWrap.classList.add("listening");
+      setStatus("Listening — speak anytime", "active");
+      break;
+
+    case "session.updated":
+      console.log("Session configured:", ev.session?.voice);
+      break;
+
+    case "input_audio_buffer.speech_started":
+      orbWrap.classList.remove("speaking");
+      orbWrap.classList.add("listening");
+      setStatus("Hearing you...", "active");
+      // Interrupt any playing audio
+      stopPlayback();
+      break;
+
+    case "input_audio_buffer.speech_stopped":
+      setStatus("Processing...", "active");
+      break;
+
+    case "conversation.item.input_audio_transcription.completed":
+      if (ev.transcript?.trim()) {
+        addMessage("user", ev.transcript.trim());
+      }
+      break;
+
+    case "response.output_audio.delta":
+      orbWrap.classList.remove("listening");
+      orbWrap.classList.add("speaking");
+      setStatus("Speaking...", "active");
+      queueAudio(ev.delta);
+      break;
+
+    case "response.output_audio.done":
+      break;
+
+    case "response.output_audio_transcript.delta":
+      if (!assistantMsgEl) {
+        assistantMsgEl = document.createElement("div");
+        assistantMsgEl.className = "msg assistant";
+        transcript.appendChild(assistantMsgEl);
+      }
+      assistantTranscript += ev.delta || "";
+      assistantMsgEl.textContent = assistantTranscript;
+      transcript.scrollTop = transcript.scrollHeight;
+      break;
+
+    case "response.output_audio_transcript.done":
+      assistantTranscript = "";
+      assistantMsgEl = null;
+      break;
+
+    case "response.done":
+      setTimeout(() => {
+        if (!isPlaying) {
+          orbWrap.classList.remove("speaking");
+          orbWrap.classList.add("listening");
+          setStatus("Listening — speak anytime", "active");
+        }
+      }, 500);
+      break;
+
+    case "error":
+      setStatus("Error: " + (ev.error?.message || ev.message || "Unknown"), "error");
+      console.error("Server error:", ev);
+      break;
+  }
+}
+
+// --- Audio Playback ---
+function queueAudio(base64) {
+  const bytes = base64ToArrayBuffer(base64);
+  const float32 = pcm16ToFloat32(bytes);
+  playQueue.push(float32);
+  if (!isPlaying) playNext();
+}
+
+function playNext() {
+  if (playQueue.length === 0) {
+    isPlaying = false;
+    orbWrap.classList.remove("speaking");
+    orbWrap.classList.add("listening");
+    setStatus("Listening — speak anytime", "active");
+    return;
+  }
+
+  isPlaying = true;
+  const samples = playQueue.shift();
+
+  const playCtx = new AudioContext({ sampleRate: SAMPLE_RATE });
+  const buffer = playCtx.createBuffer(1, samples.length, SAMPLE_RATE);
+  buffer.getChannelData(0).set(samples);
+
+  const src = playCtx.createBufferSource();
+  src.buffer = buffer;
+  src.connect(playCtx.destination);
+  src.onended = () => {
+    playCtx.close();
+    playNext();
+  };
+  src.start();
+  window._currentPlayback = { src, ctx: playCtx };
+}
+
+function stopPlayback() {
+  playQueue = [];
+  isPlaying = false;
+  if (window._currentPlayback) {
+    try {
+      window._currentPlayback.src.stop();
+      window._currentPlayback.ctx.close();
+    } catch (e) {}
+    window._currentPlayback = null;
+  }
+}
+
+// --- Helpers ---
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function base64ToArrayBuffer(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+function pcm16ToFloat32(buffer) {
+  const int16 = new Int16Array(buffer);
+  const float32 = new Float32Array(int16.length);
+  for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768;
+  return float32;
+}
+</script>
+</body>
+</html>
