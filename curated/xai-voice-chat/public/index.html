@@ -23,126 +23,246 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 32px;
+    gap: 24px;
     width: 100%;
     max-width: 500px;
     padding: 24px;
   }
 
-  h1 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: -0.5px;
-  }
-
+  h1 { font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px; }
   h1 span { color: #666; font-weight: 400; }
 
-  /* Orb */
-  .orb-wrap {
-    position: relative;
-    width: 200px;
-    height: 200px;
+  /* Settings toggle */
+  .settings-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    background: #111;
+    color: #888;
+    font-size: 18px;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .orb {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #333, #111);
-    box-shadow: 0 0 60px rgba(255,255,255,0.03);
-    transition: box-shadow 0.3s, transform 0.3s;
-  }
-
-  .orb-wrap.listening .orb {
-    background: radial-gradient(circle at 35% 35%, #1a3a5c, #0a1a2e);
-    box-shadow: 0 0 80px rgba(59,130,246,0.25);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  .orb-wrap.speaking .orb {
-    background: radial-gradient(circle at 35% 35%, #3b2a5c, #1a0a2e);
-    box-shadow: 0 0 80px rgba(147,51,234,0.3);
-    animation: speak-pulse 0.4s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.04); }
-  }
-
-  @keyframes speak-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.06); }
-  }
-
-  /* Mic level ring */
-  .level-ring {
-    position: absolute;
-    inset: -4px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    transition: border-color 0.1s;
-  }
-
-  .orb-wrap.listening .level-ring {
-    border-color: rgba(59,130,246,0.4);
-  }
-
-  .status {
-    font-size: 14px;
-    color: #666;
-    min-height: 20px;
-    text-align: center;
-  }
-
-  .status.active { color: #3b82f6; }
-  .status.error { color: #ef4444; }
-
-  /* Transcript */
-  .transcript {
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 4px;
-  }
-
-  .transcript::-webkit-scrollbar { width: 4px; }
-  .transcript::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-
-  .msg {
-    font-size: 14px;
-    line-height: 1.5;
-    padding: 8px 12px;
-    border-radius: 12px;
-    max-width: 90%;
-    word-wrap: break-word;
-  }
-
-  .msg.user {
-    align-self: flex-end;
-    background: #1a2a3a;
-    color: #93c5fd;
-  }
-
-  .msg.assistant {
-    align-self: flex-start;
-    background: #1a1a2a;
-    color: #c4b5fd;
-  }
-
-  .voice-select {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    align-items: center;
     justify-content: center;
+    transition: all 0.2s;
+    z-index: 100;
+  }
+  .settings-btn:hover { border-color: #555; color: #ccc; }
+
+  /* Settings panel */
+  .settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .settings-overlay.open { display: flex; }
+
+  .settings-panel {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 440px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 24px;
   }
 
+  .settings-panel h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #fff;
+  }
+
+  /* Provider tabs */
+  .provider-tabs {
+    display: flex;
+    gap: 4px;
+    background: #0a0a0a;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+
+  .provider-tab {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .provider-tab:hover { color: #999; }
+  .provider-tab.active { background: #222; color: #fff; }
+  .provider-tab.xai.active { color: #3b82f6; }
+  .provider-tab.openai.active { color: #10b981; }
+  .provider-tab.anthropic.active { color: #f59e0b; }
+  .provider-tab.gemini.active { color: #8b5cf6; }
+
+  /* Form fields */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .key-row { display: flex; gap: 8px; }
+
+  .key-input-wrap {
+    flex: 1;
+    position: relative;
+  }
+  .key-input-wrap .key-input {
+    width: 100%;
+    padding-right: 36px;
+  }
+
+  .eye-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+  }
+  .eye-btn:hover { color: #999; }
+
+  .key-input {
+    flex: 1;
+    padding: 10px 12px;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .key-input:focus { border-color: #444; }
+  .key-input.valid { border-color: #10b981; }
+  .key-input.invalid { border-color: #ef4444; }
+
+  .validate-btn {
+    padding: 10px 16px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #1a1a1a;
+    color: #ccc;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .validate-btn:hover { background: #222; border-color: #555; }
+  .validate-btn.checking { color: #3b82f6; }
+  .validate-btn.valid { color: #10b981; border-color: #10b981; }
+  .validate-btn.invalid { color: #ef4444; border-color: #ef4444; }
+
+  .grok-mode-toggle {
+    display: flex;
+    gap: 4px;
+    background: #0a0a0a;
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .grok-mode-btn {
+    flex: 1;
+    padding: 7px 8px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .grok-mode-btn:hover { color: #999; }
+  .grok-mode-btn.active { background: #222; color: #3b82f6; }
+
+  .model-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .model-select:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .key-hint {
+    font-size: 11px;
+    color: #555;
+    margin-top: 6px;
+  }
+
+  .key-status {
+    font-size: 12px;
+    margin-top: 6px;
+    min-height: 16px;
+  }
+  .key-status.valid { color: #10b981; }
+  .key-status.invalid { color: #ef4444; }
+
+  .settings-close {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+  .settings-close:hover { background: #222; }
+
+  /* Provider badge under title */
+  .provider-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .provider-badge.xai { border-color: #3b82f6; color: #3b82f6; }
+  .provider-badge.openai { border-color: #10b981; color: #10b981; }
+  .provider-badge.anthropic { border-color: #f59e0b; color: #f59e0b; }
+  .provider-badge.gemini { border-color: #8b5cf6; color: #8b5cf6; }
+
+  /* Voice select */
+  .voice-select { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .voice-select button {
     padding: 6px 16px;
     border-radius: 20px;
@@ -153,32 +273,259 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-
   .voice-select button:hover { border-color: #666; color: #ccc; }
   .voice-select button.active { border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,0.1); }
 
-  .hint {
+  /* Orb */
+  .orb-wrap {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .orb {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #333, #111);
+    box-shadow: 0 0 60px rgba(255,255,255,0.03);
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+  .orb-wrap.listening .orb {
+    background: radial-gradient(circle at 35% 35%, #1a3a5c, #0a1a2e);
+    box-shadow: 0 0 80px rgba(59,130,246,0.25);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .orb-wrap.speaking .orb {
+    background: radial-gradient(circle at 35% 35%, #3b2a5c, #1a0a2e);
+    box-shadow: 0 0 80px rgba(147,51,234,0.3);
+    animation: speak-pulse 0.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  @keyframes speak-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+  .level-ring {
+    position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid transparent; transition: border-color 0.1s;
+  }
+  .orb-wrap.listening .level-ring { border-color: rgba(59,130,246,0.4); }
+
+  .status { font-size: 14px; color: #666; min-height: 20px; text-align: center; }
+  .status.active { color: #3b82f6; }
+  .status.error { color: #ef4444; }
+
+  /* Transcript */
+  .transcript {
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 4px;
+  }
+  .transcript::-webkit-scrollbar { width: 4px; }
+  .transcript::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .msg {
+    font-size: 14px; line-height: 1.5;
+    padding: 8px 12px; border-radius: 12px;
+    max-width: 90%; word-wrap: break-word;
+  }
+  .msg.user { align-self: flex-end; background: #1a2a3a; color: #93c5fd; }
+  .msg.assistant { align-self: flex-start; background: #1a1a2a; color: #c4b5fd; }
+
+  .mic-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 12px;
+    color: #666;
+  }
+  .mic-row label { text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .tts-mode-row {
+    display: none; /* hidden in Grok all-in-one mode */
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #666;
+  }
+  .tts-mode-row label { text-transform: uppercase; letter-spacing: 0.5px; }
+  .tts-select {
+    padding: 4px 8px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ccc;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .stop-btn {
+    padding: 8px 24px;
+    border-radius: 20px;
+    border: 1px solid #ef4444;
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .stop-btn:hover { background: rgba(239,68,68,0.2); }
+
+  .hint { font-size: 12px; color: #444; text-align: center; }
+
+  .xai-note {
+    font-size: 11px;
     color: #444;
     text-align: center;
+    margin-top: -8px;
   }
 </style>
 </head>
 <body>
+
+<button class="settings-btn" id="settingsBtn" title="Settings">&#9881;</button>
+
+<!-- Settings overlay -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <h2>LLM Settings</h2>
+
+    <div class="provider-tabs" id="providerTabs">
+      <button class="provider-tab xai active" data-provider="xai">Grok</button>
+      <button class="provider-tab openai" data-provider="openai">OpenAI</button>
+      <button class="provider-tab anthropic" data-provider="anthropic">Anthropic</button>
+      <button class="provider-tab gemini" data-provider="gemini">Gemini</button>
+    </div>
+
+    <!-- xAI (default — uses .env key) -->
+    <div class="provider-config" id="config-xai">
+      <div class="field">
+        <label>API Key</label>
+        <div class="key-row">
+          <div class="key-input-wrap">
+            <input class="key-input" id="key-xai" type="password" placeholder="xai-...">
+            <button class="eye-btn" onclick="toggleKeyVisibility('xai')" title="Show/hide key">&#128065;</button>
+          </div>
+          <button class="validate-btn" onclick="validateKey('xai')">Validate</button>
+        </div>
+        <div class="key-status" id="status-xai"></div>
+      </div>
+      <div class="field">
+        <label>Mode</label>
+        <div class="grok-mode-toggle">
+          <button class="grok-mode-btn active" id="grokModeAllinone" onclick="setGrokMode('allinone')">All-in-one (fastest)</button>
+          <button class="grok-mode-btn" id="grokModeCustom" onclick="setGrokMode('custom')">Custom model</button>
+        </div>
+      </div>
+      <div class="field" id="grokModelField" style="display:none">
+        <label>Model</label>
+        <select class="model-select" id="model-xai" disabled>
+        </select>
+      </div>
+      <div class="key-hint" id="grokHint">Required for all modes — handles ASR + TTS. All-in-one: realtime API handles everything.</div>
+    </div>
+
+    <!-- OpenAI -->
+    <div class="provider-config" id="config-openai" style="display:none">
+      <div class="field">
+        <label>API Key</label>
+        <div class="key-row">
+          <div class="key-input-wrap">
+            <input class="key-input" id="key-openai" type="password" placeholder="sk-...">
+            <button class="eye-btn" onclick="toggleKeyVisibility('openai')" title="Show/hide key">&#128065;</button>
+          </div>
+          <button class="validate-btn" onclick="validateKey('openai')">Validate</button>
+        </div>
+        <div class="key-status" id="status-openai"></div>
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <select class="model-select" id="model-openai" disabled></select>
+      </div>
+      <div class="key-hint">Voice via xAI Realtime, LLM brain via OpenAI.</div>
+    </div>
+
+    <!-- Anthropic -->
+    <div class="provider-config" id="config-anthropic" style="display:none">
+      <div class="field">
+        <label>API Key</label>
+        <div class="key-row">
+          <div class="key-input-wrap">
+            <input class="key-input" id="key-anthropic" type="password" placeholder="sk-ant-...">
+            <button class="eye-btn" onclick="toggleKeyVisibility('anthropic')" title="Show/hide key">&#128065;</button>
+          </div>
+          <button class="validate-btn" onclick="validateKey('anthropic')">Validate</button>
+        </div>
+        <div class="key-status" id="status-anthropic"></div>
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <select class="model-select" id="model-anthropic" disabled></select>
+      </div>
+      <div class="key-hint">Voice via xAI Realtime, LLM brain via Anthropic Claude.</div>
+    </div>
+
+    <!-- Gemini -->
+    <div class="provider-config" id="config-gemini" style="display:none">
+      <div class="field">
+        <label>API Key</label>
+        <div class="key-row">
+          <div class="key-input-wrap">
+            <input class="key-input" id="key-gemini" type="password" placeholder="AI...">
+            <button class="eye-btn" onclick="toggleKeyVisibility('gemini')" title="Show/hide key">&#128065;</button>
+          </div>
+          <button class="validate-btn" onclick="validateKey('gemini')">Validate</button>
+        </div>
+        <div class="key-status" id="status-gemini"></div>
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <select class="model-select" id="model-gemini" disabled></select>
+      </div>
+      <div class="key-hint">Voice via xAI Realtime, LLM brain via Google Gemini.</div>
+    </div>
+
+    <button class="settings-close" onclick="closeSettings()">Done</button>
+  </div>
+</div>
+
 <div class="container">
   <h1>Grok <span>Voice</span></h1>
+  <div class="provider-badge xai" id="providerBadge">Grok</div>
+
+  <div class="mic-row">
+    <label>Mic:</label>
+    <select class="tts-select" id="micSelect" style="max-width: 260px;"></select>
+  </div>
 
   <div class="voice-select" id="voices"></div>
+
+  <div class="tts-mode-row" id="ttsModeRow">
+    <label>TTS:</label>
+    <select class="tts-select" id="ttsMode">
+      <option value="realtime">Realtime (Streaming WebSocket)</option>
+      <option value="rest">REST (MP3)</option>
+    </select>
+  </div>
 
   <div class="orb-wrap" id="orbWrap" title="Click to start">
     <div class="level-ring" id="levelRing"></div>
     <div class="orb" id="orb"></div>
   </div>
 
+  <button class="stop-btn" id="stopBtn" style="display:none" title="Stop speaking">&#9632; Stop</button>
+
   <div class="status" id="status">Click the orb to connect</div>
 
   <div class="transcript" id="transcript"></div>
 
+  <div class="xai-note" id="xaiNote"></div>
   <div class="hint">Uses server VAD — just talk naturally</div>
 </div>
 
@@ -194,9 +541,265 @@ let isConnected = false;
 let playQueue = [];
 let isPlaying = false;
 
-// --- UI ---
+// LLM config
+let currentProvider = "xai";
+let validatedKeys = {};
+let selectedModels = {};
+let ttsMode = "realtime";
+let grokMode = "allinone"; // "allinone" or "custom"
+
+// Load saved settings
+try {
+  const saved = JSON.parse(localStorage.getItem("voicechat_settings") || "{}");
+  if (saved.provider) currentProvider = saved.provider;
+  if (saved.keys) validatedKeys = saved.keys;
+  if (saved.models) selectedModels = saved.models;
+  if (saved.voice) selectedVoice = saved.voice;
+  if (saved.ttsMode) ttsMode = saved.ttsMode;
+  if (saved.grokMode) grokMode = saved.grokMode;
+} catch (e) {}
+
+// ── Settings UI ──
+const settingsOverlay = document.getElementById("settingsOverlay");
+document.getElementById("settingsBtn").onclick = () => settingsOverlay.classList.add("open");
+function closeSettings() {
+  settingsOverlay.classList.remove("open");
+  saveSettings();
+  updateBadge();
+  sendConfigUpdate();
+}
+settingsOverlay.addEventListener("click", (e) => {
+  if (e.target === settingsOverlay) closeSettings();
+});
+
+// Provider tabs
+document.querySelectorAll(".provider-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".provider-tab").forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    const provider = tab.dataset.provider;
+    currentProvider = provider;
+    document.querySelectorAll(".provider-config").forEach((c) => (c.style.display = "none"));
+    document.getElementById(`config-${provider}`).style.display = "block";
+  });
+});
+
+// Restore tab state
+function initSettings() {
+  // Activate saved provider tab
+  document.querySelectorAll(".provider-tab").forEach((t) => t.classList.remove("active"));
+  document.querySelector(`.provider-tab.${currentProvider}`)?.classList.add("active");
+  document.querySelectorAll(".provider-config").forEach((c) => (c.style.display = "none"));
+  document.getElementById(`config-${currentProvider}`).style.display = "block";
+
+  // Restore keys and models
+  for (const p of ["xai", "openai", "anthropic", "gemini"]) {
+    if (validatedKeys[p]) {
+      document.getElementById(`key-${p}`).value = validatedKeys[p];
+      document.getElementById(`key-${p}`).classList.add("valid");
+      document.getElementById(`status-${p}`).textContent = "Key validated";
+      document.getElementById(`status-${p}`).className = "key-status valid";
+      populateModels(p);
+    }
+  }
+
+  // TTS mode dropdown
+  const ttsModeSelect = document.getElementById("ttsMode");
+  ttsModeSelect.value = ttsMode;
+  ttsModeSelect.onchange = () => {
+    ttsMode = ttsModeSelect.value;
+    saveSettings();
+    updateBadge();
+  };
+
+  // Restore Grok mode toggle
+  setGrokMode(grokMode);
+
+  updateBadge();
+}
+
+function populateModels(provider) {
+  const select = document.getElementById(`model-${provider}`);
+  select.disabled = false;
+  select.innerHTML = "";
+
+  // Fetch models from validation
+  fetch("/api/validate-key", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ provider, apiKey: validatedKeys[provider] }),
+  })
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.valid && data.models) {
+        data.models.forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m;
+          opt.textContent = m;
+          select.appendChild(opt);
+        });
+        if (selectedModels[provider]) select.value = selectedModels[provider];
+        select.onchange = () => {
+          selectedModels[provider] = select.value;
+          saveSettings();
+          if (provider === currentProvider) { updateBadge(); sendConfigUpdate(); }
+        };
+      }
+    });
+}
+
+async function validateKey(provider) {
+  const input = document.getElementById(`key-${provider}`);
+  const statusEl = document.getElementById(`status-${provider}`);
+  const keyRow = input.closest(".key-row");
+  const btn = keyRow.querySelector(".validate-btn");
+  const apiKey = input.value.trim();
+
+  if (!apiKey) {
+    statusEl.textContent = "Enter an API key";
+    statusEl.className = "key-status invalid";
+    return;
+  }
+
+  btn.textContent = "Checking...";
+  btn.className = "validate-btn checking";
+  statusEl.textContent = "";
+
+  try {
+    const r = await fetch("/api/validate-key", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, apiKey }),
+    });
+    const data = await r.json();
+
+    if (data.valid) {
+      btn.textContent = "Valid";
+      btn.className = "validate-btn valid";
+      input.classList.remove("invalid");
+      input.classList.add("valid");
+      statusEl.textContent = `Key validated — ${data.models.length} model${data.models.length !== 1 ? "s" : ""} available`;
+      statusEl.className = "key-status valid";
+
+      validatedKeys[provider] = apiKey;
+      const select = document.getElementById(`model-${provider}`);
+      select.disabled = false;
+      select.innerHTML = "";
+      data.models.forEach((m) => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        select.appendChild(opt);
+      });
+      selectedModels[provider] = select.value;
+      select.onchange = () => {
+        selectedModels[provider] = select.value;
+        saveSettings();
+        if (provider === currentProvider) { syncModelList(); sendConfigUpdate(); }
+      };
+      saveSettings();
+      // Update frontpage model list if this is the current provider
+      if (provider === currentProvider) updateBadge();
+    } else {
+      btn.textContent = "Invalid";
+      btn.className = "validate-btn invalid";
+      input.classList.remove("valid");
+      input.classList.add("invalid");
+      statusEl.textContent = data.error || "Invalid API key";
+      statusEl.className = "key-status invalid";
+      delete validatedKeys[provider];
+    }
+  } catch (err) {
+    btn.textContent = "Error";
+    btn.className = "validate-btn invalid";
+    statusEl.textContent = err.message;
+    statusEl.className = "key-status invalid";
+  }
+
+  setTimeout(() => { btn.textContent = "Validate"; btn.className = "validate-btn"; }, 3000);
+}
+
+function setGrokMode(mode) {
+  grokMode = mode;
+  document.getElementById("grokModeAllinone").classList.toggle("active", mode === "allinone");
+  document.getElementById("grokModeCustom").classList.toggle("active", mode === "custom");
+  document.getElementById("grokModelField").style.display = mode === "custom" ? "block" : "none";
+  document.getElementById("grokHint").textContent = mode === "allinone"
+    ? "Required for all modes — handles ASR + TTS. All-in-one: realtime API handles everything."
+    : "ASR + TTS via realtime API. LLM via xAI chat API with selected model.";
+  saveSettings();
+}
+
+function toggleKeyVisibility(provider) {
+  const input = document.getElementById(`key-${provider}`);
+  const btn = input.closest(".key-input-wrap").querySelector(".eye-btn");
+  if (input.type === "password") {
+    input.type = "text";
+    btn.style.color = "#3b82f6";
+  } else {
+    input.type = "password";
+    btn.style.color = "#555";
+  }
+}
+
+function saveSettings() {
+  localStorage.setItem(
+    "voicechat_settings",
+    JSON.stringify({
+      provider: currentProvider,
+      keys: validatedKeys,
+      models: selectedModels,
+      voice: selectedVoice,
+      ttsMode,
+      grokMode,
+    })
+  );
+}
+
+function updateBadge() {
+  const names = { xai: "Grok", openai: "OpenAI", anthropic: "Anthropic", gemini: "Gemini" };
+  const badge = document.getElementById("providerBadge");
+  const isExternalLLM = currentProvider !== "xai" || grokMode === "custom";
+  const model = selectedModels[currentProvider] || "";
+
+  if (currentProvider === "xai" && grokMode === "allinone") {
+    badge.textContent = "Grok All-in-One";
+  } else {
+    badge.textContent = names[currentProvider] + (model ? " · " + model : "");
+  }
+  badge.className = `provider-badge ${currentProvider}`;
+
+  const note = document.getElementById("xaiNote");
+  const ttsLabel = ttsMode === "realtime" ? "Streaming WS" : "REST MP3";
+  if (currentProvider === "xai" && grokMode === "allinone") {
+    note.textContent = "";
+  } else {
+    note.textContent = `ASR: xAI Realtime · LLM: ${names[currentProvider]}${model ? " " + model : ""} · TTS: ${ttsLabel}`;
+  }
+
+  document.getElementById("ttsModeRow").style.display = isExternalLLM ? "flex" : "none";
+}
+
+// Send config update to server mid-session (no reconnect)
+function sendConfigUpdate() {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !isConnected) return;
+  const ss = document.getElementById(`model-${currentProvider}`);
+  const model = (ss && !ss.disabled && ss.value) || selectedModels[currentProvider] || "";
+  ws.send(JSON.stringify({
+    type: "config.update",
+    provider: currentProvider,
+    apiKey: validatedKeys[currentProvider] || "",
+    model,
+    voice: selectedVoice,
+    ttsMode: (currentProvider === "xai" && grokMode === "allinone") ? "realtime" : ttsMode,
+    grokMode: currentProvider === "xai" ? grokMode : "custom",
+  }));
+}
+
+// ── Voice buttons ──
 const orbWrap = document.getElementById("orbWrap");
-const status = document.getElementById("status");
+const stopBtn = document.getElementById("stopBtn");
+const statusEl = document.getElementById("status");
 const transcript = document.getElementById("transcript");
 const voicesDiv = document.getElementById("voices");
 
@@ -208,13 +811,14 @@ VOICES.forEach((v) => {
     selectedVoice = v;
     voicesDiv.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
+    saveSettings();
   };
   voicesDiv.appendChild(btn);
 });
 
 function setStatus(text, cls = "") {
-  status.textContent = text;
-  status.className = "status " + cls;
+  statusEl.textContent = text;
+  statusEl.className = "status " + cls;
 }
 
 function addMessage(role, text) {
@@ -223,6 +827,7 @@ function addMessage(role, text) {
   div.textContent = text;
   transcript.appendChild(div);
   transcript.scrollTop = transcript.scrollHeight;
+  return div;
 }
 
 orbWrap.addEventListener("click", () => {
@@ -230,22 +835,56 @@ orbWrap.addEventListener("click", () => {
   else disconnect();
 });
 
-// --- WebSocket ---
-function connect() {
-  setStatus("Connecting...", "active");
+stopBtn.addEventListener("click", () => {
+  stopPlayback();
+  orbWrap.classList.remove("speaking");
+  orbWrap.classList.add("listening");
+  setStatus("Listening — speak anytime", "active");
+  stopBtn.style.display = "none";
+  // Tell server to cancel any in-progress response
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "stop" }));
+  }
+});
 
+function showStopBtn() { if (isConnected) stopBtn.style.display = "inline-block"; }
+function hideStopBtn() { stopBtn.style.display = "none"; }
+
+// ── WebSocket ──
+function connect() {
+  // Check required keys
+  if (!validatedKeys["xai"]) {
+    setStatus("Set xAI API key in settings first", "error");
+    return;
+  }
+  if (currentProvider !== "xai" && !validatedKeys[currentProvider]) {
+    setStatus(`Set ${currentProvider} API key in settings first`, "error");
+    return;
+  }
+
+  setStatus("Connecting...", "active");
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   ws = new WebSocket(`${proto}//${location.host}`);
 
-  ws.onopen = () => startMic();
-
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    handleServerEvent(msg);
+  ws.onopen = () => {
+    // Send config first, then start mic
+    ws.send(
+      JSON.stringify({
+        type: "config",
+        provider: currentProvider,
+        apiKey: validatedKeys[currentProvider] || "",
+        xaiKey: validatedKeys["xai"] || "",
+        model: (document.getElementById(`model-${currentProvider}`)?.value) || selectedModels[currentProvider] || "",
+        voice: selectedVoice,
+        ttsMode: (currentProvider === "xai" && grokMode === "allinone") ? "realtime" : ttsMode,
+    grokMode: currentProvider === "xai" ? grokMode : "custom",
+      })
+    );
+    startMic();
   };
 
+  ws.onmessage = (e) => handleServerEvent(JSON.parse(e.data));
   ws.onerror = () => setStatus("Connection error", "error");
-
   ws.onclose = () => {
     isConnected = false;
     orbWrap.classList.remove("listening", "speaking");
@@ -262,31 +901,28 @@ function disconnect() {
   setStatus("Click the orb to connect");
 }
 
-// --- Mic Capture ---
+// ── Mic ──
 async function startMic() {
   try {
     audioCtx = new AudioContext({ sampleRate: SAMPLE_RATE });
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true } });
-
+    const micDeviceId = document.getElementById("micSelect").value;
+    const audioConstraints = {
+      sampleRate: SAMPLE_RATE,
+      channelCount: 1,
+      echoCancellation: true,
+      noiseSuppression: true,
+    };
+    if (micDeviceId) audioConstraints.deviceId = { exact: micDeviceId };
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
     const source = audioCtx.createMediaStreamSource(micStream);
     scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
-
     scriptProcessor.onaudioprocess = (e) => {
       if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) return;
-
-      const float32 = e.inputBuffer.getChannelData(0);
-      const pcm16 = new Int16Array(float32.length);
-      for (let i = 0; i < float32.length; i++) {
-        pcm16[i] = Math.max(-32768, Math.min(32767, Math.round(float32[i] * 32767)));
-      }
-
-      const base64 = arrayBufferToBase64(pcm16.buffer);
-      ws.send(JSON.stringify({
-        type: "input_audio_buffer.append",
-        audio: base64,
-      }));
+      const f32 = e.inputBuffer.getChannelData(0);
+      const pcm = new Int16Array(f32.length);
+      for (let i = 0; i < f32.length; i++) pcm[i] = Math.max(-32768, Math.min(32767, Math.round(f32[i] * 32767)));
+      ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(pcm.buffer) }));
     };
-
     source.connect(scriptProcessor);
     scriptProcessor.connect(audioCtx.destination);
   } catch (err) {
@@ -300,8 +936,7 @@ function stopMic() {
   if (audioCtx) { audioCtx.close(); audioCtx = null; }
 }
 
-// --- Server Events ---
-let currentTranscript = "";
+// ── Server Events ──
 let assistantTranscript = "";
 let assistantMsgEl = null;
 
@@ -313,15 +948,10 @@ function handleServerEvent(ev) {
       setStatus("Listening — speak anytime", "active");
       break;
 
-    case "session.updated":
-      console.log("Session configured:", ev.session?.voice);
-      break;
-
     case "input_audio_buffer.speech_started":
       orbWrap.classList.remove("speaking");
       orbWrap.classList.add("listening");
       setStatus("Hearing you...", "active");
-      // Interrupt any playing audio
       stopPlayback();
       break;
 
@@ -330,19 +960,60 @@ function handleServerEvent(ev) {
       break;
 
     case "conversation.item.input_audio_transcription.completed":
-      if (ev.transcript?.trim()) {
-        addMessage("user", ev.transcript.trim());
+      if (ev.transcript?.trim()) addMessage("user", ev.transcript.trim());
+      break;
+
+    // External LLM events
+    case "llm.thinking":
+      orbWrap.classList.remove("listening");
+      setStatus(`Thinking (${currentProvider})...`, "active");
+      break;
+
+    case "llm.response":
+      // Show external LLM text response
+      assistantMsgEl = addMessage("assistant", ev.text);
+      break;
+
+    // MP3 audio from xAI REST TTS (external LLM mode)
+    // REST TTS mode: full MP3 audio
+    case "tts.audio":
+      orbWrap.classList.remove("listening");
+      orbWrap.classList.add("speaking");
+      setStatus("Speaking...", "active");
+      showStopBtn();
+      playMp3(ev.audio);
+      break;
+
+    // Streaming TTS mode: signal that streaming audio is starting
+    case "tts.speaking":
+      orbWrap.classList.remove("listening");
+      orbWrap.classList.add("speaking");
+      setStatus("Speaking...", "active");
+      showStopBtn();
+      break;
+
+    case "tts.done":
+      // For REST mode: handled by mp3 onended
+      // For streaming mode: mark end of PCM stream
+      if (!window._mp3Audio) {
+        setTimeout(() => {
+          if (!isPlaying) {
+            orbWrap.classList.remove("speaking");
+            orbWrap.classList.add("listening");
+            setStatus("Listening — speak anytime", "active");
+            hideStopBtn();
+          }
+        }, 500);
       }
       break;
 
+    // PCM audio from xAI (Realtime all-in-one OR streaming TTS)
     case "response.output_audio.delta":
       orbWrap.classList.remove("listening");
       orbWrap.classList.add("speaking");
       setStatus("Speaking...", "active");
+      showStopBtn();
       queueAudio(ev.delta);
-      break;
-
-    case "response.output_audio.done":
       break;
 
     case "response.output_audio_transcript.delta":
@@ -371,18 +1042,23 @@ function handleServerEvent(ev) {
       }, 500);
       break;
 
+    case "config.updated":
+      const names = { xai: "Grok", openai: "OpenAI", anthropic: "Anthropic", gemini: "Gemini" };
+      setStatus(`Switched to ${names[currentProvider]} — speak anytime`, "active");
+      setTimeout(() => { if (isConnected) setStatus("Listening — speak anytime", "active"); }, 2000);
+      break;
+
     case "error":
       setStatus("Error: " + (ev.error?.message || ev.message || "Unknown"), "error");
-      console.error("Server error:", ev);
+      console.error("Error:", ev);
       break;
   }
 }
 
-// --- Audio Playback ---
+// ── Audio Playback ──
 function queueAudio(base64) {
   const bytes = base64ToArrayBuffer(base64);
-  const float32 = pcm16ToFloat32(bytes);
-  playQueue.push(float32);
+  playQueue.push(pcm16ToFloat32(bytes));
   if (!isPlaying) playNext();
 }
 
@@ -392,60 +1068,109 @@ function playNext() {
     orbWrap.classList.remove("speaking");
     orbWrap.classList.add("listening");
     setStatus("Listening — speak anytime", "active");
+    hideStopBtn();
     return;
   }
-
   isPlaying = true;
   const samples = playQueue.shift();
-
-  const playCtx = new AudioContext({ sampleRate: SAMPLE_RATE });
-  const buffer = playCtx.createBuffer(1, samples.length, SAMPLE_RATE);
-  buffer.getChannelData(0).set(samples);
-
-  const src = playCtx.createBufferSource();
-  src.buffer = buffer;
-  src.connect(playCtx.destination);
-  src.onended = () => {
-    playCtx.close();
-    playNext();
-  };
+  const ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
+  const buf = ctx.createBuffer(1, samples.length, SAMPLE_RATE);
+  buf.getChannelData(0).set(samples);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.onended = () => { ctx.close(); playNext(); };
   src.start();
-  window._currentPlayback = { src, ctx: playCtx };
+  window._currentPlayback = { src, ctx };
 }
 
 function stopPlayback() {
   playQueue = [];
   isPlaying = false;
   if (window._currentPlayback) {
-    try {
-      window._currentPlayback.src.stop();
-      window._currentPlayback.ctx.close();
-    } catch (e) {}
+    try { window._currentPlayback.src.stop(); window._currentPlayback.ctx.close(); } catch (e) {}
     window._currentPlayback = null;
+  }
+  // Also stop MP3 playback
+  if (window._mp3Audio) {
+    window._mp3Audio.pause();
+    window._mp3Audio.src = "";
+    window._mp3Audio = null;
   }
 }
 
-// --- Helpers ---
-function arrayBufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
+// Play MP3 from base64 (used for REST TTS in external LLM mode)
+function playMp3(base64) {
+  stopPlayback();
+  const blob = new Blob([base64ToArrayBuffer(base64)], { type: "audio/mpeg" });
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+  audio.onended = () => {
+    URL.revokeObjectURL(url);
+    window._mp3Audio = null;
+    orbWrap.classList.remove("speaking");
+    orbWrap.classList.add("listening");
+    setStatus("Listening — speak anytime", "active");
+    hideStopBtn();
+  };
+  audio.onerror = (e) => {
+    console.error("MP3 playback error:", e);
+    window._mp3Audio = null;
+    orbWrap.classList.remove("speaking");
+    orbWrap.classList.add("listening");
+    setStatus("Listening — speak anytime", "active");
+  };
+  window._mp3Audio = audio;
+  audio.play();
 }
 
-function base64ToArrayBuffer(base64) {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes.buffer;
+// ── Helpers ──
+function arrayBufferToBase64(buf) {
+  const b = new Uint8Array(buf);
+  let s = "";
+  for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+  return btoa(s);
+}
+function base64ToArrayBuffer(b64) {
+  const bin = atob(b64);
+  const b = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+  return b.buffer;
+}
+function pcm16ToFloat32(buf) {
+  const i16 = new Int16Array(buf);
+  const f32 = new Float32Array(i16.length);
+  for (let i = 0; i < i16.length; i++) f32[i] = i16[i] / 32768;
+  return f32;
 }
 
-function pcm16ToFloat32(buffer) {
-  const int16 = new Int16Array(buffer);
-  const float32 = new Float32Array(int16.length);
-  for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768;
-  return float32;
+// Populate mic selector
+async function populateMics() {
+  try {
+    // Need permission first to get labels
+    await navigator.mediaDevices.getUserMedia({ audio: true }).then(s => s.getTracks().forEach(t => t.stop()));
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === "audioinput");
+    const select = document.getElementById("micSelect");
+    select.innerHTML = "";
+    mics.forEach((mic, i) => {
+      const opt = document.createElement("option");
+      opt.value = mic.deviceId;
+      opt.textContent = mic.label || `Microphone ${i + 1}`;
+      select.appendChild(opt);
+    });
+    // Restore saved mic
+    const savedMic = localStorage.getItem("voicechat_mic");
+    if (savedMic) select.value = savedMic;
+    select.onchange = () => localStorage.setItem("voicechat_mic", select.value);
+  } catch (e) {
+    console.log("Mic enumeration failed:", e);
+  }
 }
+populateMics();
+
+// Init
+initSettings();
 </script>
 </body>
 </html>
