@@ -54,6 +54,102 @@ Detect intent from the user's words + source material:
 | **End card** | Logo + tagline + social | Summary of steps | Logo + pricing/link |
 | **Music** | Dramatic bed / upbeat | None or subtle | Subtle background |
 
+## Compositing Engines
+
+Two compositing engines are available. **Default to Remotion** for new projects.
+
+### Remotion (Preferred)
+
+React-based programmatic video. Better for: spring animations, light leaks, per-word captions, transitions, scene composition, iterative preview.
+
+**Prerequisites check — run before starting:**
+```bash
+# Check if Remotion skill is installed
+ls ~/.claude/skills/remotion-best-practices/SKILL.md 2>/dev/null || ls ~/.agents/skills/remotion-best-practices/SKILL.md 2>/dev/null
+# If not found, prompt user:
+# "Remotion skill not installed. Run: npx skills add remotion-dev/skills --yes --global"
+
+# Check if create-video CLI works
+npx create-video@latest --help 2>/dev/null
+# If fails, Node.js/npm is required
+```
+
+If either is missing, tell the user: "To use Remotion compositing, you need to install the Remotion skill first. Run: `npx skills add remotion-dev/skills --yes --global`" and wait for confirmation before proceeding.
+
+- Install skill: `npx skills add remotion-dev/skills --yes --global`
+- New project: `npx create-video@latest --blank <name>`
+- Preview: `npx remotion studio src/index.ts`
+- Render: `npx remotion render src/index.ts <CompositionId> out.mp4 --codec h264 --gl=angle`
+- Compress: `ffmpeg -i out.mp4 -c:v libx264 -preset veryslow -b:v 480k -pass 1 -tune stillimage -an -f null /dev/null && ffmpeg -i out.mp4 -c:v libx264 -preset veryslow -b:v 480k -pass 2 -tune stillimage -c:a aac -b:a 96k -movflags +faststart compressed.mp4`
+
+**Critical Remotion rules:**
+- `Audio` import from `remotion` core, NOT `@remotion/media`
+- `--gl=angle` flag required when rendering with `LightLeak` components
+- Two-pass with `-tune stillimage` for screen recording compression
+- Use clean VO WAV/MP3, never extract audio from a final mixed video
+
+**Remotion feature reference:** The `remotion-best-practices` skill (installed at `~/.agents/skills/remotion-best-practices/`) contains 38 rule files. Before writing any Remotion component, load the relevant rule file for domain-specific API guidance:
+
+| Feature | Rule File |
+|---------|-----------|
+| Animations (spring, interpolate) | `rules/animations.md` |
+| Scene transitions (slide, fade, wipe) | `rules/transitions.md` |
+| Text animations (typewriter, reveal) | `rules/text-animations.md` |
+| Light leak overlays | `rules/light-leaks.md` |
+| Sound effects (ding, page-turn, bruh) | `rules/sfx.md` |
+| Per-word captions | `rules/subtitles.md`, `rules/display-captions.md` |
+| Caption transcription | `rules/transcribe-captions.md` |
+| SRT import | `rules/import-srt-captions.md` |
+| Audio (trim, volume, speed) | `rules/audio.md` |
+| Audio visualization (spectrum, waveform) | `rules/audio-visualization.md` |
+| AI voiceover (ElevenLabs TTS) | `rules/voiceover.md` |
+| Images, Videos, GIFs | `rules/images.md`, `rules/videos.md`, `rules/gifs.md` |
+| Timing (easing, spring config) | `rules/timing.md` |
+| Sequencing (Series, Sequence) | `rules/sequencing.md` |
+| Charts & data viz | `rules/charts.md` |
+| 3D (Three.js) | `rules/3d.md` |
+| Fonts (Google, local) | `rules/fonts.md` |
+| Tailwind CSS | `rules/tailwind.md` |
+| FFmpeg operations | `rules/ffmpeg.md` |
+| Parametrizable videos (Zod schema) | `rules/parameters.md` |
+| Maps (Mapbox) | `rules/maps.md` |
+| Transparent video export | `rules/transparent-videos.md` |
+
+Source: https://github.com/JonnyBurger/whats-new-in-remotion — all latest Remotion features (light leaks, SFX library, Rspack bundler, visual mode, render on Vercel) are covered by these rules.
+
+### FFmpeg (Legacy)
+
+Shell-based frame-by-frame compositing. Used by `scripts/` pipeline. Good for: quick edits, simple zoom+caption overlays, batch processing.
+
+## Design Language — Apple Keynote Style
+
+Default aesthetic for all promo videos. Do NOT deviate without explicit user request.
+
+### Colors
+- Background: Pure black (#0a0a0a)
+- Text: White only — NO colored accents (no yellow, blue, purple, red)
+- Light leaks: Warm amber (hue ~25), MAX 8% opacity, `mixBlendMode: "screen"`
+- Text glow: Pure white only, very subtle (opacity 0.15 max)
+
+### Captions (over screen recordings)
+- NO backdrop box/pill — text floats freely with multi-layer drop shadow
+- Shadow: `0 2px 4px rgba(0,0,0,0.7), 0 4px 20px rgba(0,0,0,0.5), 0 8px 40px rgba(0,0,0,0.3)`
+- Active word: pure white, bold (800), scale 1.15
+- Past words: white at 90%, Future words: white at 45%
+- Font: SF Pro Display, 44-46px
+
+### Typography hierarchy
+- Subheads: weight 300, uppercase, letter-spacing 0.08em, white at 70%
+- Hero text: weight 700, normal case, letter-spacing -0.02em, pure white
+- Brand: weight 500, uppercase, letter-spacing 0.3em, white at 60%
+
+### SFX Timing Rules
+- **Dings** fire at word START time (not end time)
+- **Captions** need +250ms visual lead over audio
+- **Page-turn** SFX for transitions between narrative phases
+- **Ding** SFX for achievements ("Bot created.", "Token secured.", etc.)
+- Hook/payoff text MUST match VO content exactly (audio-visual coherency)
+
 ### Interaction Flow
 
 The skill uses a **recommend-and-confirm** pattern — never a questionnaire:
