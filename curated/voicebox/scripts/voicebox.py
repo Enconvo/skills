@@ -387,6 +387,157 @@ def list_speakers():
     click.echo(f"\nCreate a profile: voicebox.py create-custom \"Profile Name\" <speaker>")
 
 
+MLX_TTS_PORT = 8765
+MLX_TTS_PID = Path("/tmp/mlx_tts_server.pid")
+MLX_TTS_SERVER = Path(__file__).resolve().parent / "mlx_tts_server.py"
+
+
+def _build_tts_params(profile, text, instruct):
+    """Build TTS params from a voice profile. Returns (params, model_id) or None."""
+    if profile["type"] == "designed":
+        model_id = "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16"
+        return {
+            "input_text": text,
+            "instruct": instruct if instruct else profile["description"],
+            "voice": "Chelsie",
+            "model_id": model_id,
+        }, model_id
+    elif profile["type"] == "custom":
+        model_id = "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16"
+        return {
+            "input_text": text,
+            "voice": profile["speaker"],
+            "model_id": model_id,
+        }, model_id
+    return None, None
+
+
+def _call_enconvo(params):
+    """Call EnConvo MLX endpoint. Returns result dict or None."""
+    import urllib.request
+    import json as _json
+    try:
+        urllib.request.urlopen("http://localhost:54535/health", timeout=1)
+    except Exception:
+        return None
+    try:
+        req = urllib.request.Request(
+            "http://localhost:54535/mlx_manage/mlx_audio/tts_generate",
+            data=_json.dumps({"arguments": params}).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = _json.loads(resp.read())
+        if isinstance(result, list) or not result.get("audio_path"):
+            return None
+        return result
+    except Exception:
+        return None
+
+
+def _call_standalone(params):
+    """Call standalone MLX TTS server. Returns result dict or None."""
+    import urllib.request
+    import json as _json
+    try:
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{MLX_TTS_PORT}/tts",
+            data=_json.dumps(params).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = _json.loads(resp.read())
+        if result.get("error") or not result.get("audio_path"):
+            return None
+        return result
+    except Exception:
+        return None
+
+
+def _standalone_running():
+    """Check if standalone MLX TTS server is running."""
+    import urllib.request
+    try:
+        urllib.request.urlopen(f"http://127.0.0.1:{MLX_TTS_PORT}/health", timeout=1)
+        return True
+    except Exception:
+        return False
+
+
+def _start_standalone():
+    """Start the standalone MLX TTS server in background."""
+    click.echo(f"Starting standalone MLX TTS server on port {MLX_TTS_PORT}...")
+    subprocess.Popen(
+        ["uv", "run", str(MLX_TTS_SERVER)],
+        stdout=open("/tmp/mlx_tts_server.log", "w"),
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    # Wait for it to be ready
+    import time
+    for _ in range(30):
+        time.sleep(0.5)
+        if _standalone_running():
+            click.echo("MLX TTS server ready.")
+            return True
+    click.echo("MLX TTS server failed to start.", err=True)
+    return False
+
+
+def _kill_standalone():
+    """Kill the standalone MLX TTS server if running."""
+    if MLX_TTS_PID.exists():
+        try:
+            pid = int(MLX_TTS_PID.read_text().strip())
+            os.kill(pid, 15)  # SIGTERM
+            MLX_TTS_PID.unlink(missing_ok=True)
+        except (ValueError, ProcessLookupError, OSError):
+            MLX_TTS_PID.unlink(missing_ok=True)
+
+
+def _try_warm_tts(profile, text, instruct, output, play):
+    """Try generating via warm MLX server (EnConvo or standalone).
+    Returns True if successful, False to fall back to cold Python."""
+    import shutil
+
+    params, model_id = _build_tts_params(profile, text, instruct)
+    if params is None:
+        return False  # Cloned voices not supported via server
+
+    # Priority 1: EnConvo
+    result = _call_enconvo(params)
+    if result:
+        # EnConvo is available — kill standalone if it's running (no need for both)
+        if _standalone_running():
+            click.echo("EnConvo available, shutting down standalone MLX server.")
+            _kill_standalone()
+
+        out_path = f"{output}.wav"
+        shutil.copy2(result["audio_path"], out_path)
+        click.echo(f"Saved: {out_path} ({result.get('duration', 0):.1f}s) [via EnConvo MLX]")
+        if play:
+            click.echo("Playing...")
+            subprocess.run(["afplay", out_path])
+        return True
+
+    # Priority 2: Standalone MLX TTS server
+    if not _standalone_running():
+        if not _start_standalone():
+            return False
+
+    result = _call_standalone(params)
+    if result:
+        out_path = f"{output}.wav"
+        shutil.copy2(result["audio_path"], out_path)
+        click.echo(f"Saved: {out_path} ({result.get('duration', 0):.1f}s) [via standalone MLX]")
+        if play:
+            click.echo("Playing...")
+            subprocess.run(["afplay", out_path])
+        return True
+
+    return False
+
+
 @cli.command("generate")
 @click.argument("profile_name")
 @click.argument("text")
@@ -402,6 +553,12 @@ def generate(profile_name, text, instruct, output, play, quality):
         sys.exit(1)
 
     click.echo(f"Using profile: {profile['name']} ({profile['type']})")
+
+    # Fast path: try warm MLX server (EnConvo → standalone → cold fallback)
+    if _try_warm_tts(profile, text, instruct, output, play):
+        return
+
+    click.echo("No warm MLX server available, using cold mlx_audio...")
 
     import soundfile as sf
 
