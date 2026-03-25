@@ -204,40 +204,59 @@ def group_words_into_lines(words, max_words_per_line=8):
 
 
 def translate_lines(lines, target_lang):
-    """Translate each caption line to target language via EnConvo API."""
-    import urllib.request
+    """Translate caption lines to target language via Groq LLM (batch mode)."""
+    from groq import Groq
 
-    print(f"  Translating {len(lines)} lines to {target_lang}...")
+    groq_api_key = os.environ.get('GROQ_API_KEY', '')
+    if not groq_api_key:
+        print("  WARNING: GROQ_API_KEY not set — skipping translation")
+        return [""] * len(lines)
+
+    client = Groq(api_key=groq_api_key)
+    texts = [''.join(w['word'] for w in line_words) for line_words in lines]
+
+    print(f"  Translating {len(texts)} lines to {target_lang}...")
     translations = []
+    batch_size = 20
 
-    for line_words in lines:
-        text = ''.join(w['word'] for w in line_words)
-        prompt = (
-            f"Translate to {target_lang}. Return ONLY the translation, nothing else. "
-            f"Keep it natural and concise for subtitles.\n\n{text}"
-        )
-
-        payload = json.dumps({
-            "messages": [{"role": "user", "content": prompt}],
-            "model": "anthropic/claude-sonnet-4-20250514",
-            "stream": False
-        }).encode()
-
-        req = urllib.request.Request(
-            "http://localhost:54535/api/chat",
-            data=payload,
-            headers={"Content-Type": "application/json"}
-        )
+    for b in range(0, len(texts), batch_size):
+        batch = texts[b:b + batch_size]
+        numbered = '\n'.join(f'{j+1}. {t}' for j, t in enumerate(batch))
 
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                result = json.loads(resp.read())
-                translated = result.get('choices', [{}])[0].get('message', {}).get('content', '').strip()
-                translations.append(translated)
+            resp = client.chat.completions.create(
+                model='llama-3.3-70b-versatile',
+                messages=[{
+                    'role': 'user',
+                    'content': (
+                        f'Translate these English subtitles to natural {target_lang}. '
+                        f'Return ONLY the numbered translations, one per line, matching input numbers. '
+                        f'Keep brand names and proper nouns in English. Be concise for subtitles.\n\n{numbered}'
+                    )
+                }],
+                max_tokens=2000,
+                temperature=0.3
+            )
+
+            result = resp.choices[0].message.content.strip()
+            batch_translations = []
+            for line in result.split('\n'):
+                line = line.strip()
+                if line and line[0].isdigit():
+                    txt = line.split('.', 1)[-1].strip() if '.' in line else line
+                    batch_translations.append(txt)
+
+            # Pad if we got fewer translations than expected
+            while len(batch_translations) < len(batch):
+                batch_translations.append("")
+            translations.extend(batch_translations[:len(batch)])
+
         except Exception as e:
-            # Fallback: return empty
-            print(f"    Translation failed for '{text}': {e}")
-            translations.append("")
+            print(f"    Batch translation failed: {e}")
+            translations.extend([""] * len(batch))
+
+        done = min(b + batch_size, len(texts))
+        print(f"    {done}/{len(texts)} translated")
 
     return translations
 

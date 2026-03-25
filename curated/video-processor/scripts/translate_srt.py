@@ -7,8 +7,6 @@ import sys
 import os
 import re
 import json
-import urllib.request
-import urllib.error
 
 
 def parse_srt(srt_content):
@@ -40,48 +38,33 @@ def parse_srt(srt_content):
     return segments
 
 
-def enconvo_translate(text, target_lang):
-    """Call EnConvo API to translate text"""
-    prompt = f"""Translate this video subtitle from English to {target_lang}.
+def groq_translate(text, target_lang):
+    """Translate text via Groq LLM (llama-3.3-70b)."""
+    from groq import Groq
 
-CRITICAL RULES:
-1. Use NATURAL {target_lang} phrasing - avoid word-for-word translation
-2. Match the TONE and STYLE of the original (casual, formal, enthusiastic, etc.)
-3. Keep technical terms, brand names, and proper nouns in ENGLISH (e.g., "Google Gemini", "ChatGPT", "YouTube")
-4. Preserve the RHYTHM and FLOW for speech - translate for listening, not reading
-5. Use colloquial expressions when appropriate - sound like a native speaker
-6. Keep numbers, dates, and measurements in their original format
-7. DROP any remaining filler words entirely — do NOT translate them. Examples: "you know", "um", "uh", "like" (filler), "I mean", "basically", "actually" (filler), "sort of", "kind of" (when used as verbal tics). These must be silently removed, never rendered in {target_lang}.
+    groq_api_key = os.environ.get('GROQ_API_KEY', '')
+    if not groq_api_key:
+        print("  ERROR: GROQ_API_KEY not set")
+        sys.exit(1)
 
-EXAMPLE (English to Chinese):
-- Bad: "我想到了你，在我看到这个以后。" (machine translation)
-- Good: "我一看到这个，就想到了你。" (natural Chinese)
-
-SUBTITLE TEXT:
-{text}
-
-OUTPUT: Only the natural {target_lang} translation, nothing else."""
-
-    url = "http://localhost:54535/command/call/chat_with_ai/chat"
-    payload = json.dumps({"input_text": prompt}).encode("utf-8")
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+    client = Groq(api_key=groq_api_key)
+    prompt = (
+        f"Translate this video subtitle to natural {target_lang}. "
+        f"Return ONLY the translation. Keep brand names/proper nouns in English. "
+        f"Drop filler words. Be concise for subtitles.\n\n{text}"
+    )
 
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            result = resp.read().decode("utf-8")
-            # Try to parse as JSON; if it has a known field, extract it
-            try:
-                data = json.loads(result)
-                if isinstance(data, dict):
-                    # Return the most likely text field
-                    return (data.get("output_text") or data.get("text") or data.get("result") or data.get("response") or str(data)).strip()
-                return str(data).strip()
-            except json.JSONDecodeError:
-                return result.strip()
-    except urllib.error.URLError as e:
-        print(f"\n  Error calling EnConvo API: {e}")
-        print("  Make sure EnConvo is running on localhost:54535")
-        sys.exit(1)
+        resp = client.chat.completions.create(
+            model='llama-3.3-70b-versatile',
+            messages=[{'role': 'user', 'content': prompt}],
+            max_tokens=500,
+            temperature=0.3
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"\n  Translation error: {e}")
+        return text
 
 
 def translate_subtitle(srt_content, target_lang):
@@ -91,7 +74,7 @@ def translate_subtitle(srt_content, target_lang):
     print(f"  Translating Subtitles")
     print(f"{'='*60}\n")
     print(f"Target language: {target_lang}")
-    print(f"Using: EnConvo API\n")
+    print(f"Using: Groq LLM (llama-3.3-70b)\n")
 
     segments = parse_srt(srt_content)
 
@@ -99,7 +82,7 @@ def translate_subtitle(srt_content, target_lang):
     for i, seg in enumerate(segments):
         print(f"  Translating segment {i+1}/{len(segments)}...", end='\r')
 
-        translated_text = enconvo_translate(seg['text'], target_lang)
+        translated_text = groq_translate(seg['text'], target_lang)
         translated_segments.append({
             'index': seg['index'],
             'timestamp': seg['timestamp'],

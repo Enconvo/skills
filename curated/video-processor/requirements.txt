@@ -1,0 +1,9 @@
+# Core dependencies
+groq>=0.4.0        # Whisper ASR via Groq API
+edge-tts>=6.1.0    # Default TTS engine (cloud, 50+ languages)
+numpy>=1.24.0      # Audio timeline assembly
+soundfile>=0.12.0  # WAV read/write
+
+# Optional: Kokoro TTS (local, offline)
+# Install in conda env: conda create -n kokoro python=3.10
+# pip install kokoro soundfile numpy
