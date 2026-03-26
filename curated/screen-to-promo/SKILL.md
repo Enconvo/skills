@@ -287,8 +287,8 @@ Both `zoom` (single dict) and `zooms` (array) are supported.
 - **CJK font on macOS**: `/System/Library/Fonts/PingFang.ttc` does NOT work in ffmpeg drawtext. Use the full AssetsV2 path from `fc-list | grep PingFang`. Or better — use Remotion which handles system fonts natively.
 - **Concat codec matching**: when concatenating segments with ffmpeg `-f concat`, ALL segments MUST have identical codec params (fps, sample rate, channels, pixel format). Re-encode all to matching params BEFORE concat, or use full re-encode concat. Mismatched params cause DTS warnings and audio dropout.
 - **Voicebox output path**: voicebox `--output` flag appends `.wav` to the filename — if you pass `seg.wav`, you get `seg.wav.wav`. Account for this double extension.
-- **Silent video analysis**: use `video_captioner.py` (MLX VLM) from video-processor skill to extract visual scene descriptions, then write narration script from those descriptions. This bridges silent source → narrated promo.
-- **Cross-skill pipeline**: video-processor (analysis) → screen-to-promo (production) is a valid workflow. Use video_captioner for silent videos, transcriber for videos with speech.
+- **Silent video analysis**: DEFAULT — use the host LLM (Claude) to analyze extracted frames directly (ffmpeg extract keyframes → read images → describe scenes). FALLBACK — use `video_captioner.py` (MLX VLM, Qwen2.5-VL-3B) from video-processor skill when the host LLM is unavailable or the pipeline must run unattended. The host LLM produces significantly better scene descriptions than the local 3B model.
+- **Cross-skill pipeline**: video-processor (analysis/fallback) → screen-to-promo (production) is a valid workflow. Use host LLM for scene analysis by default, video_captioner.py as offline fallback, transcriber for videos with speech.
 
 ## Detailed Reference
 
