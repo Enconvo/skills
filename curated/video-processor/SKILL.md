@@ -11,7 +11,7 @@ user_invocable: true
 
 Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS.
 
-**Architecture:** Groq Whisper for ASR + EnConvo API for translation. Condensation, summarization, and filler cleanup are handled by the host agent.
+**Architecture:** Groq Whisper for ASR + Groq LLM (llama-3.3-70b) for translation. Condensation, summarization, and filler cleanup are handled by the host agent. Visual analysis of silent videos uses the host LLM by default (extract frames → read images → describe), with `video_captioner.py` (MLX VLM, Qwen2.5-VL-3B) as offline fallback.
 
 **Supports:**
 - **Video files**: MP4, MKV, AVI, MOV, WebM, FLV
@@ -27,6 +27,7 @@ Use this skill when the user:
 - Needs "video summary" or "summarize this video"
 - Requests "extract transcript from video"
 - Asks to "caption this video" or "add word-level captions"
+- Asks to "analyze this video", "what's happening in this video", "describe this silent video"
 - Asks in ANY language (e.g., "总结这段视频", "résumez cette vidéo", "resume este video")
 
 **Language Detection:**
@@ -152,6 +153,30 @@ Claude: python3 scripts/caption_video.py video.mp4 --style=appear --position=top
 User: "Caption https://youtube.com/watch?v=xxx"
 Claude: python3 scripts/caption_video.py "https://youtube.com/watch?v=xxx"
 ```
+
+### 6. Visual Analysis (Silent Video)
+Analyze video frames visually and generate scene descriptions. Works on silent videos with no audio.
+
+**Triggers:** "analyze this video", "what's happening in this video", "describe this silent video"
+
+**Fallback Sequence:**
+1. **DEFAULT — Host LLM**: Extract keyframes with ffmpeg (`ffmpeg -i video.mp4 -vf "fps=1/4" frame_%04d.jpg`), then read the images directly and describe each scene. Produces significantly better descriptions than the local model.
+2. **FALLBACK — video_captioner.py (MLX VLM)**: Use when the host LLM is unavailable or the pipeline must run unattended/offline.
+   ```bash
+   python3 scripts/video_captioner.py <video_file> [options]
+   ```
+
+**video_captioner.py Options:**
+- `--model MODEL` — HuggingFace model ID (default: `mlx-community/Qwen2.5-VL-3B-Instruct-8bit`)
+- `--interval N` — Extract 1 frame every N seconds (default: 3)
+- `--max-frames N` — Maximum frames to process (default: 60)
+- `--language LANG` — Output language: english/chinese (default: english)
+- `--backend BACKEND` — Force backend: enconvo/standalone/auto (default: auto)
+- `--output FILE` — Output SRT file path
+
+**Output:** `{name}_captions.srt` — SRT file with visual descriptions synced to video timestamps.
+
+**Known limitation:** The local 3B model returns `!!!` garbage on ~50% of frames (dark transitions, fast motion). Filter these out in post-processing. The host LLM does not have this issue.
 
 ## Agent Protocols
 
