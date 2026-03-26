@@ -11,7 +11,7 @@ user_invocable: true
 
 Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS.
 
-**Architecture:** Groq Whisper for ASR + Groq LLM (llama-3.3-70b) for translation. Condensation, summarization, and filler cleanup are handled by the host agent. Visual analysis of silent videos uses the host LLM by default (extract frames → read images → describe), with `video_captioner.py` (MLX VLM, Qwen2.5-VL-3B) as offline fallback.
+**Architecture:** Groq Whisper for ASR. Translation and visual analysis use the **host LLM by default** (higher quality, context-aware). Fallbacks: Groq LLM (llama-3.3-70b) for translation, `video_captioner.py` (MLX VLM, Qwen2.5-VL-3B) for visual analysis. Condensation, summarization, and filler cleanup are handled by the host agent.
 
 **Supports:**
 - **Video files**: MP4, MKV, AVI, MOV, WebM, FLV
@@ -198,9 +198,9 @@ Preserves meaning, tone, and natural phrasing. Same timestamps, cleaned text.
 
 **Important:** This happens BEFORE translation so filler words don't propagate into the target language (e.g., "you know" → "你知道"). The translation prompt also drops any remaining fillers as a second safety net.
 
-### Script Translation (EnConvo API)
+### Script Translation
 
-Translation is handled by `scripts/translate_srt.py` using EnConvo API (localhost:54535):
+Translation uses the **host LLM by default** (the agent translates directly — higher quality, context-aware). **Fallback**: `scripts/translate_srt.py` using Groq LLM (llama-3.3-70b):
 
 ```bash
 python3 scripts/translate_srt.py <srt_file> <target_lang>
@@ -260,7 +260,7 @@ The agent reads the transcript and generates a structured summary:
 - **Audio + Video support** (MP4, MP3, WAV, M4A, and more)
 - **URL download** (YouTube, Twitter, TikTok, 1000+ sites)
 - Ultra-fast transcription (Groq Whisper Large V3)
-- Natural translation via EnConvo API (context-aware, preserves technical terms)
+- Natural translation via host LLM (default) or Groq LLM fallback (context-aware, preserves technical terms)
 - **Transcript cleanup** (removes filler words and verbal tics before translation)
 - **Segment-by-segment TTS** (precise timing per subtitle)
 - **Agent-driven condensation** (shortens overlong translations via agent instead of external LLM)
@@ -450,7 +450,7 @@ generate_tts_and_dub.sh video.mp4 transcript.srt transcript.srt english none en-
 ## Notes
 
 - All modes start with transcription (Groq Whisper ASR)
-- Translation via EnConvo API (natural, context-aware phrasing)
+- Translation via host LLM (default) or Groq LLM fallback (natural, context-aware phrasing)
 - Transcript cleanup removes filler words before translation
 - Dubbing includes perfect audio-subtitle sync (segment-by-segment)
 - **Burns in dual subtitles** (original top/yellow + translated bottom/white, always visible)
