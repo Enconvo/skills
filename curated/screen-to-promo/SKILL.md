@@ -282,6 +282,13 @@ Both `zoom` (single dict) and `zooms` (array) are supported.
 - **Frame numbering**: all frames are 1-indexed (`f_0001.jpg`, `f_0002.jpg`, ...).
 - **Zoom easing**: cosine ease-in-out on both zoom in and zoom out.
 - **Zoom accuracy**: never guess cx/cy — extract actual frames and measure pixel coordinates.
+- **ALWAYS use Remotion for hook/CTA**: never fall back to plain ffmpeg drawtext for title cards. Remotion gives spring animations, light leaks, and proper motion design. ffmpeg drawtext produces static, lifeless cards.
+- **ALWAYS read the Design Language section first**: before ANY visual compositing, check the aesthetic rules in this file. Do NOT default to colored text, navy backgrounds, or any non-approved palette.
+- **CJK font on macOS**: `/System/Library/Fonts/PingFang.ttc` does NOT work in ffmpeg drawtext. Use the full AssetsV2 path from `fc-list | grep PingFang`. Or better — use Remotion which handles system fonts natively.
+- **Concat codec matching**: when concatenating segments with ffmpeg `-f concat`, ALL segments MUST have identical codec params (fps, sample rate, channels, pixel format). Re-encode all to matching params BEFORE concat, or use full re-encode concat. Mismatched params cause DTS warnings and audio dropout.
+- **Voicebox output path**: voicebox `--output` flag appends `.wav` to the filename — if you pass `seg.wav`, you get `seg.wav.wav`. Account for this double extension.
+- **Silent video analysis**: use `video_captioner.py` (MLX VLM) from video-processor skill to extract visual scene descriptions, then write narration script from those descriptions. This bridges silent source → narrated promo.
+- **Cross-skill pipeline**: video-processor (analysis) → screen-to-promo (production) is a valid workflow. Use video_captioner for silent videos, transcriber for videos with speech.
 
 ## Detailed Reference
 
