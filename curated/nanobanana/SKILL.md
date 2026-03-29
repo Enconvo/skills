@@ -11,10 +11,11 @@ Generate images via Google's Nano Banana models with **native aspect ratio and r
 
 | Model | ID | Speed | Quality | Use When |
 |-------|----|-------|---------|----------|
-| **Nano Banana Pro** (default) | `gemini-3-pro-image-preview` | ~16s | Professional, 4K capable | Default for all tasks |
-| Nano Banana | `gemini-2.5-flash-image` | ~8s | Good, fast | User explicitly asks for speed/non-pro |
+| **Nano Banana 2** (default) | `gemini-3.1-flash-image-preview` | ~10s | Excellent, best instruction following, subject consistency | Default for all tasks |
+| Nano Banana Pro | `gemini-3-pro-image-preview` | ~16s | Professional, 4K capable | User explicitly asks for pro/highest quality |
+| Nano Banana Flash | `gemini-2.5-flash-image` | ~8s | Good, fast | Legacy, speed-only |
 
-**Default: Nano Banana Pro.** Only use non-pro if user explicitly requests it (e.g., "use flash", "use non-pro", "faster model").
+**Default: Nano Banana 2.** Use `--model pro` only if user explicitly requests pro quality. Nano Banana 2 is cheaper, faster, and has better subject consistency + instruction following than Pro.
 
 ## Pricing
 

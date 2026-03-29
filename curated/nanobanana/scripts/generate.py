@@ -2,7 +2,7 @@
 """Nano Banana image generation via Google Gemini API.
 
 Supports native aspect ratio and resolution control.
-Default: Nano Banana Pro (gemini-3-pro-image-preview), 16:9, 2K.
+Default: Nano Banana 2 (gemini-3.1-flash-image-preview), 16:9, 2K.
 """
 
 import argparse
@@ -32,6 +32,7 @@ if _env_path.exists():
 # ---------------------------------------------------------------------------
 
 MODELS = {
+    "nano2": "gemini-3.1-flash-image-preview",
     "pro": "gemini-3-pro-image-preview",
     "flash": "gemini-2.5-flash-image",
 }
@@ -255,7 +256,7 @@ def main():
     parser.add_argument("--output", "-o", default="generated.png", help="Output file path (default: generated.png)")
     parser.add_argument("--ar", default="16:9", choices=ASPECT_RATIOS, help="Aspect ratio (default: 16:9)")
     parser.add_argument("--size", default="2K", choices=IMAGE_SIZES, help="Resolution: 1K, 2K, 4K (default: 2K)")
-    parser.add_argument("--model", "-m", default="pro", choices=["pro", "flash"], help="Model: pro (default) or flash")
+    parser.add_argument("--model", "-m", default="nano2", choices=["nano2", "pro", "flash"], help="Model: nano2 (default), pro, or flash")
     parser.add_argument("--reference", "--ref", nargs="+", help="Reference image path(s)")
     parser.add_argument("--api-key", help="Gemini API key (overrides env var)")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
