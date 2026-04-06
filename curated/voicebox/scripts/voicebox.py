@@ -412,29 +412,6 @@ def _build_tts_params(profile, text, instruct):
     return None, None
 
 
-def _call_enconvo(params):
-    """Call EnConvo MLX endpoint. Returns result dict or None."""
-    import urllib.request
-    import json as _json
-    try:
-        urllib.request.urlopen("http://localhost:54535/health", timeout=1)
-    except Exception:
-        return None
-    try:
-        req = urllib.request.Request(
-            "http://localhost:54535/mlx_manage/mlx_audio/tts_generate",
-            data=_json.dumps({"arguments": params}).encode(),
-            headers={"Content-Type": "application/json"},
-        )
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            result = _json.loads(resp.read())
-        if isinstance(result, list) or not result.get("audio_path"):
-            return None
-        return result
-    except Exception:
-        return None
-
-
 def _call_standalone(params):
     """Call standalone MLX TTS server. Returns result dict or None."""
     import urllib.request
@@ -445,12 +422,13 @@ def _call_standalone(params):
             data=_json.dumps(params).encode(),
             headers={"Content-Type": "application/json"},
         )
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=300) as resp:
             result = _json.loads(resp.read())
         if result.get("error") or not result.get("audio_path"):
             return None
         return result
-    except Exception:
+    except Exception as e:
+        click.echo(f"Standalone server error: {e}", err=True)
         return None
 
 
@@ -496,31 +474,15 @@ def _kill_standalone():
 
 
 def _try_warm_tts(profile, text, instruct, output, play):
-    """Try generating via warm MLX server (EnConvo or standalone).
+    """Try generating via warm MLX server.
     Returns True if successful, False to fall back to cold Python."""
     import shutil
 
     params, model_id = _build_tts_params(profile, text, instruct)
     if params is None:
-        return False  # Cloned voices not supported via server
+        return False
 
-    # Priority 1: EnConvo
-    result = _call_enconvo(params)
-    if result:
-        # EnConvo is available — kill standalone if it's running (no need for both)
-        if _standalone_running():
-            click.echo("EnConvo available, shutting down standalone MLX server.")
-            _kill_standalone()
-
-        out_path = f"{output}.wav"
-        shutil.copy2(result["audio_path"], out_path)
-        click.echo(f"Saved: {out_path} ({result.get('duration', 0):.1f}s) [via EnConvo MLX]")
-        if play:
-            click.echo("Playing...")
-            subprocess.run(["afplay", out_path])
-        return True
-
-    # Priority 2: Standalone MLX TTS server
+    # Try standalone MLX TTS server (auto-starts if not running)
     if not _standalone_running():
         if not _start_standalone():
             return False
@@ -554,7 +516,7 @@ def generate(profile_name, text, instruct, output, play, quality):
 
     click.echo(f"Using profile: {profile['name']} ({profile['type']})")
 
-    # Fast path: try warm MLX server (EnConvo → standalone → cold fallback)
+    # Fast path: try warm MLX server (standalone → cold fallback)
     if _try_warm_tts(profile, text, instruct, output, play):
         return
 

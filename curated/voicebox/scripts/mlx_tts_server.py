@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Standalone MLX TTS server — lightweight HTTP wrapper around mlx-audio.
 Starts on port 8765, loads models on first use, keeps them warm.
-Designed to fill in when EnConvo is not running."""
+Auto-shuts down after idle timeout (default 10 min)."""
 # /// script
 # requires-python = ">=3.10"
 # dependencies = ["mlx-audio>=0.2.0", "soundfile>=0.13.0"]
@@ -11,14 +11,18 @@ import json
 import os
 import signal
 import sys
+import threading
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
 PORT = int(os.environ.get("MLX_TTS_PORT", "8765"))
 PID_FILE = Path("/tmp/mlx_tts_server.pid")
+IDLE_TIMEOUT = int(os.environ.get("MLX_TTS_IDLE_TIMEOUT", "600"))  # 10 min default
 
 # Cache loaded models
 _models = {}
+_last_request = time.monotonic()
 
 
 def get_model(model_id):
@@ -45,6 +49,9 @@ class TTSHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
+        global _last_request
+        _last_request = time.monotonic()
+
         if self.path != "/tts":
             self.send_response(404)
             self.end_headers()
@@ -58,11 +65,20 @@ class TTSHandler(BaseHTTPRequestHandler):
             model_id = body.get("model_id", "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16")
             voice = body.get("voice", "Chelsie")
             instruct = body.get("instruct")
+            ref_audio = body.get("ref_audio")
+            ref_text = body.get("ref_text")
 
             model = get_model(model_id)
 
             # Determine generation mode
-            if "CustomVoice" in model_id:
+            if ref_audio and "Base" in model_id:
+                # Voice cloning mode
+                results = list(model.generate(
+                    text=text,
+                    ref_audio=ref_audio,
+                    ref_text=ref_text or "",
+                ))
+            elif "CustomVoice" in model_id:
                 kwargs = {"text": text, "speaker": voice}
                 if instruct:
                     kwargs["instruct"] = instruct
@@ -112,6 +128,18 @@ class TTSHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
 
+def _idle_watchdog(server):
+    """Shut down server after IDLE_TIMEOUT seconds of no requests."""
+    while True:
+        time.sleep(30)
+        idle = time.monotonic() - _last_request
+        if idle >= IDLE_TIMEOUT:
+            print(f"[mlx-tts] Idle for {int(idle)}s, shutting down.")
+            PID_FILE.unlink(missing_ok=True)
+            server.shutdown()
+            return
+
+
 def main():
     # Write PID file
     PID_FILE.write_text(str(os.getpid()))
@@ -126,6 +154,12 @@ def main():
     server = HTTPServer(("127.0.0.1", PORT), TTSHandler)
     print(f"[mlx-tts] Server running on http://127.0.0.1:{PORT}")
     print(f"[mlx-tts] PID: {os.getpid()}")
+    print(f"[mlx-tts] Idle timeout: {IDLE_TIMEOUT}s")
+
+    # Start idle watchdog
+    watchdog = threading.Thread(target=_idle_watchdog, args=(server,), daemon=True)
+    watchdog.start()
+
     try:
         server.serve_forever()
     finally:

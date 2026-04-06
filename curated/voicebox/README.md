@@ -27,11 +27,10 @@ cp -r voicebox ~/.claude/skills/voicebox
 cp -r voicebox ~/.agent/skills/voicebox
 ```
 
-Or clone from the skills repo:
+Or copy from the skills directory:
 
 ```bash
-git clone https://github.com/Enconvo/skills.git /tmp/enconvo-skills
-cp -r /tmp/enconvo-skills/curated/voicebox ~/.claude/skills/voicebox
+cp -r /path/to/voicebox ~/.claude/skills/voicebox
 ```
 
 That's it. The skill works from any install location — all paths are resolved relative to the script. Dependencies and models auto-download on first use.

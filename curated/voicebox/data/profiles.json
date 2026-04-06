@@ -34,7 +34,7 @@
       "description": "Mature deep male voice with rich theatrical baritone resonance, dramatic gravitas and passionate intensity, slow commanding pace with deliberate pauses, powerful projection like a seasoned stage actor performing a patriotic war poem with fierce emotion",
       "language": "zh",
       "sample_audio": "samples/shakespeare-chinese.wav",
-      "sample_text": "晨光初照，静谧的村庄缓缓苏醒，金色的光芒洒满鹅卵石铺就的街道。鸟儿唱着晨歌，万物渐渐苏醒。"
+      "sample_text": "\u6668\u5149\u521d\u7167\uff0c\u9759\u8c27\u7684\u6751\u5e84\u7f13\u7f13\u82cf\u9192\uff0c\u91d1\u8272\u7684\u5149\u8292\u6d12\u6ee1\u9e45\u5375\u77f3\u94fa\u5c31\u7684\u8857\u9053\u3002\u9e1f\u513f\u5531\u7740\u6668\u6b4c\uff0c\u4e07\u7269\u6e10\u6e10\u82cf\u9192\u3002"
     },
     {
       "id": "panic-granny",
@@ -125,6 +125,239 @@
       "speaker": "sohee",
       "language": "ko",
       "description": "Korean female, bright and clear"
+    },
+    {
+      "id": "professional-female-voiceover",
+      "name": "Professional Female Voiceover",
+      "type": "designed",
+      "description": "Confident, polished woman in her mid-30s with a warm, authoritative voice. Clear articulation, smooth measured pace, resonant mid-range tone with natural authority. Professional TV commercial delivery \u2014 trust-inspiring and aspirational, with a touch of warmth and elegance.",
+      "language": "en",
+      "sample_audio": "samples/professional-female-voiceover.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "executive-female",
+      "name": "Executive Female",
+      "type": "designed",
+      "description": "Mature woman in her late 40s with a deep, resonant contralto voice, natural confident pace, rich lower register with subtle warmth. Composed, authoritative, and commanding without aggression. The measured elegance of a Fortune 500 product launch narrator \u2014 calm gravity, zero hesitation, premium brand gravitas.",
+      "language": "en",
+      "sample_audio": "samples/executive-female.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "power-female",
+      "name": "Power Female",
+      "type": "designed",
+      "description": "Mature woman in her late 40s with a deep, commanding contralto voice. Assertive, decisive, and unapologetically authoritative. Rich lower register, forward-driven natural pace \u2014 never rushed, never hesitant. The voice of a CEO on a global stage: iron composure, magnetic gravity, and absolute conviction. Fortune 500 product launch energy \u2014 the kind of voice that makes a room go silent.",
+      "language": "en",
+      "sample_audio": "samples/power-female.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "bold-female",
+      "name": "Bold Female",
+      "type": "designed",
+      "description": "Mature woman in her late 40s with a deep, rich contralto voice \u2014 low resonant register, not slowed down. Assertive and outgoing with genuine warmth and infectious positivity. Confident forward energy that invites and excites \u2014 the voice of a visionary leader launching something the world has been waiting for. Deep bass, bright optimism, magnetic presence. Like she's letting you in on something extraordinary.",
+      "language": "en",
+      "sample_audio": "samples/bold-female.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "vivid-female",
+      "name": "Vivid Female",
+      "type": "designed",
+      "description": "Woman in her mid-40s, unmistakably female voice with a deep, warm, resonant mezzo-soprano. Outgoing and positive, she speaks with bright confident energy and genuine enthusiasm. Lower female register \u2014 full, rich, never shrill. Assertive and uplifting, like a visionary woman CEO presenting to the world. Natural pace, forward momentum, infectious optimism.",
+      "language": "en",
+      "sample_audio": "samples/vivid-female.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "british-female",
+      "name": "British Female",
+      "type": "designed",
+      "description": "Woman in her mid-40s with an unmistakably female voice, strong Received Pronunciation British accent \u2014 crisp consonants, rounded vowels, clipped precision typical of BBC English. Deep warm mezzo-soprano register, full and rich, never shrill. Outgoing, positive, and assertive with genuine warmth and uplifting energy. Confident forward pace, magnetic presence. The voice of a visionary British woman leading a global product launch \u2014 authoritative, charming, and thoroughly British.",
+      "language": "en",
+      "sample_audio": "samples/british-female.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "british-lady",
+      "name": "British Lady",
+      "type": "designed",
+      "description": "Clearly and unmistakably female. A woman in her mid-40s. Her voice is a rich, warm female mezzo-soprano \u2014 distinctly feminine, full-bodied, never masculine. She speaks with a strong, polished British Received Pronunciation accent: crisp T's, rounded vowels, precise diction. Outgoing, assertive, and positively radiant \u2014 the voice of a confident British woman who commands a room with warmth and conviction. Forward natural pace, uplifting energy, premium global brand presence.",
+      "language": "en",
+      "sample_audio": "samples/british-lady.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "regal-british",
+      "name": "Regal British",
+      "type": "designed",
+      "description": "A distinctly feminine woman, 40 years old. Her voice sits in the lower female frequency range \u2014 a full, resonant contralto, rich and dark in timbre, never masculine but deeply mature. She speaks with a commanding British Received Pronunciation accent: precise diction, clipped consonants, elongated vowels. Assertive, grounded, and radiantly positive \u2014 the voice of a 40-year-old British woman who has earned her place on the global stage. She does not rush, she does not hesitate. Forward natural pace, lower vocal register, magnetic authority, warm confidence.",
+      "language": "en",
+      "sample_audio": "samples/regal-british.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "regal-british-v2",
+      "name": "Regal British v2",
+      "type": "designed",
+      "description": "A woman, exactly 40 years old, unmistakably and distinctly female. Her voice is a deep, low-frequency female contralto \u2014 rich, dark, and resonant in timbre. Firmly feminine, never masculine. She speaks with a strong British Received Pronunciation accent: elongated vowels, crisp consonants, authoritative precision. Assertive and grounded \u2014 she owns every word. Forward natural pace, never slow. Warm positive energy beneath iron composure. The voice of a 40-year-old British woman who launches world-changing products on the global stage.",
+      "language": "en",
+      "sample_audio": "samples/regal-british-v2.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "tv-commercial-voice-clone",
+      "name": "TV Commercial Voice Clone",
+      "type": "cloned",
+      "ref_audio": "samples/tv-commercial-voice-clone.wav",
+      "ref_text": "One sidebar, every app. Try it free in Convo.com.",
+      "language": "en"
+    },
+    {
+      "id": "regal-british-clone",
+      "name": "Regal British Clone",
+      "type": "cloned",
+      "ref_audio": "samples/regal-british-clone.wav",
+      "ref_text": "One sidebar. Every app. Try it free. enconvo.com",
+      "language": "en"
+    },
+    {
+      "id": "chameleon",
+      "name": "Chameleon",
+      "type": "custom",
+      "speaker": "ryan",
+      "language": "en",
+      "description": "English male, natural and conversational"
+    },
+    {
+      "id": "axolotl",
+      "name": "Axolotl",
+      "type": "custom",
+      "speaker": "aiden",
+      "language": "en",
+      "description": "English male, warm and articulate"
+    },
+    {
+      "id": "raccoon",
+      "name": "Raccoon",
+      "type": "designed",
+      "description": "Young confident male with a bright energetic baritone voice, fast enthusiastic pace, charming and persuasive closer energy, slightly breathless with excitement, suitable for call-to-action sales moments",
+      "language": "en",
+      "sample_audio": "samples/raccoon.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "trump",
+      "name": "Trump",
+      "type": "cloned",
+      "ref_audio": "samples/trump.wav",
+      "ref_text": "And frankly, this was, I believe, the greatest political movement of all time. There's never been anything like this in this country, and maybe beyond. And now it's going to reach a new level of importance because we're going to help our country heal. Help our country heal. We have a country that needs help, and it needs help very badly.",
+      "language": "en"
+    },
+    {
+      "id": "shakespeare-lobster",
+      "name": "Shakespeare Lobster",
+      "type": "cloned",
+      "ref_audio": "samples/shakespeare-lobster.wav",
+      "ref_text": "To understand... or to Google like a fool. To write... or to embarrass yourself for eternity. That is the question. But I have the answer. EnConvo PopBar.",
+      "language": "en"
+    },
+    {
+      "id": "sir-attenborough",
+      "name": "Sir Attenborough",
+      "type": "cloned",
+      "ref_audio": "samples/sir-attenborough.wav",
+      "ref_text": "The geese will risk their lives to protect their eggs. If they lose them, they can't produce another clutch this season.",
+      "language": "en"
+    },
+    {
+      "id": "trump-voice",
+      "name": "Trump Voice",
+      "type": "designed",
+      "description": "Senior male business leader with distinctive bold brash voice, confident assertive tone, fast energetic pace with dramatic emphasis, commanding and bombastic delivery",
+      "language": "en",
+      "sample_audio": "samples/trump-voice.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "morgan-freeman",
+      "name": "Morgan Freeman",
+      "type": "cloned",
+      "ref_audio": "samples/morgan-freeman.wav",
+      "ref_text": "Poem, and as he explains to Pinar, at one time, when he lost courage, when he felt like just giving up, just lie down and not get up again, he.",
+      "language": "en"
+    },
+    {
+      "id": "sichuan-uncle",
+      "name": "Sichuan Uncle",
+      "type": "designed",
+      "description": "Middle-aged male from Sichuan province with a warm husky voice, distinctive Sichuan dialect accent, relaxed and humorous tone, speaks with the characteristic rising-falling intonation of Sichuanese, deep baritone with a slightly nasal quality, unhurried folksy pace",
+      "language": "zh",
+      "sample_audio": "samples/sichuan-uncle.wav",
+      "sample_text": "\u5404\u4f4d\u670b\u53cb\uff0c\u4eca\u5929\u6211\u7ed9\u5927\u5bb6\u6446\u4e00\u4e0b\u9f99\u95e8\u9635\uff0c\u8bf4\u8bf4\u8fd9\u4e2aAI\u667a\u80fd\u4f53\u7684\u4e8b\u60c5\u561b"
+    },
+    {
+      "id": "george-costanza",
+      "name": "George Costanza",
+      "type": "cloned",
+      "ref_audio": "samples/george-costanza.wav",
+      "ref_text": "It's not a lie if you believe it. That's what I always say. You know Jerry, the key to eating is to not think about what you're doing.",
+      "language": "en"
+    },
+    {
+      "id": "jet2-holiday",
+      "name": "Jet2 Holiday",
+      "type": "cloned",
+      "ref_audio": "samples/jet2-holiday.wav",
+      "ref_text": "Nothing beats a Jet2 holiday! And right now you can save fifty pounds per person!",
+      "language": "en"
+    },
+    {
+      "id": "sultry-jade",
+      "name": "Sultry Jade",
+      "type": "designed",
+      "description": "Young adult Chinese female with a soft husky contralto voice, slow languid pace, breathy and intimate delivery, warm whisper-like tone that draws listeners in, suitable for ASMR and intimate narration",
+      "language": "zh",
+      "sample_audio": "samples/sultry-jade.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "velvet-rose",
+      "name": "Velvet Rose",
+      "type": "designed",
+      "description": "Early 30s Chinese female with a rich, slightly husky alto voice, measured unhurried pace, confident and sensual tone with a knowing warmth, subtle breathiness on soft consonants, like a woman who knows exactly what she wants to say",
+      "language": "zh",
+      "sample_audio": "samples/velvet-rose.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "black-orchid",
+      "name": "Black Orchid",
+      "type": "designed",
+      "description": "Early 30s Chinese female with a low commanding alto voice, deliberate unhurried pace, cool and authoritative tone with controlled intensity, each word placed with precision and purpose, the kind of woman who never raises her voice because she never needs to",
+      "language": "zh",
+      "sample_audio": "samples/black-orchid.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "chinese-shakespeare",
+      "name": "Chinese Shakespeare",
+      "type": "designed",
+      "description": "Mature Chinese male with a deep rich baritone voice, theatrical gravitas and passionate intensity, slow commanding pace with deliberate dramatic pauses, powerful resonant projection like a seasoned stage actor performing classical Chinese poetry in a grand theater",
+      "language": "zh",
+      "sample_audio": "samples/chinese-shakespeare.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
+    },
+    {
+      "id": "bard-qiuyue",
+      "name": "Bard Qiuyue",
+      "type": "designed",
+      "description": "35-year-old Chinese female with a rich warm mezzo-soprano voice, slow theatrical cadence with deliberate seductive pauses, deeply expressive tone blending poetic gravitas with sensual warmth, a whisper of huskiness beneath classical eloquence, each word lands with both literary weight and quiet desire, commanding yet intimate \u2014 a classical storyteller whose voice itself is an act of seduction, the kind of woman who recites poetry like a lover's confession",
+      "language": "zh",
+      "sample_audio": "samples/bard-qiuyue.wav",
+      "sample_text": "The morning sun rose gently over the quiet village, casting golden light across the cobblestone streets. Birds sang their morning songs as the world slowly came to life."
     }
   ]
 }
