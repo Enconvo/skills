@@ -68,12 +68,27 @@ Transcribe, translate, review, TTS, create dubbed video.
 
 **Triggers:** `/video-dub`, "dub this video to {lang}"
 
+**Audio Mix Modes:**
+- **`mix`** (default): Original audio lowered to ~15% + dubbed voice at full volume. Professional dubbing style — preserves ambiance, emotion, room tone underneath. Like Netflix/Disney+ dubs.
+- **`replace`**: Only dubbed audio, no original track. Use when user explicitly asks for "clean dub", "no original audio", or "replace audio completely".
+
+**Subtitle Burning:**
+- **Default: no burned subtitles.** SRT files are output separately.
+- Set `BURN_SUBS=yes` only when user explicitly asks for "burned-in subtitles", "hardcoded subs", or "bake subtitles in".
+
+**Agent behavior during dubbing:**
+- Tell the user: "I'll mix the dubbed voice over the original audio (lowered to ~15%) — this keeps the natural ambiance. No subtitles will be burned in; SRT files are available separately. Let me know if you want clean replacement audio or burned-in subs instead."
+- Only switch to `MIX_MODE=replace` or `BURN_SUBS=yes` if the user explicitly requests it.
+
 **Pipeline:**
 1. Run: `python3 scripts/transcriber.py <video_file_or_url> [groq_api_key]` → `{name}_original.srt`
 2. Run: `python3 scripts/clean_srt.py {name}_original.srt --in-place` (removes filler words)
 3. Run: `python3 scripts/translate_srt.py {name}_original.srt <target_lang>` → `{name}_{lang}.srt`
 4. Agent: Show translation review to user, apply any corrections
 5. Run: `bash scripts/generate_tts_and_dub.sh <video> <orig.srt> <trans.srt> <lang> [voice] [voice_name]`
+   - Env vars: `MIX_MODE=mix` (default), `MIX_ORIGINAL_VOLUME=0.15`, `BURN_SUBS=no` (default)
+   - For clean replacement: `MIX_MODE=replace bash scripts/generate_tts_and_dub.sh ...`
+   - For burned subs: `BURN_SUBS=yes bash scripts/generate_tts_and_dub.sh ...`
 6. Agent: Read `{name}_timing_report.json` (see Agent Condensation Protocol)
 7. If overlong segments: agent condenses → deletes old raw/adj files → re-runs with `WORK_DIR` set
 8. Output: `{name}_dubbed.mp4`
@@ -267,7 +282,8 @@ The agent reads the transcript and generates a structured summary:
 - **Perfect audio sync** (natural speed with conservative adjustment)
 - **Voice cloning support** (use any voicebox profile)
 - Translation review (edit before TTS generation)
-- **Burned-in dual subtitles** (original top/yellow + translated bottom/white, always visible)
+- **Professional audio mixing** (original at 15% + dub overlay at full volume, like Netflix/Disney+)
+- **Optional burned-in dual subtitles** (original top/yellow + translated bottom/white, off by default)
 - Multi-language TTS (Kokoro + edge-tts + voicebox)
 - Intelligent summaries (with timestamps and key points)
 - **Language-aware detection** (auto-detects request language)
