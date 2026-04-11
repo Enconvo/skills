@@ -365,6 +365,91 @@ def parse_srt_file(srt_path):
     return entries
 
 
+def compute_max_chars_per_line(video_params, font_size, font_ratio=0.52,
+                                cjk=False, margin_px=40):
+    """How many characters fit on one caption line at this font size and video width.
+
+    Accounts for the actual video width minus margins. For narrow portrait
+    videos this returns a much smaller cap than the Netflix 42-char landscape
+    standard — which is what we want.
+
+    font_ratio is avg glyph width / font size:
+      - Latin proportional (Helvetica Neue): ~0.52
+      - CJK (PingFang SC, monospace-ish square glyphs): ~1.0
+
+    Returns an integer >= 6 (never so small it makes captions useless).
+    """
+    width = video_params.get('width', 1920)
+    usable = max(100, width - 2 * margin_px)
+    ratio = 1.0 if cjk else font_ratio
+    max_chars = int(usable / max(1, font_size * ratio))
+    return max(6, max_chars)
+
+
+def _hard_split_by_chars(text, limit):
+    """Split text into ≤limit-char chunks at word boundaries. Never breaks words."""
+    words = text.split()
+    chunks, cur, cur_len = [], [], 0
+    for w in words:
+        add = len(w) + (1 if cur else 0)
+        if cur and cur_len + add > limit:
+            chunks.append(' '.join(cur))
+            cur, cur_len = [w], len(w)
+        else:
+            cur.append(w)
+            cur_len += add
+    if cur:
+        chunks.append(' '.join(cur))
+    return [c for c in chunks if c] or [text]
+
+
+def resplit_entries_to_width(entries, max_chars):
+    """Re-split any SRT entry whose text exceeds max_chars into multiple entries.
+
+    Splits first on comma/semicolon, then hard-splits at word boundaries if
+    any clause is still over the limit. Redistributes time proportionally to
+    character count. Pure function — returns a new list.
+    """
+    import re as _re
+    clause_re = _re.compile(r'([^,，；;]*[,，；;]+)')
+    out = []
+    for e in entries:
+        text = e['text']
+        if len(text) <= max_chars:
+            out.append(e)
+            continue
+        # Clause split, then hard split any overlong clause.
+        chunks = []
+        pos = 0
+        for m in clause_re.finditer(text):
+            chunks.append(m.group(1).strip())
+            pos = m.end()
+        tail = text[pos:].strip()
+        if tail:
+            chunks.append(tail)
+        if not chunks:
+            chunks = [text]
+        final = []
+        for c in chunks:
+            if len(c) > max_chars:
+                final.extend(_hard_split_by_chars(c, max_chars))
+            elif c:
+                final.append(c)
+        if not final:
+            out.append(e)
+            continue
+        # Distribute time proportionally to char count.
+        total = sum(max(1, len(c)) for c in final) or 1
+        dur = max(0.0, e['end'] - e['start'])
+        t = e['start']
+        for i, c in enumerate(final):
+            share = max(1, len(c)) / total
+            sub_end = e['end'] if i == len(final) - 1 else t + dur * share
+            out.append({'start': t, 'end': sub_end, 'text': c})
+            t = sub_end
+    return out
+
+
 def load_translations_from_srt(lines, srt_path):
     """Load translations from a pre-made SRT file and align to word-level caption lines.
 
@@ -1545,6 +1630,28 @@ def main():
                 sys.exit(1)
             sec_entries = parse_srt_file(translation_srt)
             print(f"  Secondary SRT ({translation_srt}): {len(sec_entries)} entries")
+
+        # Aspect-aware re-split: any entry that would overflow horizontally at
+        # the current font size gets split. This catches portrait videos where
+        # the Netflix 42-char landscape cap blows past the narrow width.
+        def _is_cjk(s):
+            return any('\u4e00' <= c <= '\u9fff' for c in s)
+        main_cjk = bool(main_entries) and _is_cjk(main_entries[0]['text'])
+        main_max = compute_max_chars_per_line(vp, font_size, cjk=main_cjk)
+        before = len(main_entries)
+        main_entries = resplit_entries_to_width(main_entries, main_max)
+        if len(main_entries) != before:
+            print(f"  Re-split main for {vp['width']}x{vp['height']} at "
+                  f"{font_size}pt: cap={main_max} chars → {before}→{len(main_entries)} entries")
+        if sec_entries is not None:
+            sec_font = vp.get('secondary_font_size', int(font_size * 0.7))
+            sec_cjk = bool(sec_entries) and _is_cjk(sec_entries[0]['text'])
+            sec_max = compute_max_chars_per_line(vp, sec_font, cjk=sec_cjk)
+            sec_before = len(sec_entries)
+            sec_entries = resplit_entries_to_width(sec_entries, sec_max)
+            if len(sec_entries) != sec_before:
+                print(f"  Re-split secondary at {sec_font}pt: cap={sec_max} chars "
+                      f"→ {sec_before}→{len(sec_entries)} entries")
 
         print_header("Step 2: Generating Plain Caption Subtitles")
         style_config = {
