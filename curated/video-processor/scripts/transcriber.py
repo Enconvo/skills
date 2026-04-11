@@ -31,32 +31,67 @@ def get_video_info(video_file):
     duration = float(result.stdout.strip())
     return {'duration': duration}
 
+def _extract_compressed_audio(input_file, output_mp3):
+    """Extract mono 16kHz 48kbps MP3 — tiny, fast, and well under Groq's 25MB cap.
+    Fits ~65 minutes per MB, so a 2h video ends up well under 10MB.
+    """
+    subprocess.run(
+        ['ffmpeg', '-y', '-i', input_file,
+         '-vn', '-ac', '1', '-ar', '16000', '-b:a', '48k',
+         output_mp3],
+        capture_output=True, check=True
+    )
+
+
 def transcribe_video(video_file, groq_api_key, source_lang='en'):
-    """Transcribe video/audio using Groq Whisper Large V3"""
+    """Transcribe video/audio using Groq Whisper Large V3.
+
+    Always extracts a compressed mono 16kHz MP3 first, regardless of input
+    format or size. Benefits:
+      - Bypasses Groq's 25MB upload cap (compressed audio is tiny)
+      - Uniform upload regardless of video resolution/codec
+      - Works the same whether input is a 10MB audio or a 1GB 4K video
+    Downloads upload time too, since Whisper only needs the audio anyway.
+    """
     from groq import Groq
 
-    # Detect file type
     ext = Path(video_file).suffix.lower()
-    if ext in ['.mp3', '.m4a', '.wav', '.flac', '.ogg', '.aac']:
-        file_type = "Audio"
-    else:
-        file_type = "Video"
+    is_audio = ext in ['.mp3', '.m4a', '.wav', '.flac', '.ogg', '.aac']
 
-    print_header(f"Step 1: Transcribing {file_type}")
+    print_header(f"Step 1: Transcribing {'Audio' if is_audio else 'Video'}")
     print(f"Using: Groq Whisper Large V3")
     print(f"Language: {source_lang}")
-    print(f"This should be very fast (20-30x realtime)...\n")
+
+    # Always extract compressed mono MP3 — simpler than size-based branching.
+    base_name = Path(video_file).stem
+    compressed_audio = f"/tmp/{base_name}_for_whisper.mp3"
+    print(f"Extracting compressed audio → {compressed_audio}")
+    try:
+        _extract_compressed_audio(video_file, compressed_audio)
+        audio_size_mb = os.path.getsize(compressed_audio) / 1024 / 1024
+        print(f"  Audio: {audio_size_mb:.1f}MB (mono 16kHz 48kbps)")
+    except subprocess.CalledProcessError as e:
+        print(f"Error: ffmpeg failed to extract audio: {e.stderr.decode()[:200]}")
+        sys.exit(1)
+
+    print(f"Uploading to Groq (20-30x realtime)...\n")
 
     client = Groq(api_key=groq_api_key)
 
-    with open(video_file, "rb") as audio_file:
+    with open(compressed_audio, "rb") as audio_file:
         transcription = client.audio.transcriptions.create(
-            file=(video_file, audio_file.read()),
+            file=(compressed_audio, audio_file.read()),
             model="whisper-large-v3",
             response_format="verbose_json",
             language=source_lang,
             timestamp_granularities=["segment"]
         )
+
+    # Clean up the temp audio file after successful upload.
+    try:
+        os.remove(compressed_audio)
+    except OSError:
+        pass
 
     # Convert to SRT
     srt_content = ""
