@@ -94,13 +94,16 @@ Transcribe, translate, review, TTS, create dubbed video.
 8. Output: `{name}_dubbed.mp4`
 
 **When user requests bilingual captions on a dubbed video:**
-Use `caption_video.py` with `--translation-srt=<translated.srt>` to load the SAME translation that was TTS'd, instead of auto-translating independently. This prevents audio/caption mismatch.
+Use `caption_video.py` in plain mode (default). One SRT entry = one caption line. No karaoke, no wrapping. Because the SRTs were sentence-split upstream by `clean_srt.py`, each caption is already one meaningful sentence. No Groq re-transcription needed.
 
-Example:
+Example (dubbed Chinese main + English below):
 ```bash
-python3 scripts/caption_video.py dubbed.mp4 --bilingual=english --main-lang=chinese \
-  --translation-srt=video_chinese.srt --words-json=video_words.json --output=video_final.mp4
+python3 scripts/caption_video.py dubbed.mp4 \
+  --srt=video_chinese.srt --translation-srt=video_original.srt \
+  --output=video_final.mp4
 ```
+
+If the user explicitly asks for karaoke/word-level highlighting, use `--style=highlight` (or `appear`/`bounce`/etc.) which triggers word-level transcription and the fancier animated styles.
 
 ### 4. Summary
 Transcribe video and generate comprehensive summary.
@@ -117,21 +120,34 @@ Transcribe video and generate comprehensive summary.
 2. Agent: Read transcript, generate summary (see Agent Summary Protocol)
 3. Output: `{name}_summary.md`
 
-### 5. Word-Level Captioning
-Burn word-accurate captions into video with karaoke-style highlighting.
-Only use when user **explicitly asks** to caption a video with word-level accuracy.
+### 5. Captioning
 
-**Triggers:** `/video-caption`, "caption this video", "add word-level captions", "add captions with word timestamps"
+Burn captions into a video. **Default is plain sentence captions** — one SRT entry per caption line, no karaoke, no wrapping. Reads SRTs directly, no Groq transcription needed. Karaoke/animated styles are opt-in.
 
-**Pipeline:**
-1. Run: `python3 scripts/caption_video.py <video_file_or_url> [options]`
-2. Output: `{name}_captioned.mp4` + `{name}_captions.ass` + `{name}_words.json`
+**Triggers:** `/video-caption`, "caption this video", "add captions"
 
-**Caption Styles (`--style=`):**
+**Pipeline (plain, default):**
+```bash
+python3 scripts/caption_video.py <video> --srt=<main.srt> [--translation-srt=<other.srt>]
+```
+- Works on any dubbed or original video
+- `--srt=` is required (main SRT — Chinese if dubbed, English if original)
+- `--translation-srt=` is optional (shows below main as secondary)
+- No `GROQ_API_KEY` needed for plain mode
+- Output: `{name}_captioned.mp4` + `{name}_captions.ass`
+
+**Karaoke / animated styles (opt-in):**
+Use when the user explicitly asks for "word-level captions", "karaoke captions", "highlight each word", "bouncing captions", etc. These styles call Groq Whisper for word-level timestamps.
+
+```bash
+python3 scripts/caption_video.py video.mp4 --style=highlight
+python3 scripts/caption_video.py video.mp4 --style=bounce --position=center
+```
 
 | Style | Technique | Description |
 |-------|-----------|-------------|
-| `highlight` *(default)* | Karaoke Fill | Full line shown; current word sweeps from white → yellow as spoken |
+| `plain` *(default)* | None | One SRT entry → one caption line. No karaoke, no wrapping. Reads SRTs directly. |
+| `highlight` | Karaoke Fill | Full line shown; current word sweeps from white → yellow as spoken |
 | `appear` | Word Reveal | Words appear one by one and accumulate until line ends |
 | `underline` | Active Underline | Full line visible; current word is yellow + bold + underlined |
 | `bounce` | Spring Physics | Word-by-word pop — each word bounces in (140%→95%→105%→100%) and exits; 1.8× bigger font |
@@ -142,7 +158,8 @@ Only use when user **explicitly asks** to caption a video with word-level accura
 | `typewriter` | Typewriter | Characters appear one by one per word; previous words shown in white, current in yellow |
 
 **Options:**
-- `--style=<style>` — caption animation style (see table above, default: `highlight`)
+- `--style=<style>` — caption style (default: `plain`). Non-plain styles require Groq API key and re-transcribe the video for word-level timestamps.
+- `--srt=<file>` — main SRT file (REQUIRED for plain mode)
 - `--bilingual=<lang>` — add secondary language translation below main captions (e.g. `--bilingual=english`)
 - `--main-lang=<lang>` — make translated language the MAIN (top, karaoke) caption; original becomes secondary below
 - `--position=bottom|top|center` — caption position (default: bottom)
@@ -217,23 +234,50 @@ Analyze video frames visually and generate scene descriptions. Works on silent v
 
 ## Agent Protocols
 
-### Transcript Cleanup (Filler Removal)
+### Transcript Cleanup + Sentence Split
 
-After transcription, run the cleanup script to remove filler words and verbal tics BEFORE translation:
+After transcription, run the cleanup script. It does TWO things in one pass:
 
 ```bash
 python3 scripts/clean_srt.py {name}_original.srt --in-place
 ```
 
-This removes:
+**1. Filler removal.** Strips:
 - Filler words: "you know", "um", "uh", "like" (filler), "I mean", "basically", "actually" (filler)
 - Repeated phrases: "you know... you know... you know..." → removed
 - Stutters: "I- I was going" → "I was going"
 - Excessive "sort of", "kind of", "right" (when repeated)
 
-Preserves meaning, tone, and natural phrasing. Same timestamps, cleaned text.
+**2. Sentence splitting.** Whisper segment mode produces multi-sentence chunks up to 60+ words. This pass splits every segment on sentence punctuation (`. ! ? 。 ！ ？`) so each SRT entry is one meaningful sentence. Time redistributed proportionally by character count. Fallback tiers: commas → hard word/char cap (~15 English words / ~22 CJK chars) for unpunctuated run-ons.
+
+**Why upstream.** Splitting BEFORE translation means:
+- Translator gets sentence-sized chunks → better quality
+- TTS fits each sentence into its own time window → fewer overlong segments to condense
+- Captioner renders one sentence per caption line, no wrapping → fixes the crammed-caption bug
+
+Opt out with `--no-split` if you need raw Whisper segments (rare — only for debugging).
+
+Preserves meaning, tone, and natural phrasing. Same total time, redistributed across sentence-sized entries.
 
 **Important:** This happens BEFORE translation so filler words don't propagate into the target language (e.g., "you know" → "你知道"). The translation prompt also drops any remaining fillers as a second safety net.
+
+### Pre-Translation Review (Agent Gate)
+
+After `clean_srt.py` and before any translation or TTS work, run the review script and act on its verdict. This catches cases where the splitter couldn't fix everything and saves you from burning TTS time on a bad SRT.
+
+```bash
+python3 scripts/review_srt.py {name}_original.srt
+```
+
+The script reports total entries, avg/max length, shortest duration, and emits a verdict:
+
+- **OK** — no anomalies. Proceed with translate/dub.
+- **WARN** — some long entries or some sub-1s fragments. Mention the flags in your next user-facing message, then proceed. No user intervention needed unless they ask.
+- **CRITICAL** — stop. Present the report to the user and propose edits before translating. Two common causes:
+  1. **Long compound entries** (`>35 CJK chars` or `>25 English words`) → propose manual split at comma/semicolon, or investigate why clean_srt.py's splitter missed them.
+  2. **Too many sub-1s fragments** (`>30%`) → when dubbing from a dense language to a wordier one (CJK→English especially), English TTS can't fit in those windows. Propose merging adjacent fragments within the same utterance before running TTS.
+
+**Why this exists:** even with a correct automatic splitter, Whisper's prosody-based segmentation sometimes produces dozens of micro-fragments or joins entire paragraphs with commas. The review gate gives the agent one cheap inspection step before the expensive translate/TTS round-trip.
 
 ### Script Translation
 

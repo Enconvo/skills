@@ -334,12 +334,44 @@ def translate_lines(lines, target_lang):
     return translations
 
 
+def parse_srt_file(srt_path):
+    """Parse an SRT file into a list of entries: [{start, end, text}, ...]."""
+    import re as _re
+    with open(srt_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    entries = []
+    for block in _re.split(r'\n\n+', content.strip()):
+        block_lines = block.strip().split('\n')
+        if len(block_lines) < 3:
+            continue
+        ts = _re.match(
+            r'(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})',
+            block_lines[1],
+        )
+        if not ts:
+            continue
+
+        def _to_sec(t):
+            t = t.replace(',', '.')
+            p = t.split(':')
+            sp = p[2].split('.')
+            return int(p[0]) * 3600 + int(p[1]) * 60 + int(sp[0]) + int(sp[1]) / 1000
+
+        entries.append({
+            'start': _to_sec(ts.group(1)),
+            'end': _to_sec(ts.group(2)),
+            'text': ' '.join(block_lines[2:]).strip(),
+        })
+    return entries
+
+
 def load_translations_from_srt(lines, srt_path):
     """Load translations from a pre-made SRT file and align to word-level caption lines.
 
-    Instead of auto-translating, maps each caption line's time range to the
-    corresponding SRT segment(s). This ensures captions match dubbed TTS audio.
-    Long SRT segments are auto-split at punctuation to fit single caption lines.
+    Maps each word-level caption line's time range to the SRT entry with the
+    largest time overlap. NOTE: returns the full SRT entry text verbatim — it
+    does NOT split long entries. Callers must pre-split long SRT entries
+    upstream (clean_srt.py handles this since the sentence-split refactor).
     """
     import re
 
@@ -399,6 +431,140 @@ def load_translations_from_srt(lines, srt_path):
 def get_line_text(line_words):
     """Extract plain text from a line of words."""
     return ''.join(w['word'] for w in line_words)
+
+
+def _ass_header(play_res_x, play_res_y, main_font, main_size, secondary_font,
+                secondary_size, main_color, outline, main_margin_v,
+                secondary_margin_v, has_secondary):
+    """Build ASS header with Main (and optionally Secondary) styles. Plain — no karaoke."""
+    color = main_color if main_color.startswith('&H') else '&H00FFFFFF'
+    outline_color = '&H00000000'
+    secondary_block = ''
+    if has_secondary:
+        secondary_block = (
+            f"Style: Secondary,{secondary_font},{secondary_size},{color},{color},"
+            f"{outline_color},&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,2,20,20,"
+            f"{secondary_margin_v},1\n"
+        )
+    return (
+        "[Script Info]\n"
+        "Title: Plain Captions\n"
+        "ScriptType: v4.00+\n"
+        f"PlayResX: {play_res_x}\n"
+        f"PlayResY: {play_res_y}\n"
+        "WrapStyle: 2\n\n"
+        "[V4+ Styles]\n"
+        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
+        "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
+        "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
+        "Alignment, MarginL, MarginR, MarginV, Encoding\n"
+        f"Style: Main,{main_font},{main_size},{color},{color},{outline_color},"
+        f"&H80000000,0,0,0,0,100,100,0,0,1,{outline},1,2,20,20,{main_margin_v},1\n"
+        f"{secondary_block}"
+        "\n[Events]\n"
+        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, "
+        "Effect, Text\n"
+    )
+
+
+def _is_cjk(text):
+    return any(
+        '\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' or '\uac00' <= c <= '\ud7af'
+        for c in text
+    )
+
+
+def generate_ass_plain(entries, style_config):
+    """Plain single-line captions from SRT entries. One entry → one Dialogue.
+    No karaoke, no wrapping (WrapStyle: 2 = no auto-wrap at render time).
+    """
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+    secondary_margin_v = vp.get('secondary_margin_v', 30)
+    color = style_config.get('color', '&H00FFFFFF')
+
+    sample = entries[0]['text'] if entries else ''
+    main_font = 'PingFang SC' if _is_cjk(sample) else 'Helvetica Neue'
+
+    header = _ass_header(
+        play_res_x, play_res_y,
+        main_font, font_size,
+        main_font, int(font_size * 0.7),
+        color, outline, main_margin_v, secondary_margin_v,
+        has_secondary=False,
+    )
+    events = []
+    for e in entries:
+        start_ts = seconds_to_ass_time(e['start'])
+        end_ts = seconds_to_ass_time(e['end'])
+        text = e['text'].replace('\n', ' ').strip()
+        if not text:
+            continue
+        events.append(f"Dialogue: 0,{start_ts},{end_ts},Main,,0,0,0,,{text}")
+    return header + '\n'.join(events) + '\n'
+
+
+def generate_ass_plain_bilingual(main_entries, secondary_entries, style_config):
+    """Plain dual-line captions. Main on top (larger), secondary below.
+    Entries are aligned by index when counts match, otherwise by time overlap.
+    Each caption is one SRT entry = one sentence = one line, no wrapping.
+    """
+    vp = style_config.get('video_params', {})
+    font_size = style_config.get('font_size', vp.get('main_font_size', 26))
+    secondary_size = vp.get('secondary_font_size', max(int(font_size * 0.7), 16))
+    outline = vp.get('outline', 2)
+    play_res_x = vp.get('play_res_x', 1920)
+    play_res_y = vp.get('play_res_y', 1080)
+    main_margin_v = vp.get('main_margin_v', 62)
+    secondary_margin_v = vp.get('secondary_margin_v', 30)
+    color = style_config.get('color', '&H00FFFFFF')
+
+    sample_main = main_entries[0]['text'] if main_entries else ''
+    main_font = 'PingFang SC' if _is_cjk(sample_main) else 'Helvetica Neue'
+    sample_sec = secondary_entries[0]['text'] if secondary_entries else ''
+    secondary_font = 'PingFang SC' if _is_cjk(sample_sec) else 'Helvetica Neue'
+
+    header = _ass_header(
+        play_res_x, play_res_y,
+        main_font, font_size,
+        secondary_font, secondary_size,
+        color, outline, main_margin_v, secondary_margin_v,
+        has_secondary=True,
+    )
+
+    def best_overlap(entry, candidates):
+        """Pick the candidate with max time-overlap to entry."""
+        best, best_o = None, -1
+        for c in candidates:
+            os_, oe_ = max(entry['start'], c['start']), min(entry['end'], c['end'])
+            ov = max(0, oe_ - os_)
+            if ov > best_o:
+                best, best_o = c, ov
+        return best
+
+    events = []
+    align_by_index = len(main_entries) == len(secondary_entries)
+    for i, e in enumerate(main_entries):
+        start_ts = seconds_to_ass_time(e['start'])
+        end_ts = seconds_to_ass_time(e['end'])
+        main_text = e['text'].replace('\n', ' ').strip()
+        if not main_text:
+            continue
+        events.append(f"Dialogue: 0,{start_ts},{end_ts},Main,,0,0,0,,{main_text}")
+
+        if align_by_index:
+            sec = secondary_entries[i]
+        else:
+            sec = best_overlap(e, secondary_entries)
+        if sec and sec['text'].strip():
+            sec_text = sec['text'].replace('\n', ' ').strip()
+            events.append(f"Dialogue: 1,{start_ts},{end_ts},Secondary,,0,0,0,,{sec_text}")
+
+    return header + '\n'.join(events) + '\n'
 
 
 def generate_ass_bilingual(lines, translations, style_config):
@@ -1266,7 +1432,9 @@ def main():
     input_source = args[0]
 
     # Parse options — all None means "auto from video probe"
-    style = 'highlight'
+    # Default style is 'plain' — one SRT entry → one caption line, no karaoke.
+    # Karaoke styles (highlight/appear/bounce/etc.) require --style=<name>.
+    style = 'plain'
     position = 'bottom'
     font_size = None  # auto from video
     font_size_user_override = False
@@ -1280,6 +1448,7 @@ def main():
     main_lang = None
     words_json = None
     translation_srt = None
+    srt_file_path = None  # --srt=<main.srt> for plain mode
 
     for arg in args[1:]:
         if arg.startswith('--style='):
@@ -1309,10 +1478,16 @@ def main():
             words_json = arg.split('=', 1)[1]
         elif arg.startswith('--translation-srt='):
             translation_srt = arg.split('=', 1)[1]
+        elif arg.startswith('--srt='):
+            srt_file_path = arg.split('=', 1)[1]
 
-    groq_api_key = os.getenv('GROQ_API_KEY')
-    if not groq_api_key:
-        print("Error: GROQ_API_KEY not set. Get your free key at https://console.groq.com")
+    # Plain mode (default) does NOT need Groq — it reads SRT files directly.
+    # Only require the API key for word-level karaoke styles.
+    groq_api_key = os.getenv('GROQ_API_KEY', '')
+    if style != 'plain' and not groq_api_key:
+        print("Error: GROQ_API_KEY not set for word-level style. "
+              "Get your free key at https://console.groq.com, "
+              "or use --style=plain --srt=file.srt which needs no API key.")
         sys.exit(1)
 
     # Handle URL input
@@ -1336,6 +1511,77 @@ def main():
     # Bounce style: auto-scale up for impactful display
     if style == 'bounce' and not font_size_user_override:
         font_size = int(font_size * 1.8)
+    # Plain mode: scale auto-sized font up 1.5× for comfortable reading.
+    # User --font-size overrides this.
+    if style == 'plain' and not font_size_user_override:
+        font_size = int(font_size * 1.5)
+        # Also bump the secondary line so the bilingual ratio holds.
+        if 'secondary_font_size' in vp:
+            vp = {**vp, 'secondary_font_size': int(vp['secondary_font_size'] * 1.5)}
+
+    # Plain mode: read SRT(s) directly, skip Groq transcription entirely.
+    # One SRT entry → one caption line. No karaoke, no wrapping. This is the
+    # default. Word-level karaoke styles require non-plain --style and fall
+    # through to the transcription path below.
+    if style == 'plain':
+        if not srt_file_path:
+            print("Error: --srt=<path.srt> is required for plain style (default).")
+            print("  Use --srt=main.srt for single-language plain captions, or")
+            print("  --srt=main.srt --translation-srt=other.srt for bilingual.")
+            sys.exit(1)
+        if not os.path.exists(srt_file_path):
+            print(f"Error: SRT file not found: {srt_file_path}")
+            sys.exit(1)
+
+        print_header("Step 1: Loading SRT Entries")
+        main_entries = parse_srt_file(srt_file_path)
+        print(f"  Main SRT ({srt_file_path}): {len(main_entries)} entries")
+
+        sec_entries = None
+        if translation_srt:
+            if not os.path.exists(translation_srt):
+                print(f"Error: Translation SRT not found: {translation_srt}")
+                sys.exit(1)
+            sec_entries = parse_srt_file(translation_srt)
+            print(f"  Secondary SRT ({translation_srt}): {len(sec_entries)} entries")
+
+        print_header("Step 2: Generating Plain Caption Subtitles")
+        style_config = {
+            'font_size': font_size,
+            'position': position,
+            'color': color,
+            'highlight': highlight,
+            'video_params': vp,
+        }
+        if sec_entries is not None:
+            print("  Mode: Bilingual plain — one sentence per caption, no karaoke")
+            ass_content = generate_ass_plain_bilingual(main_entries, sec_entries, style_config)
+        else:
+            print("  Mode: Single-language plain — one sentence per caption, no karaoke")
+            ass_content = generate_ass_plain(main_entries, style_config)
+
+        ass_file = f"{base_name}_captions.ass"
+        with open(ass_file, 'w', encoding='utf-8') as f:
+            f.write(ass_content)
+        print(f"  Caption file: {ass_file}")
+
+        if srt_only:
+            print(f"\nDone! Caption file: {ass_file}")
+            return
+
+        if not output_file:
+            output_file = f"{base_name}_captioned.mp4"
+
+        print_header("Step 3: Burning Captions into Video")
+        success = burn_captions(video_file, ass_file, output_file)
+        if success:
+            print(f"\n{'='*60}\n  DONE!\n{'='*60}")
+            print(f"\nOutput: {output_file}")
+            print(f"Captions: {ass_file}")
+        else:
+            print(f"\nCaption file generated: {ass_file}")
+            print("Video burn-in failed. Try: ffmpeg -i video -vf ass=captions.ass out.mp4")
+        return
 
     # Step 1: Transcribe with word-level timestamps (or load from cache)
     if words_json and os.path.exists(words_json):
