@@ -1511,10 +1511,11 @@ def main():
     # Bounce style: auto-scale up for impactful display
     if style == 'bounce' and not font_size_user_override:
         font_size = int(font_size * 1.8)
-    # Plain mode: scale auto-sized font up 1.5× for comfortable reading.
+    # Plain mode: scale auto-sized font up 2.0× for short-form social-video
+    # readability (~8% of video height — TikTok/Reels sweet spot).
     # User --font-size overrides this.
     if style == 'plain' and not font_size_user_override:
-        font_size = int(font_size * 1.5)
+        font_size = int(font_size * 2.0)
         # Also bump the secondary line so the bilingual ratio holds.
         if 'secondary_font_size' in vp:
             vp = {**vp, 'secondary_font_size': int(vp['secondary_font_size'] * 1.5)}

@@ -16,12 +16,13 @@ import sys
 
 # Length thresholds. Mirror clean_srt.py's caps so the review aligns with
 # what the splitter considers "over the limit".
-LONG_LATIN_WORDS = 15
-LONG_CJK_CHARS = 22
+# Netflix/BBC/EBU subtitle standard: 42 chars/line for Latin, ~16 for CJK.
+LONG_LATIN_CHARS = 42
+LONG_CJK_CHARS = 16
 
 # Hard threshold — if any entry exceeds this, it's almost certainly a problem.
-HARD_LATIN_WORDS = 25
-HARD_CJK_CHARS = 35
+HARD_LATIN_CHARS = 60
+HARD_CJK_CHARS = 24
 
 # Duration thresholds for the dub-side check.
 SHORT_DURATION_S = 1.0     # flag if many entries are under this
@@ -44,10 +45,10 @@ def is_cjk(text):
 
 
 def unit_count(text):
-    """Words for Latin, CJK characters for CJK."""
+    """Characters. For CJK: only CJK chars. For Latin: full length."""
     if is_cjk(text):
         return sum(1 for c in text if CJK_RANGE.match(c))
-    return len(text.split())
+    return len(text)
 
 
 def parse_srt(path):
@@ -94,10 +95,10 @@ def review(path):
     # Flags
     soft_long = [e for e in entries
                  if (e['is_cjk'] and e['units'] > LONG_CJK_CHARS)
-                 or (not e['is_cjk'] and e['units'] > LONG_LATIN_WORDS)]
+                 or (not e['is_cjk'] and e['units'] > LONG_LATIN_CHARS)]
     hard_long = [e for e in entries
                  if (e['is_cjk'] and e['units'] > HARD_CJK_CHARS)
-                 or (not e['is_cjk'] and e['units'] > HARD_LATIN_WORDS)]
+                 or (not e['is_cjk'] and e['units'] > HARD_LATIN_CHARS)]
     short_dur = [e for e in entries if e['duration'] < SHORT_DURATION_S]
     critical_short = [e for e in entries if e['duration'] < CRITICAL_SHORT_S]
 
@@ -126,7 +127,7 @@ def review(path):
     # Report
     max_entry = max(entries, key=lambda e: e['units'])
     shortest_entry = min(entries, key=lambda e: e['duration'])
-    unit_label = 'chars' if any(e['is_cjk'] for e in entries) else 'words'
+    unit_label = 'chars'
 
     print(f'SRT Review: {os.path.basename(path)}')
     print('─' * 60)

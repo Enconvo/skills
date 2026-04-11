@@ -14,10 +14,12 @@ import os
 import re
 
 
-# Max lengths before splitting. Chosen so one SRT entry renders as one
-# single-line caption at auto-sized fonts without wrapping.
-MAX_WORDS_LATIN = 15
-MAX_CHARS_CJK = 22
+# Max length before splitting. Netflix/BBC/EBU subtitle standard: 42
+# characters per line for Latin scripts, ~16 for CJK. One SRT entry renders
+# as one single-line caption without wrapping on any video width at
+# auto-sized fonts.
+MAX_CHARS_LATIN = 42
+MAX_CHARS_CJK = 16
 
 # Sentence-ending punctuation — Latin + CJK.
 # No trailing-whitespace requirement: CJK text concatenates sentences without
@@ -142,17 +144,17 @@ def is_cjk_text(text):
 
 
 def count_units(text):
-    """Word count for Latin text, character count for CJK (excluding spaces/punct)."""
+    """Character count. For CJK: only CJK chars. For Latin: full length including spaces."""
     if is_cjk_text(text):
         return sum(1 for c in text if CJK_RANGE_RE.match(c))
-    return len(text.split())
+    return len(text)
 
 
 def over_limit(text):
-    """True if text exceeds the per-caption-line length limit."""
+    """True if text exceeds the per-caption-line length limit (Netflix/BBC/EBU)."""
     if is_cjk_text(text):
         return count_units(text) > MAX_CHARS_CJK
-    return count_units(text) > MAX_WORDS_LATIN
+    return count_units(text) > MAX_CHARS_LATIN
 
 
 def split_by_regex(text, regex):
@@ -186,10 +188,21 @@ def hard_split(text, max_units):
         if buf:
             out.append(''.join(buf).strip())
         return [c for c in out if c]
-    # Latin: word-based
+    # Latin: word-based pack-to-char-limit (never break a word).
+    # max_units here is MAX_CHARS_LATIN (a character budget per chunk).
     words = text.split()
-    return [' '.join(words[i:i + max_units]).strip()
-            for i in range(0, len(words), max_units)]
+    out, cur, cur_len = [], [], 0
+    for w in words:
+        add_len = len(w) + (1 if cur else 0)
+        if cur and cur_len + add_len > max_units:
+            out.append(' '.join(cur))
+            cur, cur_len = [w], len(w)
+        else:
+            cur.append(w)
+            cur_len += add_len
+    if cur:
+        out.append(' '.join(cur))
+    return [c for c in out if c]
 
 
 def _ends_with_sentence_punct(text):
@@ -249,7 +262,7 @@ def split_sentence_text(text):
         subs = split_by_regex(c, CLAUSE_END_RE) or [c]
         for s in subs:
             if over_limit(s):
-                max_u = MAX_CHARS_CJK if is_cjk_text(s) else MAX_WORDS_LATIN
+                max_u = MAX_CHARS_CJK if is_cjk_text(s) else MAX_CHARS_LATIN
                 out.extend(hard_split(s, max_u))
             else:
                 out.append(s)

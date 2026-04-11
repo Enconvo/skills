@@ -293,22 +293,6 @@ The script translates segment-by-segment with quality rules baked in:
 - Optimized for listening, not reading
 - Outputs `{name}_{target_lang}.srt` + review preview
 
-### Agent SRT Auto-Split Protocol (Subtitle Line Length)
-
-**Purpose:** Prevent cramped/overflowing subtitle lines. Whisper sometimes outputs segments spanning 10-15 seconds of uninterrupted speech as a single SRT entry. When burned as subtitles, these overflow the screen.
-
-**When:** After translation and before burning subtitles (whether via `BURN_SUBS=yes` or via `caption_video.py`), the agent MUST auto-split any SRT segment that exceeds the max line length.
-
-**Rules:**
-- **Chinese/CJK:** Max ~18 characters per subtitle line
-- **English/Latin:** Max ~10 words per subtitle line
-- **Split hierarchy:** Sentence-ending punctuation (。！？； / . ! ? ;) → commas (， / ,) → force-split at word boundary
-- **Time distribution:** Proportional by character count (CJK) or word count (Latin)
-- **Single line only:** Never use `\N` line wrapping in subtitles. One caption = one readable line.
-- **Apply to BOTH languages** when doing bilingual subtitles
-
-**Implementation:** The agent runs this split logic on the SRT files in-memory (Python) before passing them to ffmpeg for subtitle burn-in. This is an agent-side operation, not a script.
-
 ### Agent Condensation Protocol
 
 After `generate_tts_and_dub.sh` runs, the agent handles any overlong segments:

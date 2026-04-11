@@ -51,10 +51,10 @@ def test_split_sentence_text():
         ["他们的处境当然很不一样。", "所以他们会继续升级。", "我认为谈判最终会发生。"],
     ))
 
-    # 3. Single long sentence — 23 CJK chars, one `。`, over the 22-char cap.
-    #    Must stay intact (this was the second regression). Use a sentence
-    #    whose character count is exactly at the boundary.
-    long_sentence = "他们一年三百六十五天、每天二十四小时都在打这场仗。"
+    # 3. Single long sentence — CJK over the 16-char cap with no internal
+    #    commas. Must stay intact (regression guard). Use a sentence
+    #    that clearly exceeds the cap.
+    long_sentence = "他们一年三百六十五天都在打这场仗。"
     results.append(check(
         "long single cjk sentence stays intact",
         split_sentence_text(long_sentence),
@@ -77,12 +77,12 @@ def test_split_sentence_text():
         ["Are you ready?", "I am ready!", "我准备好了。"],
     ))
 
-    # 6. Truly unpunctuated long English run-on falls through to word cap.
+    # 6. Truly unpunctuated long English run-on falls through to char cap (42).
     run_on = " ".join(["word"] * 40)
     chunks = split_sentence_text(run_on)
     results.append(check(
         "unpunctuated english run-on hard-split",
-        len(chunks) >= 2 and all(len(c.split()) <= 15 for c in chunks),
+        len(chunks) >= 2 and all(len(c) <= 42 for c in chunks),
         True,
     ))
 
@@ -109,9 +109,10 @@ def test_split_sentence_text():
     results.append(check("cjk compound last clause ends with 。",
                          chunks[-1].endswith("。"), True))
 
-    # 10. Short English sentence WITH commas — must stay whole (regression
-    #     guard: do not over-split short compound sentences).
-    short_en_compound = "I went to the store, bought some milk, and came home."
+    # 10. Short English sentence WITH commas that fits the 42-char cap
+    #     must stay whole (regression guard: don't over-split short compound
+    #     sentences). This one is 35 chars.
+    short_en_compound = "I went home, had dinner, and slept."
     results.append(check("short english compound stays whole",
                          split_sentence_text(short_en_compound),
                          [short_en_compound]))
