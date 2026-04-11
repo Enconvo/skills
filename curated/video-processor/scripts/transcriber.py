@@ -81,6 +81,31 @@ def transcribe_video(video_file, groq_api_key, source_lang='en'):
     if transcription.segments:
         print(f"   Preview: {transcription.segments[0]['text'][:60]}...")
 
+    # Mixed-language detection. Groq whisper-large-v3 has a known bug where
+    # it opportunistically auto-translates CJK→English on most segments but
+    # silently falls back to native-language transcription on tail fragments
+    # where confidence dips. Output looks mostly English but ends in raw CJK.
+    # Scan for mixed scripts and warn loudly so the agent fixes it before TTS.
+    def _has_cjk(s):
+        return any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in s)
+
+    texts = [s['text'].strip() for s in transcription.segments]
+    cjk_indices = [i + 1 for i, t in enumerate(texts) if _has_cjk(t)]
+    latin_count = sum(1 for t in texts if t and not _has_cjk(t))
+    if cjk_indices and latin_count:
+        print()
+        print("⚠️  MIXED-LANGUAGE OUTPUT DETECTED")
+        print(f"   {len(cjk_indices)} of {len(texts)} entries contain CJK characters")
+        print(f"   while {latin_count} entries are Latin-only.")
+        print(f"   Whisper's auto-translate fell back to native on tail fragments.")
+        print(f"   CJK entries (fix these before TTS/captioning):")
+        for idx in cjk_indices[:10]:
+            snippet = texts[idx - 1][:50]
+            print(f"     #{idx}: {snippet}")
+        if len(cjk_indices) > 10:
+            print(f"     ... and {len(cjk_indices) - 10} more")
+        print()
+
     return srt_content, original_srt
 
 def seconds_to_srt_time(seconds):

@@ -102,12 +102,33 @@ def review(path):
     short_dur = [e for e in entries if e['duration'] < SHORT_DURATION_S]
     critical_short = [e for e in entries if e['duration'] < CRITICAL_SHORT_S]
 
+    # Mixed-language detection. Catches Whisper's partial-translate bug:
+    # most of the SRT is one script (e.g. Latin) but a minority of entries
+    # are another (e.g. CJK). Always a bug — a single-source transcript
+    # should never have both scripts.
+    cjk_entries = [e for e in entries if e['is_cjk']]
+    latin_entries = [e for e in entries if not e['is_cjk'] and e['text']]
+    mixed_minority = None
+    if cjk_entries and latin_entries:
+        if len(cjk_entries) < len(latin_entries):
+            mixed_minority = ('CJK', cjk_entries)
+        else:
+            mixed_minority = ('Latin', latin_entries)
+
     short_ratio = len(short_dur) / total
     long_ratio = len(soft_long) / total
 
     # Verdict
     verdict = 'OK'
     reasons = []
+    if mixed_minority:
+        script, minority = mixed_minority
+        verdict = 'CRITICAL'
+        reasons.append(
+            f'{len(minority)} {script} entries mixed into a '
+            f'{"Latin" if script == "CJK" else "CJK"}-dominant SRT '
+            f'(Whisper partial-translate bug)'
+        )
     if hard_long:
         verdict = 'CRITICAL'
         reasons.append(f'{len(hard_long)} entries over hard length threshold')
@@ -152,6 +173,14 @@ def review(path):
     if verdict != 'OK':
         print()
         print('Recommended action:')
+        if mixed_minority:
+            script, minority = mixed_minority
+            print(f'  - Mixed-language: these {len(minority)} {script} entries need manual')
+            print(f'    translation to match the dominant script before TTS/captioning:')
+            for e in minority[:10]:
+                print(f'      #{e["index"]}: {e["text"][:50]}')
+            if len(minority) > 10:
+                print(f'      ... and {len(minority) - 10} more')
         if hard_long or long_ratio > 0.1:
             print('  - Long entries: consider manual comma/semicolon splits, or')
             print('    reject and re-run clean_srt.py if splitter was bypassed.')
