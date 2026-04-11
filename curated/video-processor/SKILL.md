@@ -1,6 +1,6 @@
 ---
 name: video-processor
-version: 2.0.0
+version: 2.1.0
 author: zanearcher
 category: media
 description: "Comprehensive media processing: transcribe, translate, summarize, and dub videos/audio with professional TTS. Supports local files (MP4, MP3, WAV, M4A, etc.) and URLs (YouTube, Twitter, TikTok, 1000+ sites). Use when user says /video-transcribe, /video-translate, /video-dub, /video-summary, or asks to transcribe, translate, dub, or summarize any video/audio."
@@ -93,6 +93,15 @@ Transcribe, translate, review, TTS, create dubbed video.
 7. If overlong segments: agent condenses → deletes old raw/adj files → re-runs with `WORK_DIR` set
 8. Output: `{name}_dubbed.mp4`
 
+**When user requests bilingual captions on a dubbed video:**
+Use `caption_video.py` with `--translation-srt=<translated.srt>` to load the SAME translation that was TTS'd, instead of auto-translating independently. This prevents audio/caption mismatch.
+
+Example:
+```bash
+python3 scripts/caption_video.py dubbed.mp4 --bilingual=english --main-lang=chinese \
+  --translation-srt=video_chinese.srt --words-json=video_words.json --output=video_final.mp4
+```
+
 ### 4. Summary
 Transcribe video and generate comprehensive summary.
 
@@ -145,6 +154,14 @@ Only use when user **explicitly asks** to caption a video with word-level accura
 - `--srt-only` — only generate ASS subtitle file, don't burn into video
 - `--lang=en` — source language code (default: auto-detect)
 - `--words-json=<file>` — skip re-transcription; load cached `_words.json` from a previous run
+- `--translation-srt=<file>` — use a pre-made SRT file for translations instead of auto-translating. **Critical for dubbing workflows** — ensures captions match the exact text that was TTS'd, preventing audio/caption mismatch
+
+**Line Breaking (Sentence-Aware):** Caption lines are grouped by meaningful sentence boundaries, NOT arbitrary word counts. The script uses a 3-tier strategy:
+1. **Whisper segment boundaries** (preferred) — ASR segments represent natural sentences/phrases. Each caption line = one complete thought.
+2. **Punctuation boundaries** (fallback) — splits at commas, periods, etc.
+3. **Time-gap heuristic** (last resort) — for unpunctuated content like song lyrics, splits on pauses > 1.5s between words.
+
+This prevents amateur-looking captions like "eyes Edge of the" that break mid-sentence. When using `--words-json` with corrected lyrics, the segments from the original transcription are still used for line grouping.
 
 **Auto-sizing:** The script probes video resolution via ffprobe and auto-calculates optimal font size, margins, and outline thickness based on the video's height (scaled from 1080p baseline). Aspect ratio is also considered — ultrawide (>2.0) gets tighter margins, portrait (<1.0) gets compact margins. User CLI flags (`--font-size`, `--position`) override auto values.
 
@@ -161,6 +178,11 @@ Claude: python3 scripts/caption_video.py video.mp4
 User: "Caption with bilingual Chinese + English"
 Claude: python3 scripts/caption_video.py video.mp4 --bilingual=english
 → Chinese karaoke on top, English translation below
+
+User: "Dub to Chinese with bilingual captions (use same translation)"
+Claude: python3 scripts/caption_video.py dubbed.mp4 --main-lang=chinese \
+  --translation-srt=video_chinese.srt --words-json=video_words.json
+→ Chinese captions match dubbed audio exactly, English below
 
 User: "Add word captions to this video, style: appear, position: top"
 Claude: python3 scripts/caption_video.py video.mp4 --style=appear --position=top
@@ -226,6 +248,22 @@ The script translates segment-by-segment with quality rules baked in:
 - Preserves tone, style, brand names, and technical terms
 - Optimized for listening, not reading
 - Outputs `{name}_{target_lang}.srt` + review preview
+
+### Agent SRT Auto-Split Protocol (Subtitle Line Length)
+
+**Purpose:** Prevent cramped/overflowing subtitle lines. Whisper sometimes outputs segments spanning 10-15 seconds of uninterrupted speech as a single SRT entry. When burned as subtitles, these overflow the screen.
+
+**When:** After translation and before burning subtitles (whether via `BURN_SUBS=yes` or via `caption_video.py`), the agent MUST auto-split any SRT segment that exceeds the max line length.
+
+**Rules:**
+- **Chinese/CJK:** Max ~18 characters per subtitle line
+- **English/Latin:** Max ~10 words per subtitle line
+- **Split hierarchy:** Sentence-ending punctuation (。！？； / . ! ? ;) → commas (， / ,) → force-split at word boundary
+- **Time distribution:** Proportional by character count (CJK) or word count (Latin)
+- **Single line only:** Never use `\N` line wrapping in subtitles. One caption = one readable line.
+- **Apply to BOTH languages** when doing bilingual subtitles
+
+**Implementation:** The agent runs this split logic on the SRT files in-memory (Python) before passing them to ffmpeg for subtitle burn-in. This is an agent-side operation, not a script.
 
 ### Agent Condensation Protocol
 

@@ -149,14 +149,72 @@ def transcribe_words(video_file, groq_api_key, source_lang=None):
     return words, segments
 
 
-def group_words_into_lines(words, max_words_per_line=8):
-    """Group words into caption lines by clause/sentence boundaries.
+def group_words_into_lines(words, max_words_per_line=8, segments=None):
+    """Group words into caption lines by meaningful sentence boundaries.
 
-    Strategy: split at punctuation boundaries first (commas, periods, etc.),
-    then merge short clauses or split long ones. This ensures captions always
-    show complete, meaningful phrases — never breaking mid-clause.
+    Strategy (priority order):
+    1. Use Whisper segment boundaries (if segments provided) — these represent
+       natural sentence/phrase breaks detected by the ASR model. This is critical
+       for song lyrics and speech without punctuation.
+    2. Split at punctuation boundaries (commas, periods, etc.)
+    3. Split oversized segments at max_words_per_line if still too long.
+    4. Merge tiny segments (< 3 words) with neighbors.
+
+    This ensures each caption line is ONE complete, meaningful sentence/phrase —
+    never "eyes Edge of the" across sentence boundaries.
     """
-    # Punctuation that marks clause/sentence boundaries (covers CJK + Latin)
+    # --- Strategy 1: Segment-based grouping (preferred) ---
+    if segments:
+        # Build lines by assigning each word to its Whisper segment.
+        # Whisper segments represent complete sentences/phrases.
+        seg_lines = []
+        for seg in segments:
+            seg_start = seg.get('start', 0)
+            seg_end = seg.get('end', 0)
+            seg_text = seg.get('text', '').strip()
+            # Skip empty or artifact segments (e.g. "Bye.", "you")
+            if not seg_text or len(seg_text) < 3:
+                continue
+            # Collect words that fall within this segment's time window
+            # (with a small tolerance of 0.5s for overlapping boundaries)
+            line_words = []
+            for w in words:
+                w_mid = (w['start'] + w['end']) / 2
+                if seg_start - 0.5 <= w_mid <= seg_end + 0.5:
+                    line_words.append(w)
+            if line_words:
+                seg_lines.append(line_words)
+
+        if seg_lines:
+            # Step 2: Split any oversized segment lines, merge tiny ones
+            final = []
+            for line in seg_lines:
+                if len(line) > max_words_per_line + 3:
+                    # Split at roughly the midpoint
+                    mid = len(line) // 2
+                    final.append(line[:mid])
+                    final.append(line[mid:])
+                elif len(line) < 2 and final:
+                    # Merge tiny line into previous
+                    final[-1].extend(line)
+                else:
+                    final.append(line)
+            # Deduplicate: remove words that appear in multiple lines
+            # (can happen due to tolerance window)
+            seen_words = set()
+            deduped = []
+            for line in final:
+                clean = []
+                for w in line:
+                    key = (w['word'], round(w['start'], 2))
+                    if key not in seen_words:
+                        seen_words.add(key)
+                        clean.append(w)
+                if clean:
+                    deduped.append(clean)
+            return deduped
+
+    # --- Strategy 2: Punctuation-based grouping (fallback) ---
     SENTENCE_END = set('。！？.!?')
     CLAUSE_END = set('，,、；;：:')
 
@@ -168,7 +226,6 @@ def group_words_into_lines(words, max_words_per_line=8):
         last = stripped[-1]
         return last in SENTENCE_END, last in CLAUSE_END
 
-    # Step 1: Split words into clauses at every punctuation boundary
     clauses = []
     current = []
     for w in words:
@@ -180,20 +237,36 @@ def group_words_into_lines(words, max_words_per_line=8):
     if current:
         clauses.append(current)
 
-    # Step 2: Merge tiny clauses with neighbors, split oversized ones
-    # A clause is "tiny" if it has fewer chars than a threshold
+    # --- Strategy 3: Time-gap heuristic (if no punctuation found) ---
+    # If we got only 1 clause (no punctuation at all — common in song lyrics),
+    # split on large time gaps between words (> 1.5s = likely a new phrase)
+    if len(clauses) == 1 and len(clauses[0]) > max_words_per_line:
+        GAP_THRESHOLD = 1.5  # seconds
+        gap_split = []
+        current = []
+        for i, w in enumerate(clauses[0]):
+            if i > 0:
+                gap = w['start'] - clauses[0][i - 1]['end']
+                if gap > GAP_THRESHOLD and len(current) >= 3:
+                    gap_split.append(current)
+                    current = []
+            current.append(w)
+        if current:
+            gap_split.append(current)
+        if len(gap_split) > 1:
+            clauses = gap_split
+
+    # Merge tiny clauses, split oversized ones
     MIN_CHARS = 4
-    MAX_CHARS = max_words_per_line * 2  # generous limit for display
+    MAX_CHARS = max_words_per_line * 7  # characters, generous
 
     merged = []
     for clause in clauses:
         char_count = sum(len(w['word'].rstrip('，,。.！!？?、；;：:')) for w in clause)
 
         if merged and char_count < MIN_CHARS:
-            # Merge tiny clause into previous line
             merged[-1].extend(clause)
-        elif char_count > MAX_CHARS:
-            # Split oversized clause at roughly the midpoint
+        elif len(clause) > max_words_per_line + 3:
             mid = len(clause) // 2
             merged.append(clause[:mid])
             merged.append(clause[mid:])
@@ -258,6 +331,68 @@ def translate_lines(lines, target_lang):
         done = min(b + batch_size, len(texts))
         print(f"    {done}/{len(texts)} translated")
 
+    return translations
+
+
+def load_translations_from_srt(lines, srt_path):
+    """Load translations from a pre-made SRT file and align to word-level caption lines.
+
+    Instead of auto-translating, maps each caption line's time range to the
+    corresponding SRT segment(s). This ensures captions match dubbed TTS audio.
+    Long SRT segments are auto-split at punctuation to fit single caption lines.
+    """
+    import re
+
+    with open(srt_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Parse SRT entries
+    srt_entries = []
+    for block in re.split(r'\n\n+', content.strip()):
+        block_lines = block.strip().split('\n')
+        if len(block_lines) < 3:
+            continue
+        ts = re.match(r'(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})', block_lines[1])
+        if not ts:
+            continue
+        def _to_sec(t):
+            p = t.replace(',', '.').split(':')
+            sp = p[2].split('.')
+            return int(p[0])*3600 + int(p[1])*60 + int(sp[0]) + int(sp[1])/1000
+        srt_entries.append({
+            'start': _to_sec(ts.group(1)),
+            'end': _to_sec(ts.group(2)),
+            'text': ' '.join(block_lines[2:]).strip()
+        })
+
+    # For each caption line, find the overlapping SRT segment(s)
+    translations = []
+    for line_words in lines:
+        if not line_words:
+            translations.append('')
+            continue
+        line_start = line_words[0]['start']
+        line_end = line_words[-1]['end']
+        line_mid = (line_start + line_end) / 2
+
+        # Find best matching SRT entry by midpoint overlap
+        best = None
+        best_overlap = -1
+        for entry in srt_entries:
+            overlap_start = max(line_start, entry['start'])
+            overlap_end = min(line_end, entry['end'])
+            overlap = max(0, overlap_end - overlap_start)
+            if overlap > best_overlap:
+                best_overlap = overlap
+                best = entry
+            # Also check midpoint containment
+            if entry['start'] <= line_mid <= entry['end'] and overlap >= best_overlap * 0.5:
+                best = entry
+                best_overlap = overlap
+
+        translations.append(best['text'] if best else '')
+
+    print(f"  Loaded {len(translations)} translations from SRT ({len(srt_entries)} segments)")
     return translations
 
 
@@ -1144,6 +1279,7 @@ def main():
     bilingual = None
     main_lang = None
     words_json = None
+    translation_srt = None
 
     for arg in args[1:]:
         if arg.startswith('--style='):
@@ -1171,6 +1307,8 @@ def main():
             main_lang = arg.split('=', 1)[1]
         elif arg.startswith('--words-json='):
             words_json = arg.split('=', 1)[1]
+        elif arg.startswith('--translation-srt='):
+            translation_srt = arg.split('=', 1)[1]
 
     groq_api_key = os.getenv('GROQ_API_KEY')
     if not groq_api_key:
@@ -1217,7 +1355,7 @@ def main():
 
     # Step 2: Group words into lines
     print_header("Step 2: Generating Caption Subtitles")
-    lines = group_words_into_lines(words, max_words_per_line=words_per_line)
+    lines = group_words_into_lines(words, max_words_per_line=words_per_line, segments=segments)
     print(f"  Style: {style}")
     print(f"  Lines: {len(lines)}")
     print(f"  Words per line: {words_per_line}")
@@ -1232,12 +1370,20 @@ def main():
 
     if main_lang:
         # Main-lang mode: translate to main_lang → Chinese (or other) on top karaoke, original below
-        print(f"  Mode: Translated main ({main_lang}) + original secondary")
-        main_translations = translate_lines(lines, main_lang)
+        if translation_srt:
+            print(f"  Mode: Translated main from SRT ({translation_srt}) + original secondary")
+            main_translations = load_translations_from_srt(lines, translation_srt)
+        else:
+            print(f"  Mode: Translated main ({main_lang}) + original secondary")
+            main_translations = translate_lines(lines, main_lang)
         ass_content = generate_ass_bilingual_translated_main(lines, main_translations, style_config)
     elif bilingual:
         # Bilingual mode: translate each line, then generate dual-language ASS
-        translations = translate_lines(lines, bilingual)
+        if translation_srt:
+            print(f"  Mode: Bilingual from SRT ({translation_srt}) + original")
+            translations = load_translations_from_srt(lines, translation_srt)
+        else:
+            translations = translate_lines(lines, bilingual)
         if style == 'bounce':
             ass_content = generate_ass_bounce(lines, style_config, translations=translations)
         else:

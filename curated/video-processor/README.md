@@ -1,22 +1,24 @@
 # Video/Audio Processor
 
-Comprehensive media processing for Claude Code: transcribe, translate, summarize, and dub videos/audio with professional TTS.
-Claude Code 上的全能媒体处理工具：转录、翻译、摘要、配音，支持专业 TTS。
+Comprehensive media processing for Claude Code: transcribe, translate, summarize, dub, caption, and visually analyze videos/audio with professional TTS.
 
-## Features / 功能
+## Features
 
-- **Transcription** — Ultra-fast via Groq Whisper Large V3, SRT + plain text output / 极速转录，Groq Whisper Large V3，输出 SRT 及纯文本
-- **Translation** — Natural translation via EnConvo API, context-aware / 自然翻译，EnConvo API，上下文感知
-- **Dubbing** — Full pipeline: transcribe → clean → translate → review → TTS → dubbed video / 完整配音流水线：转录→清理→翻译→审核→TTS→配音视频
-- **Summary** — Intelligent summaries with timestamps and key points / 智能摘要，含时间戳和要点提取
-- **Transcript Cleanup** — Removes filler words and verbal tics before translation / 翻译前清除填充词和口语习惯
-- **Agent-Driven Condensation** — Host agent shortens overlong translations for natural timing / 代理驱动压缩过长翻译，确保自然时间
-- **3 TTS Engines** — edge-tts (default, 50+ langs), Kokoro (local, offline), voicebox (voice cloning) / 三引擎：edge-tts（默认）、Kokoro（本地离线）、voicebox（声音克隆）
-- **Voice Cloning** — Use any voicebox profile (cloned, designed, or preset voices) / 支持 voicebox 声音克隆配置文件
-- **URL Support** — YouTube, Twitter/X, TikTok, Instagram, 1000+ sites via yt-dlp / 支持 YouTube、Twitter、TikTok 等 1000+ 网站
-- **Audio + Video** — MP4, MKV, MOV, MP3, M4A, WAV, FLAC, and more / 支持 MP4、MKV、MOV、MP3、M4A、WAV、FLAC 等格式
-- **Burned-In Dual Subtitles** — Original (top/yellow) + translated (bottom/white), always visible / 双字幕烧录，原文在上（黄色）+译文在下（白色），始终可见
-- **Language Detection** — Auto-detects request language, responds in same language / 自动检测请求语言，以相同语言回复
+- **Transcription** — Ultra-fast via Groq Whisper Large V3, SRT + plain text output
+- **Translation** — Natural translation via host LLM (default) or Groq LLM fallback, context-aware
+- **Dubbing** — Full pipeline: transcribe → clean → translate → review → TTS → dubbed video with professional audio mixing
+- **Summary** — Intelligent summaries with timestamps and key points, language-aware
+- **Word-Level Captioning** — Karaoke-style word highlighting with 8 animation styles (highlight, appear, bounce, zoom, etc.)
+- **Visual Analysis** — Describe silent videos via keyframe extraction + host LLM (or local MLX VLM fallback)
+- **Transcript Cleanup** — Removes filler words and verbal tics before translation
+- **Agent-Driven Condensation** — Host agent shortens overlong translations for natural timing
+- **3 TTS Engines** — edge-tts (default, 50+ langs), Kokoro (local, offline), voicebox (voice cloning)
+- **Voice Cloning** — Use any voicebox profile (cloned, designed, or preset voices)
+- **URL Support** — YouTube, Twitter/X, TikTok, Instagram, 1000+ sites via yt-dlp
+- **Audio + Video** — MP4, MKV, MOV, MP3, M4A, WAV, FLAC, and more
+- **Professional Audio Mixing** — Original audio at ~15% + dubbed voice at full volume (like Netflix/Disney+ dubs)
+- **Burned-In Dual Subtitles** — Original (top/yellow) + translated (bottom/white), optional
+- **Language Detection** — Auto-detects request language, responds in same language
 
 ## Supported Formats
 
@@ -72,10 +74,14 @@ Transcribe, clean, translate, review, TTS, create dubbed video.
 /video-dub video.mp4 chinese --voice "Trump_Voice"
 ```
 
+**Audio Mix Modes:**
+- **`mix`** (default): Original audio lowered to ~15% + dubbed voice at full volume. Professional dubbing style.
+- **`replace`**: Only dubbed audio, no original track.
+
 **Output:**
 - `{name}_original.srt` - Original transcript
 - `{name}_{target_lang}.srt` - Translated subtitles
-- `{name}_dubbed.mp4` - Final dubbed video with burned-in dual subs
+- `{name}_dubbed.mp4` - Final dubbed video
 
 ### 4. Summary
 Transcribe video/audio and generate comprehensive summary.
@@ -86,25 +92,56 @@ Transcribe video/audio and generate comprehensive summary.
 /video-summary podcast.mp3
 /video-summary https://youtube.com/watch?v=xxx
 
-# In different languages (auto-detected)
+# Language-aware (auto-detected)
 "总结这段视频" video.mp4        # Chinese summary
 "résumez cette vidéo" video.mp4  # French summary
-"resume este video" video.mp4    # Spanish summary
 ```
 
 **Output:**
-- `{name}_summary.md` - Comprehensive summary:
-  - Overview (2-3 sentences)
-  - Key points (bullet list)
-  - Detailed summary
-  - Important timestamps
-  - Action items (if applicable)
+- `{name}_summary.md` - Overview, key points, detailed summary, timestamps, action items
 
-**Language Detection:**
-- Detects request language and generates summary in that language
-- "What's this video about?" → English summary
-- "总结这段视频" → Chinese summary
-- Can override with explicit parameter: `/video-summary video.mp4 spanish`
+### 5. Word-Level Captioning
+Burn word-accurate captions into video with karaoke-style highlighting.
+
+**Usage:**
+```
+/video-caption video.mp4
+/video-caption video.mp4 --style=bounce
+/video-caption video.mp4 --bilingual=english --main-lang=chinese
+/video-caption https://youtube.com/watch?v=xxx
+```
+
+**Caption Styles:**
+
+| Style | Description |
+|-------|-------------|
+| `highlight` (default) | Full line shown; current word sweeps white → yellow |
+| `appear` | Words appear one by one and accumulate |
+| `underline` | Current word is yellow + bold + underlined |
+| `bounce` | Word-by-word pop with spring physics |
+| `fade` | Current word fades in bright yellow |
+| `zoom` | Word scales from 0% → 115% → 100% |
+| `slide` | Word slides up into position |
+| `wave` | Current word rocks with settling oscillation |
+| `typewriter` | Characters appear one by one per word |
+
+**Output:**
+- `{name}_captioned.mp4` - Video with burned-in captions
+- `{name}_captions.ass` - ASS subtitle file
+- `{name}_words.json` - Word-level timestamps (reusable)
+
+### 6. Visual Analysis (Silent Video)
+Analyze video frames visually and generate scene descriptions.
+
+**Usage:**
+```
+"analyze this video" video.mp4
+"what's happening in this video" video.mp4
+"describe this silent video" video.mp4
+```
+
+**Output:**
+- `{name}_captions.srt` - SRT file with visual descriptions synced to timestamps
 
 ## Installation
 
@@ -127,7 +164,7 @@ export GROQ_API_KEY=gsk_xxx
 # Or add to .env file in the skill root directory
 ```
 
-Groq provides **Whisper Large V3** for transcription — fast and free. Translation is handled by **EnConvo API** (must be running on `localhost:54535`). Summarization, condensation, and filler cleanup are handled by the host agent.
+Groq provides **Whisper Large V3** for transcription — fast and free. Translation is handled by the **host LLM** (default) or Groq LLM fallback. Summarization, condensation, and filler cleanup are handled by the host agent.
 
 ### Optional: Kokoro TTS (Local, Offline)
 
@@ -143,14 +180,14 @@ If not installed, the skill automatically falls back to edge-tts.
 
 ### Optional: Voicebox (Voice Cloning & Design)
 
-Install from: [github.com/EnConvo/skill/tree/main/curated/voicebox](https://github.com/EnConvo/skill/tree/main/curated/voicebox)
+Install from: [github.com/Enconvo/skills/tree/main/curated/voicebox](https://github.com/Enconvo/skills/tree/main/curated/voicebox)
 
 Voicebox supports three voice profile types:
 - **Qwen-TTS Clone** — Clone any voice from reference audio
 - **Descriptional Designed** — Design voices from text descriptions
 - **Custom_Voice** — Preset profiles with customizable emotions
 
-**Important:** Voicebox is ideal for short videos (1-5 minutes). For long videos (30+ min), voicebox generates segments sequentially which takes too long — use edge-tts instead (parallel generation, much faster).
+**Important:** Voicebox is ideal for short videos (1-5 minutes). For long videos (30+ min), use edge-tts instead (parallel generation, much faster).
 
 If not installed, the skill automatically falls back to edge-tts with a helpful install guide.
 
@@ -161,131 +198,26 @@ If not installed, the skill automatically falls back to edge-tts with a helpful 
 The dubbing system uses a pipeline for natural-sounding dubbed audio:
 
 1. **TTS Generation** - Each subtitle entry gets its own TTS audio file
-2. **Timing Analysis** - Measures each segment's spoken duration against its time window.
-   Overlong segments (>1.3x) are flagged in a timing report. The host agent condenses
-   the translated text and re-runs TTS for those segments.
-3. **Speed Adjustment** - Conservative tempo tuning for remaining mismatches:
-   - Never slows down (silence fills gaps instead)
-   - Mild speedup only, capped at 2.0x (rare after condensation)
-4. **Numpy Timeline Assembly** - Places each segment at its exact SRT timestamp in a
-   pre-allocated numpy array. Scales to 1500+ segments without ffmpeg input limits.
-5. **Subtitle Burn-In** - Burns dual subtitles into video (original top/yellow + translated bottom/white)
-   using ffmpeg `subtitles` filter. Re-encodes video with `-c:v libx264 -crf 20 -preset fast`.
+2. **Timing Analysis** - Measures each segment's spoken duration against its time window. Overlong segments (>1.3x) are flagged. The host agent condenses the translated text and re-runs TTS.
+3. **Speed Adjustment** - Conservative tempo tuning for remaining mismatches (never slows down, mild speedup capped at 2.0x)
+4. **Numpy Timeline Assembly** - Places each segment at its exact SRT timestamp. Scales to 1500+ segments.
+5. **Subtitle Burn-In** - Optional dual subtitles via ffmpeg subtitles filter.
 
-**Benefits:**
-- Natural-sounding audio (no slow-motion or chipmunk effect)
-- Perfect timing sync (no drift over time)
-- Maintains original video duration
-- Scales to 1500+ segments
-- Burned-in dual subtitles (always visible, no player support needed)
-- Works with any TTS engine (Kokoro, edge-tts, voicebox)
+### Word-Level Captioning
 
-### Voice Cloning Support
-
-Use any voicebox profile for dubbing:
-
-```bash
-# Dub with cloned voice
-generate_tts_and_dub.sh video.mp4 original.srt translated.srt chinese "Trump"
-```
-
-Available when voicebox skill is installed with cloned voice profiles.
-
-## Supported Languages
-
-### TTS Voices
-
-| Voice | Engine | Scope |
-|-------|--------|-------|
-| Brian Multilingual (male, default) | edge-tts | All languages |
-| Emma Multilingual (female) | edge-tts | All languages |
-| YunxiNeural (male) | edge-tts | Chinese (auto-selected) |
-| Kokoro voices (local) | Kokoro | English, Chinese |
-| Voicebox profiles (cloned/designed) | Voicebox | Any language |
-
-**Default:** Brian Multilingual handles all languages natively. Chinese defaults to YunxiNeural for better quality.
-Users can always override with any edge-tts voice via the `voice_name` parameter.
-
-**Translation:** 50+ languages via EnConvo API
-
-## Example Sessions
-
-### Transcription (Video/Audio/URL)
-```
-User: "Transcribe this video"
-Claude: Extracts transcript → video_original.srt + video_transcript.txt
-
-User: "Transcribe podcast.mp3"
-Claude: Extracts audio transcript → podcast_original.srt + podcast_transcript.txt
-
-User: "Transcribe https://youtube.com/watch?v=xxx"
-Claude: Downloads video → Transcribes → transcript files
-```
-
-### Summary (Language-Aware)
-```
-User: "What's this video about?"
-Claude: Transcribes → Generates English summary in video_summary.md
-
-User: "总结这段视频" (video.mp4)
-Claude: Transcribes → Generates Chinese summary in video_summary.md
-
-User: "Summarize https://twitter.com/user/status/xxx"
-Claude: Downloads → Transcribes → Generates English summary
-
-User: "这个YouTube视频讲什么？https://youtube.com/watch?v=xxx"
-Claude: Downloads → Transcribes → Detects Chinese → Generates Chinese summary
-```
-
-### Dubbing (Audio Support)
-```
-User: "Dub this to Chinese"
-Claude: Transcribe → Clean filler → Translate → Review → TTS → Dubbed video
-
-User: "把这个音频配音成中文" (podcast.mp3)
-Claude: Transcribe audio → Clean filler → Translate to Chinese → Review → TTS
-
-User: "Dub this YouTube video to Spanish: https://youtube.com/watch?v=xxx"
-Claude: Downloads → Transcribes → Clean filler → Translates → TTS → Dubbed video
-```
+- Auto-sizes font based on video resolution (scaled from 1080p baseline)
+- Sentence-aware line breaking (Whisper segments → punctuation → time-gap heuristic)
+- Cinema-style fonts: PingFang SC for CJK, Helvetica Neue for Latin
+- Bilingual layout: main language on top (karaoke) + secondary below (white)
 
 ## Performance
 
 - **Transcription**: ~3 seconds for 1-minute video (Groq Whisper)
-- **Translation**: ~10 seconds for 14 segments (EnConvo API)
+- **Translation**: ~10 seconds for 14 segments (host LLM)
 - **TTS Generation**: ~30-60 seconds for 1-minute video (segment-by-segment)
 - **Video Export**: ~10-30 seconds (re-encode for burned-in subtitles)
 
 **Total**: ~1-2 minutes for 1-minute video
-
-## Troubleshooting
-
-### Groq API Error
-```
-Error: GROQ_API_KEY not provided
-```
-**Fix**: Get free API key from [console.groq.com](https://console.groq.com) (needed for Whisper ASR). Translation uses EnConvo API (localhost:54535).
-
-### YouTube Download Error
-```
-Error downloading video
-```
-**Fix**: Update yt-dlp: `pip install -U yt-dlp`
-
-### Kokoro Import Error
-```
-ModuleNotFoundError: No module named 'kokoro'
-```
-**Fix**: Skill falls back to edge-tts automatically for Chinese
-
-## Notes
-
-- All modes start with transcription (Groq Whisper ASR)
-- Translation via EnConvo API (natural, context-aware phrasing)
-- Transcript cleanup removes filler words before translation
-- Dubbing includes perfect audio-subtitle sync (segment-by-segment)
-- **Burns in dual subtitles** (original top/yellow + translated bottom/white, always visible)
-- Summaries are comprehensive but concise
 
 ## License
 
