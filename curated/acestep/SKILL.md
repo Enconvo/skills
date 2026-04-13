@@ -61,6 +61,14 @@ For users who don't have ACE-Step installed yet, run the `setup` command. It han
 
 **Requirements:** ~4GB disk for 0.6B model, ~8GB for 1.7B, ~12GB for 4B. macOS Apple Silicon uses MLX backend automatically.
 
+## Memory Management
+
+**IMPORTANT:** The ACE-Step server uses ~27 GB RAM while loaded. After all music generation and post-processing (MV, transcription, etc.) is complete, **always stop the server** to free memory:
+
+```bash
+./scripts/acestep.sh stop
+```
+
 ## Workflow
 
 For user requests requiring vocals:

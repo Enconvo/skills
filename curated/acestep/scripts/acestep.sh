@@ -481,14 +481,6 @@ download_audios() {
         return 0
     fi
 
-    # Also extract local file paths (for local server direct copy)
-    local file_paths
-    file_paths=$(echo "$result_content" | jq -r '.[].file // empty' 2>/dev/null)
-
-    # Extract URL paths for remote download
-    local url_paths
-    url_paths=$(echo "$result_content" | jq -r '.[].url // empty' 2>/dev/null)
-
     local count=1
     while IFS= read -r audio_path; do
         # Skip empty lines and remove potential Windows carriage return
@@ -496,8 +488,24 @@ download_audios() {
         if [ -n "$audio_path" ]; then
             local output_file="${OUTPUT_DIR}/${job_id}_${count}.${audio_format}"
 
-            # If the file path is a local file that exists, copy directly
-            if [ -f "$audio_path" ]; then
+            # Extract the real local path from the API URL format:
+            # /v1/audio?path=%2FUsers%2F... → /Users/...
+            local local_path=""
+            if [[ "$audio_path" == /v1/audio* ]]; then
+                local_path=$(python3 -c "from urllib.parse import unquote, urlparse, parse_qs; q=parse_qs(urlparse('$audio_path').query); print(unquote(q.get('path',[''])[0]))" 2>/dev/null)
+            fi
+
+            # If we extracted a local path and it exists, copy directly
+            if [ -n "$local_path" ] && [ -f "$local_path" ]; then
+                echo -e "  ${CYAN}Copying audio $count (local)...${NC}"
+                cp "$local_path" "$output_file"
+                if [ -f "$output_file" ] && [ -s "$output_file" ]; then
+                    echo -e "  ${GREEN}Saved: $output_file${NC}"
+                else
+                    echo -e "  ${RED}Failed to copy: $local_path${NC}"
+                fi
+            # If audio_path is already a local file, copy directly
+            elif [ -f "$audio_path" ]; then
                 echo -e "  ${CYAN}Copying audio $count (local)...${NC}"
                 cp "$audio_path" "$output_file"
                 if [ -f "$output_file" ] && [ -s "$output_file" ]; then
@@ -506,10 +514,8 @@ download_audios() {
                     echo -e "  ${RED}Failed to copy: $audio_path${NC}"
                 fi
             else
-                # Fall back to HTTP download for remote servers
-                local audio_url
-                audio_url=$(echo "$url_paths" | sed -n "${count}p")
-                local download_url="${api_url}${audio_url}"
+                # Fall back to HTTP download using .file as the URL path
+                local download_url="${api_url}${audio_path}"
 
                 echo -e "  ${CYAN}Downloading audio $count...${NC}"
                 local curl_output
@@ -781,6 +787,11 @@ wait_for_job() {
                 echo ""
                 echo -e "${GREEN}Done! Files saved to: $OUTPUT_DIR${NC}"
                 show_star_prompt
+
+                # Auto-stop server to free ~27GB memory
+                echo ""
+                echo -e "${CYAN}Stopping server to free memory...${NC}"
+                cmd_stop
                 return 0
                 ;;
             2)
@@ -789,6 +800,11 @@ wait_for_job() {
 
                 # Save error result
                 save_result "$job_id" "$response"
+
+                # Auto-stop server to free memory even on failure
+                echo ""
+                echo -e "${CYAN}Stopping server to free memory...${NC}"
+                cmd_stop
                 return 1
                 ;;
             0)
@@ -1223,6 +1239,7 @@ show_help() {
     echo "  status      Check job status and download results"
     echo "  models      List available models"
     echo "  health      Check API health"
+    echo "  stop        Stop server and free memory"
     echo "  config      Manage configuration"
     echo ""
     echo "Output:"
@@ -1490,6 +1507,21 @@ print('Done')
     echo ""
 }
 
+# Stop ACE-Step server and free memory
+cmd_stop() {
+    local pids
+    pids=$(pgrep -f "acestep/api_server.py\|acestep.*--enable-api\|acestep.*--port" 2>/dev/null || true)
+    if [[ -z "$pids" ]]; then
+        echo -e "${YELLOW}No ACE-Step server running.${NC}"
+        return 0
+    fi
+    for pid in $pids; do
+        local mem_mb
+        mem_mb=$(ps -p "$pid" -o rss= 2>/dev/null | awk '{printf "%.0f", $1/1024}')
+        kill "$pid" 2>/dev/null && echo -e "${GREEN}Stopped ACE-Step server (PID $pid, freed ~${mem_mb} MB)${NC}"
+    done
+}
+
 # Main
 case "$1" in
     setup) shift; cmd_setup "$@" ;;
@@ -1500,6 +1532,7 @@ case "$1" in
     models) cmd_models ;;
     health) cmd_health ;;
     config) shift; cmd_config "$@" ;;
+    stop) cmd_stop ;;
     help|--help|-h) show_help ;;
     *) show_help; exit 1 ;;
 esac
