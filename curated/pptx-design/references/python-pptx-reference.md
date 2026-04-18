@@ -324,8 +324,17 @@ chart.legend.include_in_layout = False
 
 **Rules:**
 - For **full-bleed backgrounds** (16:9 image → 16:9 slide): safe to specify both width and height — they match.
-- For **ALL other placements**: use `add_picture_fit()` (see below) to preserve aspect ratio.
+- For **ALL other placements**: use `add_picture_fit()` or `add_picture_cover()` (both preserve AR).
 - **NEVER** call `add_picture(path, left, top, width, height)` with both width and height when the image AR doesn't match the target area AR.
+
+**Choosing between fit and cover:**
+
+| Helper | Behavior | Use when |
+|--------|----------|----------|
+| `add_picture_fit()` | Letterbox inside the box. May leave blank edges. Never crops. | The full image matters (product shots, diagrams, portraits where the whole frame is composed). |
+| `add_picture_cover()` | Fill-and-crop. No blank space. Crops image edges that don't fit. | Side panels, card images, decorative photos where losing some edge is acceptable. Most common choice. |
+
+If neither feels right, the AR of the image doesn't match the slot — regenerate the image at the slot's AR instead of forcing a fit.
 
 ```python
 from pptx.util import Emu
@@ -532,26 +541,59 @@ for slide_idx, slide in enumerate(prs.slides):
 
 ## Overlap and Bounds Checker
 
+Detects unintentional overlaps using **geometry, not shape names** (audit Lesson 9).
+Decorative shapes are identified by size — full-slide backgrounds, thin accent strips,
+and images are skipped automatically. Parent-child containment pairs (text inside a
+card) are also skipped.
+
 ```python
-def check_overlaps(slide):
+def check_overlaps(slide, slide_width=12192000, slide_height=6858000):
+    """Report unintentional overlaps and out-of-bounds shapes on a slide.
+
+    Skipped (not flagged as unintentional overlap):
+      - Full-slide or near-full-slide shapes (backgrounds, overlays).
+      - Thin accent strips (either dimension <= 0.1" / 91440 EMU).
+      - Image shapes (they often sit behind decorative content by design).
+      - Parent-child pairs where one shape's bbox fully contains the other.
+
+    Args:
+        slide: pptx slide object.
+        slide_width, slide_height: in EMU. Defaults to 16:9 widescreen.
+    """
+    SW, SH = slide_width, slide_height
+    THIN = 91440            # 0.1 inch
+    FULL_TOL = 50000        # EMU tolerance for "full-slide"
+
     shapes_info = []
     for s in slide.shapes:
+        is_image = hasattr(s, 'image')
+        w, h = s.width, s.height
+        is_full_slide = (abs(w - SW) < FULL_TOL and abs(h - SH) < FULL_TOL
+                         and abs(s.left) < FULL_TOL and abs(s.top) < FULL_TOL)
+        is_thin = (w <= THIN or h <= THIN)
         shapes_info.append({
             'name': s.name,
             'left': s.left, 'top': s.top,
-            'right': s.left + s.width,
-            'bottom': s.top + s.height
+            'right': s.left + w, 'bottom': s.top + h,
+            'w': w, 'h': h,
+            'decorative': is_full_slide or is_thin or is_image,
         })
+
+    def contains(a, b):
+        return (a['left'] <= b['left'] and a['top'] <= b['top']
+                and a['right'] >= b['right'] and a['bottom'] >= b['bottom'])
+
     for i, a in enumerate(shapes_info):
         for j, b in enumerate(shapes_info):
             if i >= j: continue
-            if any(kw in a['name'] for kw in ['BG', 'Bar', 'Oval', 'accent']): continue
-            if any(kw in b['name'] for kw in ['BG', 'Bar', 'Oval', 'accent']): continue
+            if a['decorative'] or b['decorative']: continue
+            if contains(a, b) or contains(b, a): continue  # parent-child
             if (a['left'] < b['right'] and a['right'] > b['left'] and
                 a['top'] < b['bottom'] and a['bottom'] > b['top']):
                 print(f"  OVERLAP: {a['name']} <-> {b['name']}")
+
     for s in shapes_info:
-        if s['right'] > 12192000 or s['bottom'] > 6858000:
+        if s['right'] > SW or s['bottom'] > SH:
             print(f"  OUT OF BOUNDS: {s['name']}")
 ```
 
@@ -645,7 +687,33 @@ frame_w, frame_h = frame_dims(paras, max_width=5300000)
 
 ## Embedded Helper Functions
 
-Copy-paste these at the top of every Python script. They cover 90% of common operations:
+Copy-paste these at the top of every Python script. They cover 90% of common operations.
+
+### Palette (`pal`) Dict Contract
+
+All layout helpers (`add_slide_header`, `make_kpi_card`, `make_narrative_page`, etc.)
+accept a `pal` dict with **hex string** values (NOT `RGBColor` objects). Required keys:
+
+```python
+pal = {
+    'accent':        '#C8A96E',  # primary accent color (bars, highlights)
+    'text_primary':  '#FFFFFF',  # main text color
+    'text_muted':    '#8899AA',  # subtitle / secondary text
+    'card_fill':     '#1A3358',  # card/panel background
+    'card_border':   '#2A4A78',  # card/panel border (or same as card_fill for no border)
+    'footer_bg':     '#0A1628',  # optional — footer strip color
+}
+```
+
+The `STYLE_XX` dicts in `style-pptx-mapping.md` use a DIFFERENT format (RGBColor values,
+different key names). Convert with `style_to_pal()` before passing to layout helpers:
+
+```python
+pal = style_to_pal(STYLE_02)  # returns the hex-string dict helpers expect
+make_kpi_card(slide, L, T, W, H, 'REVENUE', '$14.8B', 'YoY +22%', pal)
+```
+
+### Helper Functions
 
 ```python
 import os
@@ -663,6 +731,37 @@ def hex_to_rgb(hex_str):
     """Convert '#RRGGBB' or 'RRGGBB' to RGBColor."""
     h = hex_str.lstrip('#')
     return RGBColor(int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+
+
+def rgb_to_hex(rgb_color):
+    """Convert RGBColor (or int-like color) to '#RRGGBB' string."""
+    s = str(rgb_color)
+    return '#' + s if not s.startswith('#') else s
+
+
+def style_to_pal(style_dict):
+    """Adapter: convert a STYLE_XX dict (RGBColor values, style-specific keys) into
+    the hex-string `pal` dict that layout helpers expect.
+
+    Handles missing optional keys by filling sensible defaults so helpers never
+    crash on KeyError. See the `pal` dict contract above the helpers section.
+    """
+    palette = style_dict.get('palette', {})
+    def h(key, fallback):
+        val = palette.get(key)
+        if val is None:
+            return fallback
+        return rgb_to_hex(val)
+
+    bg = h('bg', '#FFFFFF')
+    return {
+        'accent':       h('primary', h('accent', '#C8A96E')),
+        'text_primary': h('text', '#1A1A1A'),
+        'text_muted':   h('secondary', h('tertiary', '#8899AA')),
+        'card_fill':    h('bg_white', bg),
+        'card_border':  h('border', h('tertiary', '#CCCCCC')),
+        'footer_bg':    h('footer', bg),
+    }
 
 
 def set_gradient_bg(slide, hex_start, hex_end, angle=5400000):
@@ -701,8 +800,12 @@ def add_rect(slide, left, top, width, height, fill_hex, border_hex=None):
 
 
 def add_rounded_rect(slide, left, top, width, height, fill_hex,
-                     border_hex=None, radius=5000):
-    """Add a rounded rectangle with configurable corner radius."""
+                     border_hex=None, radius=10000):
+    """Add a rounded rectangle with configurable corner radius.
+
+    Default `radius=10000` ("moderate/pleasant") per Rule 18.
+    Scale: 3000=barely visible, 10000=moderate, 16667=PowerPoint default,
+    50000=pill shape (avoid on content cards)."""
     shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
                                    Emu(left), Emu(top), Emu(width), Emu(height))
     shape.fill.solid()
@@ -748,14 +851,27 @@ def add_textbox(slide, left, top, width, height, text,
 
 
 def set_transparency(shape, alpha_percent):
-    """Set shape fill transparency. alpha_percent: 0=invisible, 100=opaque."""
+    """Set shape fill transparency. alpha_percent: 0=invisible, 100=opaque.
+
+    Requires a shape with solidFill. For gradient-filled shapes produced by
+    add_gradient_shape(), pass alpha_start/alpha_end to that helper instead —
+    per-stop alpha lives on the gradient stops, not the shape.
+    """
     spPr = shape._element.spPr
     solidFill = spPr.find(qn('a:solidFill'))
     if solidFill is None:
-        return
+        raise ValueError(
+            "set_transparency requires a shape with solidFill. Got a shape with "
+            "gradFill or no fill — pass alpha_start/alpha_end to add_gradient_shape() "
+            "instead, or call shape.fill.solid() first if you meant to replace the fill."
+        )
     srgbClr = solidFill.find(qn('a:srgbClr'))
     if srgbClr is None:
-        return
+        raise ValueError(
+            "set_transparency: solidFill has no srgbClr child. The shape may be "
+            "using a theme color reference — call shape.fill.solid() + assign "
+            "shape.fill.fore_color.rgb before setting transparency."
+        )
     for existing in srgbClr.findall(qn('a:alpha')):
         srgbClr.remove(existing)
     alpha = etree.SubElement(srgbClr, qn('a:alpha'))
@@ -763,7 +879,11 @@ def set_transparency(shape, alpha_percent):
 
 
 def clear_slide(slide):
-    """Remove all shapes from a slide."""
+    """Remove all shapes from a slide.
+
+    Does NOT modify the slide background or layout — only the shape tree.
+    Use when rebuilding a slide's contents in place (e.g., during a redesign).
+    """
     for sp in list(slide.shapes):
         slide.shapes._spTree.remove(sp._element)
 
@@ -800,8 +920,12 @@ def make_kpi_card(slide, left, top, width, height, label, value, note, pal,
     appropriate layout helper: make_narrative_page(), make_quote_page(),
     make_comparison_page(), make_title_page(), or make_chapter_divider()."""
     add_rounded_rect(slide, left, top, width, height,
-                     pal['card_fill'], pal['card_border'], radius=4000)
-    add_rect(slide, left + 150000, top, width - 300000, 28000, pal['accent'])
+                     pal['card_fill'], pal['card_border'])  # default radius=10000 (Rule 18)
+    # Top accent bar INSET within card (Rule 23 — bar must be inside card boundary).
+    # Offset by card corner radius so the bar doesn't poke past the rounded corners.
+    bar_inset = 180000  # ~0.2" — clears the 10000 adj rounded corner
+    add_rect(slide, left + bar_inset, top + 80000,
+             width - 2 * bar_inset, 28000, pal['accent'])
 
     tb = slide.shapes.add_textbox(
         Emu(left + 180000), Emu(top + 180000),
@@ -950,11 +1074,103 @@ def check_image_ar(image_path, target_w_emu, target_h_emu, tolerance=0.08):
     return diff <= tolerance, round(native_ar, 2), round(target_ar, 2)
 
 
-def verify_generated_image(image_path, intended_role, intended_ar=None):
+def _crop_text_zone(img, text_zone):
+    """Crop the declared text zone from an image. Returns a PIL.Image.
+
+    text_zone: dict {'zone': 'bottom'|'top'|'left'|'right'|'center-band', 'size': 0.0-1.0}
+    """
+    W, H = img.size
+    zone = text_zone.get('zone', 'bottom')
+    size = float(text_zone.get('size', 0.35))
+    if zone == 'bottom':
+        return img.crop((0, int(H * (1 - size)), W, H))
+    if zone == 'top':
+        return img.crop((0, 0, W, int(H * size)))
+    if zone == 'left':
+        return img.crop((0, 0, int(W * size), H))
+    if zone == 'right':
+        return img.crop((int(W * (1 - size)), 0, W, H))
+    if zone == 'center-band':
+        h = int(H * size)
+        y = (H - h) // 2
+        return img.crop((0, y, W, y + h))
+    raise ValueError(f"text_zone['zone'] must be 'bottom'|'top'|'left'|'right'|'center-band', got {zone!r}")
+
+
+def verify_text_zone_luminance(image_path, text_zone,
+                                text_color='white', max_lum=140, min_lum=115):
+    """Check if the declared text zone is dark/light enough to host overlay text.
+
+    Args:
+        image_path: path to the generated image.
+        text_zone: dict {'zone': ..., 'size': ...} — matches add_bg_image()'s arg.
+        text_color: 'white' | 'cream' | 'dark' | 'black'. Governs which direction to check.
+        max_lum: when text_color is light (white/cream), zone mean luminance must be <= this (0-255).
+                 Default 140 leaves headroom for comfortable white-on-dark contrast.
+        min_lum: when text_color is dark (black/dark), zone mean luminance must be >= this.
+
+    Returns:
+        (ok: bool, mean_lum: float, message: str)
+    """
+    img = PILImage.open(image_path).convert('L')  # grayscale
+    crop = _crop_text_zone(img, text_zone)
+    pixels = list(crop.getdata())
+    img.close()
+    crop.close()
+    if not pixels:
+        return False, 0.0, "Text zone crop is empty — check text_zone dimensions."
+
+    mean = sum(pixels) / len(pixels)
+    light_text = text_color.lower() in ('white', 'cream', 'gold', 'light')
+    dark_text  = text_color.lower() in ('black', 'dark')
+
+    if light_text:
+        if mean > max_lum:
+            return False, mean, (
+                f"TEXT ZONE TOO BRIGHT for {text_color} text: mean luminance "
+                f"{mean:.0f}/255 (max allowed {max_lum}). REGENERATE with stronger "
+                f"dark-zone directive, OR add a targeted gradient shape to darken this zone."
+            )
+        return True, mean, f"OK: text zone mean luminance {mean:.0f} ≤ {max_lum} for {text_color} text"
+
+    if dark_text:
+        if mean < min_lum:
+            return False, mean, (
+                f"TEXT ZONE TOO DARK for {text_color} text: mean luminance "
+                f"{mean:.0f}/255 (min required {min_lum}). REGENERATE with lighter directive."
+            )
+        return True, mean, f"OK: text zone mean luminance {mean:.0f} ≥ {min_lum} for {text_color} text"
+
+    return True, mean, f"OK: text zone mean luminance {mean:.0f} (no direction check for text_color={text_color!r})"
+
+
+def verify_generated_image(image_path, intended_role, intended_ar=None,
+                            text_zone=None, text_color='white'):
     """MANDATORY post-generation check. Run after EVERY image generation.
-    intended_role: 'full-bleed', 'side-panel', 'content', 'accent-strip'
-    intended_ar: expected AR as float (e.g. 1.78 for 16:9). If None, uses role defaults.
-    Returns (ok, actual_ar, message)."""
+
+    Two-stage verification:
+      1. AR check — does the image's pixel AR match the intended role's expected AR?
+      2. Text zone luminance check (if text_zone provided) — is the declared text zone
+         dark/light enough to host overlay text?
+
+    Args:
+        image_path: path to generated image.
+        intended_role: 'full-bleed', 'side-panel', 'content', 'accent-strip'.
+        intended_ar: expected AR float (e.g. 1.78 for 16:9). If None, uses role defaults.
+        text_zone: dict {'zone': ..., 'size': ...} matching add_bg_image(). If provided,
+                   runs the luminance check. Omit for images that don't host text.
+        text_color: 'white' (default) | 'cream' | 'dark' | 'black'. Governs luminance direction.
+
+    Returns:
+        (ok: bool, details: dict, message: str)
+
+        details = {
+            'actual_ar': float,
+            'ar_ok': bool,
+            'zone_lum': float or None,
+            'zone_ok': bool or None,
+        }
+    """
     ROLE_AR = {
         'full-bleed':   (1.5, 2.0),
         'side-panel':   (0.5, 1.0),
@@ -965,30 +1181,116 @@ def verify_generated_image(image_path, intended_role, intended_ar=None):
     w, h = img.size
     img.close()
     actual_ar = round(w / h, 2)
+
+    # Stage 1: AR check
     if intended_ar:
         diff = abs(actual_ar - intended_ar) / intended_ar
         if diff > 0.15:
-            return False, actual_ar, (
+            return False, {'actual_ar': actual_ar, 'ar_ok': False, 'zone_lum': None, 'zone_ok': None}, (
                 f"AR MISMATCH: {w}x{h} (AR={actual_ar}), intended={intended_ar} "
                 f"for {intended_role}. Deviation={diff:.0%}. REGENERATE.")
-        return True, actual_ar, f"OK: {w}x{h} AR={actual_ar} matches {intended_role}"
-    lo, hi = ROLE_AR.get(intended_role, (0.5, 2.0))
-    if actual_ar < lo or actual_ar > hi:
-        return False, actual_ar, (
-            f"AR MISMATCH: {w}x{h} (AR={actual_ar}), {intended_role} expects [{lo}-{hi}]. REGENERATE.")
-    return True, actual_ar, f"OK: {w}x{h} AR={actual_ar} fits {intended_role}"
+        ar_ok = True
+    else:
+        lo, hi = ROLE_AR.get(intended_role, (0.5, 2.0))
+        if actual_ar < lo or actual_ar > hi:
+            return False, {'actual_ar': actual_ar, 'ar_ok': False, 'zone_lum': None, 'zone_ok': None}, (
+                f"AR MISMATCH: {w}x{h} (AR={actual_ar}), {intended_role} expects [{lo}-{hi}]. REGENERATE.")
+        ar_ok = True
+
+    # Stage 2: Text zone luminance check (optional)
+    if text_zone is not None:
+        zone_ok, zone_lum, zone_msg = verify_text_zone_luminance(
+            image_path, text_zone, text_color=text_color
+        )
+        if not zone_ok:
+            return False, {
+                'actual_ar': actual_ar, 'ar_ok': True,
+                'zone_lum': zone_lum, 'zone_ok': False,
+            }, f"AR ok ({actual_ar}) but {zone_msg}"
+        return True, {
+            'actual_ar': actual_ar, 'ar_ok': True,
+            'zone_lum': zone_lum, 'zone_ok': True,
+        }, f"OK: {w}x{h} AR={actual_ar}, {zone_msg}"
+
+    return True, {
+        'actual_ar': actual_ar, 'ar_ok': True,
+        'zone_lum': None, 'zone_ok': None,
+    }, f"OK: {w}x{h} AR={actual_ar} matches {intended_role} (no text_zone check requested)"
 
 
-def add_bg_image(slide, image_path, overlay_hex='#000000', overlay_opacity=40):
-    """Add full-bleed background image with semi-transparent overlay.
-    This is the ONLY function that should use direct add_picture() with
-    both W and H — because full-bleed always matches slide AR (16:9)."""
-    slide.shapes.add_picture(
-        image_path, Emu(0), Emu(0), Emu(12192000), Emu(6858000)
-    )
-    overlay = add_rect(slide, 0, 0, 12192000, 6858000, overlay_hex)
-    set_transparency(overlay, overlay_opacity)
-    return overlay
+def add_bg_image(slide, image_path, text_zone=None,
+                 gradient_hex='#000000', gradient_alpha=(80, 0),
+                 slide_width=12192000, slide_height=6858000):
+    """Add full-bleed background image with OPTIONAL targeted gradient per Rule 25/28.
+
+    Strategy: dark BG image + targeted gradient shape ONLY where text sits.
+    NEVER adds a full-slide overlay (that violates Rule 25 — it washes out the
+    whole image uniformly and defeats the point of using a BG image).
+
+    Args:
+        image_path: path to the BG image. Must be dark/moody (Rule 28).
+        text_zone: dict describing where text will sit — determines the
+            gradient shape. Shape of the dict:
+                {'zone': 'bottom'|'top'|'left'|'right'|'center-band',
+                 'size': float in (0, 1)}  # fraction of slide in that axis
+            If None, no gradient is added. Use None for card-based slides
+            where opaque cards handle contrast (Rule 28, opaque-card exception).
+        gradient_hex: color for the gradient shape (default black).
+        gradient_alpha: (alpha_at_text_end, alpha_at_image_end). 0=transparent,
+            100=opaque. Default (80, 0) = 80% opaque where text sits, fading
+            to transparent toward image focal point.
+        slide_width, slide_height: slide dimensions in EMU (default 16:9).
+
+    Returns:
+        (picture_shape, gradient_shape_or_None)
+    """
+    SW, SH = slide_width, slide_height
+    pic = slide.shapes.add_picture(image_path, Emu(0), Emu(0), Emu(SW), Emu(SH))
+
+    if text_zone is None:
+        return pic, None
+
+    zone = text_zone.get('zone', 'bottom')
+    size = float(text_zone.get('size', 0.35))
+    a_text, a_image = gradient_alpha
+
+    # angle encoding (OOXML): 0 = left-to-right, 5400000 = top-to-bottom,
+    # 10800000 = right-to-left, 16200000 = bottom-to-top.
+    if zone == 'bottom':
+        h = int(SH * size)
+        # bottom zone: alpha starts transparent at top, opaque at bottom
+        g = add_gradient_shape(slide, 0, SH - h, SW, h, gradient_hex, gradient_hex,
+                               angle='5400000',
+                               alpha_start=a_image, alpha_end=a_text)
+    elif zone == 'top':
+        h = int(SH * size)
+        g = add_gradient_shape(slide, 0, 0, SW, h, gradient_hex, gradient_hex,
+                               angle='5400000',
+                               alpha_start=a_text, alpha_end=a_image)
+    elif zone == 'left':
+        w = int(SW * size)
+        g = add_gradient_shape(slide, 0, 0, w, SH, gradient_hex, gradient_hex,
+                               angle='0',
+                               alpha_start=a_text, alpha_end=a_image)
+    elif zone == 'right':
+        w = int(SW * size)
+        g = add_gradient_shape(slide, SW - w, 0, w, SH, gradient_hex, gradient_hex,
+                               angle='0',
+                               alpha_start=a_image, alpha_end=a_text)
+    elif zone == 'center-band':
+        h = int(SH * size)
+        y = (SH - h) // 2
+        # two-stop vertical fade: edges transparent, middle opaque. Use a
+        # symmetric approximation with a single shape biased toward center.
+        g = add_gradient_shape(slide, 0, y, SW, h, gradient_hex, gradient_hex,
+                               angle='5400000',
+                               alpha_start=a_image, alpha_end=a_text)
+    else:
+        raise ValueError(
+            f"text_zone['zone'] must be one of "
+            f"'bottom'|'top'|'left'|'right'|'center-band', got {zone!r}"
+        )
+    return pic, g
 
 
 def make_title_page(slide, title_text, subtitle_text, pal,

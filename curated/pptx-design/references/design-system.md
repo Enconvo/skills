@@ -150,17 +150,27 @@ Seamless abstract [texture type] pattern, [color palette], subtle and elegant, s
 
 ### Layering Strategy with Images
 
-When using a generated image as background:
-1. Add the image first (back of z-order).
-2. **If image was composed with intentional negative space** (see [Composition Planning](#composition-planning)): skip overlay entirely, or add minimal 5-10% tint.
-3. **If image is busy everywhere**: add a **targeted overlay** only where text goes (not full-bleed). Use gradient overlays that fade to transparent.
-4. Then add content cards, text, and decorative elements on top.
+Full BG-image strategy lives in [image-prompts.md → BG Image Contrast Strategy](image-prompts.md#bg-image-contrast-strategy). Summary:
 
-Preferred order: **Image -> Targeted Overlay (if needed) -> Content Cards -> Text**
+**The doctrine:** dark BG image + targeted gradient shape (only where text sits) + light text color. NEVER full-slide overlay. On slides with opaque cards, add NO overlay at all — the cards handle contrast.
 
-**Do NOT double up overlays.** When using semi-transparent content cards (e.g., rounded rectangles at 50-70% opacity), the cards already provide sufficient text contrast. Adding an additional heavy panel overlay (e.g., left-side 25-50% scrim) hides the background image unnecessarily. One layer of contrast is enough — either a panel overlay OR content cards, not both.
+**Z-order (back to front):** Image → Targeted gradient shape (if text is directly on image) → Content cards → Text.
 
-**IMPORTANT:** See [Composition Planning](#composition-planning) for the full system of coordinating image generation with overlay placement. The best slides need NO overlay because the image was generated with the right negative space from the start.
+**Decision tree:**
+```
+Is the slide content in opaque cards/panels (KPI cards, data tables)?
+  YES → No overlay. Cards handle contrast. BG image shows through freely.
+  NO  → Is text directly on the BG image?
+    YES → Add targeted `add_gradient_shape()` covering ONLY the text zone,
+          fading from dark (where text lives) to transparent (toward image focal point).
+          Use `add_bg_image(..., text_zone={'zone': 'bottom', 'size': 0.35})`
+          as the canonical one-call helper.
+    NO  → No overlay needed.
+```
+
+**Why not full-slide overlays?** They wash out the entire image uniformly, reducing the image to decoration. Targeted gradients preserve the image's visual message where it's not blocked by text. See the BG Image Contrast Strategy for the full rationale and [Critical Rule 11](../SKILL.md#critical-rules).
+
+**Why not "leave built-in negative space in the prompt" alone?** AI image generators can't reliably create precise dark zones on demand. The old approach (ask the model to leave the bottom 30% dark) sometimes works, sometimes produces bright zones that need heavy overlays anyway. The dark-tone + targeted-gradient-shape approach is more predictable: start dark, add the gradient shape yourself.
 
 ### Image Strategy Decision Tree
 

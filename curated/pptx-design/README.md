@@ -36,10 +36,10 @@ macOS 上的专业 PowerPoint 演示文稿创建与编辑技能，具备高品�
 
 ## Installation
 
-1. Copy the `pptx-design-agent/` folder into your Claude Code skills directory:
+1. Copy the `pptx-design/` folder into your Claude Code skills directory:
 
 ```bash
-cp -r pptx-design-agent ~/.claude/skills/
+cp -r pptx-design ~/.claude/skills/
 ```
 
 2. Install Python dependencies:
@@ -51,7 +51,7 @@ python3 -m pip install python-pptx lxml
 ## Skill Structure
 
 ```
-pptx-design-agent/
+pptx-design/
 ├── README.md                              # This file
 ├── SKILL.md                               # Main skill configuration & 26 critical rules
 └── references/

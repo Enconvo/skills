@@ -1,6 +1,6 @@
 # Style → python-pptx Implementation Mapping
 
-Translate each Design System style into concrete python-pptx values. Read `references/design_styles.md` for full style descriptions — this file provides the code-level implementation.
+Translate each Design System style into concrete python-pptx values. Read [`design-styles-catalog.md`](design-styles-catalog.md) for full style descriptions — this file provides the code-level implementation.
 
 ## Common Imports
 
@@ -10,6 +10,59 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 ```
+
+## Style Dict Schema
+
+Every STYLE_XX dict (and any custom style) MUST conform to this schema so audit CHECK 11 and the `style_to_pal()` adapter work consistently.
+
+### Required keys
+
+| Key | Type | Purpose |
+|---|---|---|
+| `name` | `str` | Human-readable style name. |
+| `slide_bg` | `RGBColor` | Default slide background color. |
+| `fonts` | `dict` | Font specs keyed by role. Required roles: `title`, `body`. Optional: `subtitle`, `label`, `pullquote`, `annotation`. Each value is a dict: `{"name": str, "size": Pt, "bold": bool, "color": RGBColor}` + optional `"italic": bool`. |
+| `palette` | `dict` | Color specs keyed by role. Required roles: `primary`, `text`, `bg`. Recommended: `secondary`, `tertiary`, `border`. Values are `RGBColor`. |
+
+### Optional keys (style-specific extensions)
+
+| Key | Used By | Purpose |
+|---|---|---|
+| `accent_bar` | Most styles | `{"color": RGBColor, "height": Inches}` — thin accent bar spec. |
+| `table` | STYLE-01 | Table styling: `border_pt`, `header_fill`, `header_text`, `alt_row_fill`. |
+| `card` | STYLE-05, STYLE-11 | Card parameters: corner radius, shadow, border. |
+| `tile` | STYLE-10 (Bento) | Tile grid parameters: gap, corner radius. |
+| `panel` | STYLE-09 (Storyboard) | Panel grid parameters. |
+| `shapes` | STYLE-04, STYLE-07 | Shape-specific parameters: corner radius, fill, etc. |
+| `design_notes` | All styles | Free-form string for human-readable style notes. |
+
+### Validation
+
+Run `validate_style_dict(style)` before using any custom style (a user-authored dict) to ensure the required keys are present. Missing keys will cause audit CHECK 11 to fail silently.
+
+```python
+def validate_style_dict(style):
+    """Raise ValueError if a style dict is missing required keys."""
+    required = {'name', 'slide_bg', 'fonts', 'palette'}
+    missing = required - set(style.keys())
+    if missing:
+        raise ValueError(f"Style dict missing required keys: {sorted(missing)}")
+
+    font_required = {'title', 'body'}
+    font_missing = font_required - set(style['fonts'].keys())
+    if font_missing:
+        raise ValueError(f"Style fonts missing required roles: {sorted(font_missing)}")
+
+    palette_required = {'primary', 'text', 'bg'}
+    palette_missing = palette_required - set(style['palette'].keys())
+    if palette_missing:
+        raise ValueError(f"Style palette missing required roles: {sorted(palette_missing)}")
+    return True
+```
+
+### Converting to `pal` dict for layout helpers
+
+Layout helpers (`make_kpi_card`, `make_narrative_page`, `add_slide_header`, etc.) accept a `pal` dict with **hex string** values, NOT this dict's `RGBColor` format. Use `style_to_pal(STYLE_XX)` to adapt. See [python-pptx-reference.md → `pal` dict contract](python-pptx-reference.md#palette-pal-dict-contract).
 
 ---
 

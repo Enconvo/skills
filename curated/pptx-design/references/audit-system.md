@@ -497,29 +497,69 @@ def simulate_wrap(text, box_w_emu, font_size_pt, font='Georgia', bold=False):
 
 ---
 
-## Iterative Fix Loop
+## Iterative Fix Loop (with snapshot-and-rollback)
+
+A fix pass that MAKES THINGS WORSE (e.g., widening a text box breaks container sync → breaks bounds → breaks overlap) is a real failure mode. The loop snapshots the file before each pass and reverts if the critical count goes UP.
 
 ```python
+import shutil
+
 MAX_PASSES = 5
 
-for pass_num in range(1, MAX_PASSES + 1):
-    issues = run_all_checks(prs)  # Checks 1-13 (11 only if style active, 13 always)
-    critical = [i for i in issues if i.severity == 'CRITICAL']
+def count_critical(issues):
+    return sum(1 for i in issues if i.severity == 'CRITICAL')
 
-    if not critical:
+# Baseline audit
+issues = run_all_checks(prs)  # Checks 1-14 (11 only if style active, 13-14 always)
+prev_critical = count_critical(issues)
+print(f"Baseline: {prev_critical} CRITICAL, {len(issues) - prev_critical} WARNING")
+
+for pass_num in range(1, MAX_PASSES + 1):
+    if prev_critical == 0:
         print(f"✅ Clean after {pass_num - 1} fix passes")
         break
 
+    # Snapshot BEFORE applying fixes in this pass
+    snapshot_path = f"{path}.pass{pass_num - 1}.bak"
+    shutil.copy2(path, snapshot_path)
+
+    # Apply all fixes for this pass
     for issue in issues:
         apply_fix(issue)
 
     prs.save(path)
     prs = Presentation(path)  # Reload to get clean state
+    issues = run_all_checks(prs)
+    new_critical = count_critical(issues)
 
-    print(f"Pass {pass_num}: fixed {len(issues)} issues, re-auditing...")
+    if new_critical > prev_critical:
+        # Regression — revert and try a different strategy next pass
+        shutil.copy2(snapshot_path, path)
+        prs = Presentation(path)
+        issues = run_all_checks(prs)  # Refresh after revert
+        print(f"⚠️ Pass {pass_num} REGRESSED: "
+              f"{prev_critical} → {new_critical} critical. Reverted. "
+              f"Will try a different fix strategy next pass.")
+        # Mark the fix strategies that were tried, so the next pass picks different ones.
+        # (The exact mechanism depends on apply_fix — e.g., a global set of
+        # attempted (issue_id, strategy) pairs.)
+    else:
+        print(f"Pass {pass_num}: {prev_critical} → {new_critical} critical, "
+              f"fixed {prev_critical - new_critical}. Re-auditing...")
+        prev_critical = new_critical
+
 else:
-    print(f"⚠️ {len(critical)} critical issues remain after {MAX_PASSES} passes")
+    print(f"⚠️ {prev_critical} critical issues remain after {MAX_PASSES} passes")
+
+# Clean up backup files after the loop completes
+import glob
+for bak in glob.glob(f"{path}.pass*.bak"):
+    os.remove(bak)
 ```
+
+**Why rollback matters:** without it, a bad fix on pass 3 can multiply issues that persist through passes 4 and 5, and the final deck is worse than the baseline. With rollback, the worst-case outcome is "no improvement" — never "regression."
+
+**Fix strategy diversity:** when a pass reverts, the next pass must try a different strategy for the offending issue. For example, if widening a text box caused regression, the next pass should reduce font size instead. Track attempted (issue, strategy) pairs so the loop doesn't re-apply the same bad fix.
 
 ---
 
@@ -625,6 +665,124 @@ TOTAL FIXES: N applied
 ```
 
 ---
+
+## CHECK 14: TEXT ZONE LUMINANCE ⚠️ CRITICAL FOR BG IMAGE SLIDES
+
+**This catches "the generated image looked fine, but text is unreadable on it."** CHECK 12 verified the image's aspect ratio. CHECK 14 verifies the image's **content** cooperates with the declared text zone — i.e., that the pixels where text will sit are actually dark enough for white/cream overlay text (or light enough for dark text).
+
+This is the contract verification the image-gen `verify_generated_image()` post-gen check skips when `text_zone` isn't passed. Run CHECK 14 post-build to catch cases where the pilot/batch verification was skipped.
+
+```
+For every image shape on every slide:
+  1. Skip unless the shape has a declared text_zone (annotated during build).
+  2. Crop the text zone region from the image bytes.
+  3. Compute mean grayscale luminance.
+  4. Compare against the text color on that slide.
+
+  FLAG CRITICAL:
+    - white/cream text declared but zone mean luminance > 140 (too bright)
+    - dark/black text declared but zone mean luminance < 115 (too dark)
+
+  FLAG WARNING:
+    - mean luminance within 20 of threshold (marginal contrast).
+```
+
+**How the slide's text_zone is known at audit time:** annotate it when the BG image is placed. Either:
+
+- Store in the shape's `.name` attribute: `"BG_full_bleed__text_zone=bottom:0.35:white"`
+- Store in a sidecar dict during build and persist to a hidden speaker-notes marker
+
+The audit reads the annotation and calls `verify_text_zone_luminance()` from [python-pptx-reference.md](python-pptx-reference.md#embedded-helper-functions).
+
+### Detection Code
+
+```python
+from pptx_helpers import verify_text_zone_luminance
+import re
+
+def check_text_zone_luminance(prs):
+    """CHECK 14: Verify declared text zones have adequate contrast for overlay text."""
+    issues = []
+    ANNOT = re.compile(r'text_zone=(?P<zone>\w+):(?P<size>[0-9.]+):(?P<color>\w+)')
+
+    for si, slide in enumerate(prs.slides):
+        for shape in slide.shapes:
+            if not hasattr(shape, 'image'):
+                continue
+            m = ANNOT.search(shape.name or '')
+            if not m:
+                continue
+            text_zone = {'zone': m['zone'], 'size': float(m['size'])}
+            text_color = m['color']
+
+            # Extract image to a tempfile for PIL
+            import tempfile, os as _os
+            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
+                f.write(shape.image.blob)
+                tmp_path = f.name
+            try:
+                ok, lum, msg = verify_text_zone_luminance(
+                    tmp_path, text_zone, text_color=text_color
+                )
+            finally:
+                _os.unlink(tmp_path)
+
+            if not ok:
+                issues.append({
+                    'slide': si + 1, 'severity': 'CRITICAL', 'check': 14,
+                    'shape': shape.name,
+                    'zone': text_zone, 'text_color': text_color,
+                    'mean_luminance': round(lum, 1),
+                    'msg': msg,
+                })
+    return issues
+```
+
+### Fix Strategies for CHECK 14
+
+```
+Option A (fastest): Add a targeted gradient shape to the text zone.
+  - Use add_gradient_shape() covering only the text zone.
+  - Dark end (alpha ~80) at text-edge, transparent (alpha 0) toward image focal point.
+  - This converts a "too-bright image zone" into a dark-enough zone for white text.
+
+Option B (better long-term): Regenerate the image with a stronger dark-zone directive.
+  - Add to prompt: "bottom 35% MUST be dark, deep shadow, low luminance."
+  - Run verify_generated_image(text_zone=...) before accepting.
+
+Option C (last resort): Flip text color.
+  - If the zone is BRIGHT but the whole deck's text is white, can't easily flip.
+  - Only viable if the deck supports dark-text-on-light-zone elsewhere.
+
+Option D (layout change): Move the text zone to a darker part of the image.
+  - If zone was 'bottom' but the image's top is darker, swap to 'top'.
+  - Requires also moving the overlay shape and text placement.
+
+After CHECK 14 fix → re-run CHECK 1 (bounds), CHECK 6 (overlap), CHECK 7 (z-order)
+```
+
+## Pass B: pptx-audit-and-fix tool (optional)
+
+If the `pptx-audit-and-fix` skill is installed at `~/.claude/skills/pptx-audit-and-fix/`, run it as a second pass AFTER Pass A is clean. Pass B adds WCAG contrast validation, composition coverage (overlay shapes blocking BG images), and text truth estimation. Skip if the skill is not installed — Pass A alone is sufficient.
+
+```python
+import os, importlib.util
+
+audit_path = os.path.expanduser("~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py")
+if os.path.exists(audit_path):
+    spec = importlib.util.spec_from_file_location("pptx_audit", audit_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    auditor = mod.PptxAuditor(pptx_path)
+    report = auditor.run_full_audit()
+    print(report)
+    # Fix auto-fixable issues
+    if any(i.severity.name == 'CRITICAL' for i in report.issues):
+        auditor.fix_all(report)
+        auditor.save(pptx_path)
+else:
+    print("ℹ️ pptx-audit-and-fix skill not installed — skipping Pass B.")
+```
 
 ## Key Lessons Learned
 
