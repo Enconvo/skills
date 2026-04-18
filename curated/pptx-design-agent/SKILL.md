@@ -1,11 +1,13 @@
 ---
 name: pptx-design-agent
-description: "Expert PowerPoint design agent for macOS using python-pptx and AppleScript. Creates and edits stunning, professional presentations with premium design quality. Use when: (1) Creating new PowerPoint presentations from scratch with python-pptx, (2) Editing or redesigning existing .pptx files, (3) Building slide decks with custom design (gradients, cards, KPI panels, charts, tables), (4) Live editing presentations via AppleScript IPC (text, fonts, positions, fills, z-order, visibility, rotation, shadows, speaker notes), (5) Refreshing/previewing presentations live in PowerPoint on macOS, (6) Generating AI images for slide backgrounds and content, (7) Any task requiring python-pptx code generation with design best practices. Features 26 critical rules including width-first text box sizing to prevent wrapping cascades, 12 curated design styles, 11 layout types, 10 image composition patterns, and 3-phase pre-build workflow (content analysis → style selection → image strategy)."
+description: "Expert PowerPoint design agent for macOS. python-pptx + lxml is the sole editing engine — all content and design changes go there. AppleScript is used only for app lifecycle (open, quit, navigate, slideshow, screenshot). Use when: (1) Creating new PowerPoint presentations from scratch, (2) Editing or redesigning existing .pptx files, (3) Building slide decks with custom design (gradients, cards, KPI panels, charts, tables), (4) Refreshing/previewing presentations in PowerPoint on macOS via the quit-rebuild-reopen cycle, (5) Generating AI images for slide backgrounds and content, (6) Any task requiring python-pptx code generation with design best practices. Features 28 critical rules including mandatory dark-BG + targeted-gradient contrast strategy, add_gradient_shape() for overlay shapes, width-first text box sizing, 12 curated design styles, 11 layout types, 10 image composition patterns, and 3-phase pre-build workflow (content analysis → style selection → image strategy)."
 ---
 
 # PowerPoint Design Agent
 
-Expert PowerPoint design agent on macOS. Creates and edits professional presentations using `python-pptx` + `lxml` for slide building, AppleScript for **live IPC editing**, and AI image generation for visual content.
+Expert PowerPoint design agent on macOS. Creates and edits professional presentations using `python-pptx` + `lxml` as the sole editing engine, AppleScript for **app lifecycle only** (open, close, quit, navigate, slideshow, screenshot), and AI image generation for visual content.
+
+**Core doctrine:** python-pptx edits the file. AppleScript moves the window. Do not cross these streams.
 
 ## Core Behavior
 
@@ -122,14 +124,30 @@ Style references: [Design Styles Catalog](references/design-styles-catalog.md) f
 
 After style is confirmed, determine the image approach.
 
-#### Default Behavior (user says "yes" to images or "add images" without specifying)
+#### Default Behavior — NO Background Images
 
-**Default to full-bleed background images.** Do NOT ask — just proceed with backgrounds unless the user explicitly says otherwise.
+**By default, do NOT use background images.** Use solid color / gradient backgrounds from the active style palette. Background images are powerful but add complexity (overlay management, contrast issues, image-text coordination) that isn't always needed.
+
+**Only use BG images when the user explicitly requests them** — e.g., "with bg image", "add background images", "use photos", "cinematic slides", etc.
+
+#### When User Requests Background Images
+
+When the user explicitly asks for BG images, follow the **BG Image Contrast Strategy** (mandatory):
+
+1. **Generate DARK / non-bright images.** All BG images must be dark, moody, atmospheric. Never generate bright, light, or airy backgrounds — they create text contrast nightmares.
+2. **Add targeted gradient shapes** (NOT full-slide overlays) where text sits. Use `add_gradient_shape()` to create gradient fade zones that transition from dark (where text lives) to transparent (where the image should show through). These are narrow, targeted shapes — not full-slide tinted rectangles.
+3. **Use light/white/cream text colors** for text overlaid on dark BG images.
+4. **EXCEPTION — Opaque card/panel slides (KPI cards, data tables, etc.):** If the slide's content elements are opaque cards with solid fills, do NOT add ANY overlay — not even targeted gradients. The cards handle their own text contrast via their opaque fill. The BG image shows through in the gaps between cards, which is the whole point. Adding an overlay just washes out the BG for zero readability benefit.
 
 ```
-I'll use AI-generated full-bleed background images for key slides.
-Here's my image composition plan:
-[present plan]
+# BG Image Contrast Decision Tree:
+#
+# Is the slide content in opaque cards/panels?
+#   YES → No overlay. Cards handle contrast. BG image shows freely.
+#   NO  → Text directly on BG image?
+#     YES → Add targeted gradient shape(s) where text sits.
+#           Gradient: dark end at text zone → transparent toward image focal point.
+#     NO  → No overlay needed.
 ```
 
 #### When User Explicitly Requests Content Images
@@ -143,12 +161,12 @@ Only ask if the user's intent is genuinely ambiguous:
 ```
 Would you like AI-generated images for the slides?
 
-  • Yes, full backgrounds (Recommended) — HD images as full-bleed slide
-    backgrounds with text overlaid on composed negative space zones.
+  • Yes, full backgrounds — Dark, atmospheric HD images as full-bleed slide
+    backgrounds with targeted gradient overlays for text zones.
   • Yes, as content images — In-slide illustrations placed alongside text,
     inside cards, or as visual elements within the layout.
   • Yes, mixed — Some slides get backgrounds, others get content images.
-  • No — Solid color / gradient backgrounds from the style palette only.
+  • No (Default) — Solid color / gradient backgrounds from the style palette only.
 ```
 
 If the user says **yes** (any mode), you MUST complete a **Global Image Strategy** and a **Per-Slide Composition Plan** before generating any image.
@@ -156,12 +174,12 @@ If the user says **yes** (any mode), you MUST complete a **Global Image Strategy
 #### Step 3a: Global Image Strategy
 
 ```
-Image Mode: [full-bleed backgrounds (default) | content images | mixed]
+Image Mode: [full-bleed backgrounds | content images | mixed]
 Primary image style: [photorealistic | illustrated | abstract | etc.]
-Deck palette integration: [dark images + light text | light images + dark overlay | etc.]
+Deck palette integration: dark images + light text (MANDATORY for BG images)
 Layout rhythm pattern: [alternating | progressive | content-driven | grouped]
-BG tone consistency: [dark moody | light airy | warm earth | cool tech | vibrant neon]
-Text zone strategy: [image-level negative space | PPTX gradient overlay | mixed]
+BG tone consistency: [dark moody | warm earth | cool tech | vibrant neon] (NEVER light/airy/bright)
+Text contrast strategy: targeted gradient shapes where text sits + no overlay on opaque card slides
 ```
 
 **CRITICAL — Cross-Slide BG Consistency Rule:**
@@ -189,13 +207,13 @@ no recognizable objects — pure atmosphere."
 Present a detailed composition plan table. **Every column is required — no shortcuts.**
 
 ```
-| # | Layout Type | Image Role | Composition Pattern | Image Concept | Focal Point | Text Zone | Image Dimensions |
-|---|-------------|------------|---------------------|---------------|-------------|-----------|------------------|
-| 1 | Title Page | Full-bleed BG | Bleed + Gradient Fade | [scene] | Center | Bottom 30% gradient | 16:9 full-slide |
-| 2 | Narrative | Side panel | Split Left-Right | [scene] | Right 55% | Left 45% | 7:5 right-half |
-| 3 | Quote Page | Full-bleed BG | Center Stage | [scene] | Center | Side panels 20% each | 16:9 full-slide |
-| 4 | Comparison | No image | — | — | — | — | — |
-| ... | ... | ... | ... | ... | ... | ... | ... |
+| # | Layout Type | Image Role | Composition Pattern | Image Concept | Focal Point | Text Zone | Overlay Strategy | Image Dimensions |
+|---|-------------|------------|---------------------|---------------|-------------|-----------|------------------|------------------|
+| 1 | Title Page | Full-bleed BG | Bleed + Gradient Fade | [scene] | Center | Bottom 30% | Gradient shape bottom 35% | 16:9 full-slide |
+| 2 | Narrative | Side panel | Split Left-Right | [scene] | Right 55% | Left 45% | Gradient shape left 45% | 7:5 right-half |
+| 3 | Quote Page | Full-bleed BG | Center Stage | [scene] | Edges | Center | Gradient shape center band | 16:9 full-slide |
+| 4 | KPI Cards | Full-bleed BG | Bleed + Even | [scene] | Even | Cards overlaid | NONE (opaque cards) | 16:9 full-slide |
+| ... | ... | ... | ... | ... | ... | ... | ... | ... |
 ```
 
 **Column definitions:**
@@ -210,6 +228,10 @@ Present a detailed composition plan table. **Every column is required — no sho
 - **Image Concept**: Scene description for the AI image prompt
 - **Focal Point**: Where the image's visual subject/interest lives
 - **Text Zone**: Where text will be placed (must NOT overlap focal point)
+- **Overlay Strategy**: How text contrast is handled on this slide:
+  - `Gradient shape [zone]` — targeted `add_gradient_shape()` covering only the text zone, fading from dark to transparent
+  - `NONE (opaque cards)` — slide has opaque card/panel fills; no overlay needed
+  - `NONE (side panel)` — text is on the opposite side from the image; no overlay needed
 - **Image Dimensions**: Aspect ratio and size relative to slide
 
 #### Image Role ↔ Dimensions Binding Rules (CRITICAL)
@@ -273,29 +295,21 @@ Background images are the FOUNDATION of the slide. The PPTX overlay text will si
 
 7. **Aspect ratio and resolution.** Always specify: "16:9 aspect ratio, high resolution, widescreen composition"
 
-8. **Text zone strategy — image negative space vs PPTX gradient overlay.**
+8. **Text zone strategy — dark BG + targeted gradient shapes (the ONLY approach).**
 
-   **Option A: Image-level negative space** (DEFAULT — use this unless text is genuinely unreadable)
-   - The AI generates the image WITH built-in dark/quiet zones matching text placement
-   - Since the prompt engineering rules (sections 2, 5, 6) already mandate negative space directives in every BG image prompt, the generated images should inherently have text-ready zones
-   - **This is the default because overlay shapes wash out the background image and reduce its visual contribution to the slide.** The whole point of using AI-generated BG images is their visual impact — covering them with tinted rectangles defeats the purpose
-   - Prompt includes: "Bottom 30% fades to near-black for text overlay"
+   The strategy is simple and reliable:
+   - **Generate dark, non-bright BG images.** Always prompt for dark, moody, atmospheric tones. Never generate bright/light BG images — they require heavy overlays that defeat the purpose.
+   - **Add targeted gradient shapes where text sits** using `add_gradient_shape()`. These are narrow gradient rectangles that cover ONLY the text zone, fading from dark (opaque, where text lives) to transparent (where the image shows through). They are NOT full-slide overlays.
+   - **Use light text colors** (white, cream, light gold) for all text on BG image slides.
 
-   **Option B: PPTX gradient overlay shapes** (FALLBACK ONLY — use only if Option A fails)
-   - Use ONLY when: the generated image genuinely lacks contrast in the text zone AND regeneration with stronger negative space directives doesn't fix it
-   - Add a PPTX shape (rectangle) with a gradient fill over the text zone:
-     - Gradient from `style_bg_color` at 50-65% opacity → fully transparent (keep it subtle)
-     - This creates a smooth dark-to-clear fade that makes text readable
-   - **Before adding an overlay, first try regenerating the image with stronger negative space directives** — this almost always produces better results than covering the image with a tint
-   - **The gradient overlay can be colored** — use the style's primary bg color for the opaque end
+   **EXCEPTION — Opaque card/panel slides:** If the slide's content is in opaque cards (KPI cards, data tables, etc.), do NOT add any gradient shapes. The cards have solid fills and handle their own text contrast. The BG image shows through the gaps between cards — covering it with overlays just washes out the geography/visual message of the image for zero benefit.
 
-   **Option C: Combined** (RARE — only when neither A nor B alone works)
-   - Generate the image with SOME negative space tendency
-   - Add a very subtle PPTX gradient overlay (30-40% opacity max) for extra text contrast
-   - The image does 80% of the work, the overlay does 20%
-   - **If you find yourself needing >50% overlay opacity, the image composition is wrong — regenerate it**
+   **What NOT to do:**
+   - Do NOT add full-slide semi-transparent overlay rectangles. They wash out the entire image uniformly, reducing visual impact. The old "Option A: image-level negative space" approach is insufficient alone — AI image generators can't reliably create precise dark zones. Targeted gradient shapes are more predictable.
+   - Do NOT generate bright/airy BG images and try to fix contrast with heavy overlays. Start dark.
+   - Do NOT add overlays on slides where all text is inside opaque cards/panels.
 
-   **Default to Option A.** Declare your choice in the Global Image Strategy (Step 3a). Only escalate to B or C after verifying that text is genuinely unreadable on the raw image. The burden of proof is on the overlay, not on the image.
+   Declare which slides need gradient shapes vs which are card-based (no overlay needed) in the Per-Slide Composition Plan (Step 3b) under the "Text Zone" column.
 
 **Example prompt for a STYLE-02 title slide:**
 ```
@@ -432,16 +446,31 @@ Ensure dependencies before first use:
 python3 -m pip install python-pptx lxml Pillow --quiet
 ```
 
-## Dual-Engine Architecture
+## Engine Architecture — Editor vs. Remote Control
 
-Two engines for manipulating PowerPoint — choose the right one:
+Two engines, **one role each** — do not confuse them:
 
-- **python-pptx** (file-based): Bulk creation, complex formatting (gradients, corner radius, letter spacing via lxml), images, charts, tables, font colors.
-- **AppleScript IPC** (live editing): Text edits, font properties, positions, fills, z-order, visibility, rotation, shadows, speaker notes, slide management — all instant, no reload.
+- **python-pptx + lxml** = **THE EDITOR.** All content and design changes go here, no matter how small. Text, fonts, colors, positions, fills, sizes, shadows, letter-spacing, gradients, corner radius, transparency, shape creation, images, charts, tables, speaker notes — everything.
+- **AppleScript** = **THE REMOTE CONTROL.** App lifecycle only: open file, close file, save, quit app, navigate to slide, start/stop slideshow, trigger screenshot, read shape inventory for a quick look.
 
-**Golden Rule:** Build with python-pptx, tweak with AppleScript. For edit-only tasks on an open presentation, use AppleScript alone (no python-pptx, no file reload).
+**The rule that eliminates 90% of bugs:** If you're about to write AppleScript that SETS any property on a shape or text, stop. Rebuild with python-pptx instead. AppleScript's "live edit" API is missing half the properties you need (letter-spacing, gradient, alpha, corner radius) and unreliable on the other half (font color, `top of shape`). The rebuild-and-reload path is faster and more predictable.
 
-See the full decision matrix and all live IPC operations in [AppleScript patterns](references/applescript-patterns.md).
+**The standard edit cycle:**
+```
+1. Quit PowerPoint (if running):
+   osascript -e 'tell application "Microsoft PowerPoint" to quit saving no'
+2. Wait for the process to exit:
+   while pgrep -x "Microsoft PowerPoint" > /dev/null; do sleep 0.2; done
+3. Rebuild with python-pptx (creates or overwrites the .pptx file).
+4. Reopen:
+   open -a "Microsoft PowerPoint" /abs/path/file.pptx
+```
+
+**Why all four steps matter:** Skipping the quit step causes the #1 silent-failure bug — PowerPoint holds the file open, `open -a` just raises the stale window instead of re-reading from disk, and you see "my changes didn't appear." Always quit-wait-rebuild-reopen.
+
+For in-place edits on a file the user has unsaved changes in, ask first — do not silently quit-discard their work.
+
+See [AppleScript reference](references/applescript-patterns.md) for full lifecycle commands and deprecated live-edit patterns.
 
 ## Workflows
 
@@ -482,37 +511,40 @@ See the full decision matrix and all live IPC operations in [AppleScript pattern
          print("ℹ️ pptx-audit-and-fix skill not installed — skipping Pass B (contrast, composition coverage checks).")
      ```
    - **If pptx-audit-and-fix is not installed**, Pass A alone is sufficient. Pass B is an enhancement, not a requirement.
-8. **AppleScript**: Open the file in PowerPoint.
-9. **AppleScript**: Navigate through slides to verify visually — check that image focal points are unblocked and text sits in the planned zones.
-10. **AppleScript**: Make any live tweaks (text, positions).
-11. **AppleScript**: Save.
-12. **Report** audit summary to user, then deliver the file path.
+8. **AppleScript**: Open the file in PowerPoint (`open -a "Microsoft PowerPoint" "$PPTX_PATH"`).
+9. **Visual verification**: Navigate through slides and visually confirm each slide — check that image focal points are unblocked and text sits in the planned zones. Use AppleScript `go to slide` for navigation.
+10. **Fix anything broken**: If visual review finds issues, **quit PowerPoint, fix in python-pptx, reopen** (the standard edit cycle from the Engine Architecture section). Never reach for AppleScript to "just tweak this one thing."
+11. **Report** audit summary to user, then deliver the file path.
 
-### Edit Existing Presentation (Live IPC)
+### Edit Existing Presentation
 
-1. AppleScript: Read all slides/shapes/text (enumerate).
-2. Decide: minor text edits -> AppleScript. Major redesign -> python-pptx.
-3. AppleScript: Make targeted live edits.
-4. AppleScript: Save.
+1. **Read** the file with python-pptx to understand current state (shapes, text, positions, colors).
+2. **Quit PowerPoint** if the file is currently open (to release the file lock).
+3. **Edit** with python-pptx (modify existing shapes, add new ones, remove obsolete ones) — preserve surgical scope per Rule 16.
+4. **Save** via `prs.save(pptx_path)`.
+5. **Run the mandatory audit** (same as new presentations).
+6. **Reopen** in PowerPoint for visual verification.
 
 ### Redesign Existing Presentation
 
-1. AppleScript: Catalog everything (read all shapes/text).
-2. Plan new design, palette, image strategy.
-3. Generate needed images.
-4. python-pptx: Rebuild each slide (clear old, add new).
-5. AppleScript: Close and reopen the file.
-6. AppleScript: Verify each slide visually.
-7. AppleScript: Make live tweaks if needed.
-8. AppleScript: Save.
+1. **Read** the file with python-pptx to catalog everything.
+2. **Quit PowerPoint** if open.
+3. **Plan** new design, palette, image strategy.
+4. **Generate** any needed images.
+5. **Rebuild** each slide with python-pptx (clear old shapes, add new ones).
+6. **Run the mandatory audit.**
+7. **Reopen** in PowerPoint and visually verify.
 
-### Quick Fix / Tweak (IPC-Only)
+### Quick Fix / Small Tweak
 
-1. AppleScript: Read the target slide/shape.
-2. AppleScript: Make the change live.
-3. AppleScript: Save.
+There is no "AppleScript-only" path. Even small tweaks — a font size, a color, a footer text — go through python-pptx:
 
-No python-pptx needed!
+1. Quit PowerPoint.
+2. Open the file with python-pptx, locate the target shape, apply the change.
+3. Save.
+4. Reopen in PowerPoint.
+
+This is faster than fighting AppleScript's missing/unreliable APIs for color, letter-spacing, gradient, radius, or alpha.
 
 ## Mandatory Audit — NON-NEGOTIABLE
 
@@ -521,7 +553,7 @@ No python-pptx needed!
 The audit is **not optional**, **not skippable**, and **not deferrable**. It runs after all slides are built and before the file is shown to the user.
 
 ### What the audit does
-**Pass A (inline, style-aware):** Run all 12 checks from [Audit System](references/audit-system.md): bounds, text clipping, word-wrap, container sync, bullet alignment, overlap, z-order, font compliance, spacing, color/fill integrity, style compliance, **image aspect ratio distortion**. Iterate up to 5 passes — fix issues, re-audit, repeat until clean.
+**Pass A (inline, style-aware):** Run all 13 checks from [Audit System](references/audit-system.md): bounds, text clipping, word-wrap, container sync, bullet alignment, overlap, z-order, font compliance, spacing, color/fill integrity, style compliance, **image aspect ratio distortion**, **broken gradient fills (blue rectangle detection)**. Iterate up to 5 passes — fix issues, re-audit, repeat until clean.
 
 **Pass B (pptx-audit-and-fix tool, optional):** If the `pptx-audit-and-fix` skill is installed at `~/.claude/skills/pptx-audit-and-fix/`, run it as a second pass for additional checks: WCAG contrast validation, composition coverage (overlay shapes blocking BG images), and text truth estimation via font metrics. This pass is **optional but recommended** — if the skill is not installed, Pass A alone is sufficient. See step 7 in the New Presentation workflow for the integration code.
 
@@ -542,13 +574,14 @@ The audit is **not optional**, **not skippable**, and **not deferrable**. It run
 - **Monotonous layout**: Using the exact same layout (e.g., text-left + image-right) for all content slides. Vary layout types across slides — use at least 4 different layouts in a 10+ slide deck.
 - **Disconnected image-text relationship**: Generating an image without considering where text will be overlaid. Every image prompt must include composition directives specifying negative space zones that match text placement.
 - **Copy-paste layout syndrome**: Every slide having text at (0.8", 0.5") and image at (7.8", 2.4"). This screams "no planning." Each slide's layout should be chosen based on its content type, not copy-pasted from a template.
+- **Full-slide overlay on card slides**: Adding a semi-transparent full-slide rectangle over the BG image on a slide where ALL content is inside opaque cards (KPI panels, data tables). The cards already handle text contrast with their solid fills. The overlay just washes out the BG image — which IS the visual message (e.g., a satellite map showing the geography). If the slide has opaque cards, the overlay strategy is NONE.
 - **Image aspect ratio distortion**: Using `add_picture(path, l, t, w, h)` with both width and height that don't match the image's native AR. A 16:9 image placed in a 3:5 portrait panel gets horizontally compressed — visually obvious and unprofessional. **Prevention:** use `add_picture_fit()` for ALL non-full-bleed placements, and run CHECK 12 in the audit. **Root cause:** `add_picture()` silently stretches to fit the given dimensions without any warning.
 - **Inconsistent BG tone across slides**: Generating slide 2's background as a dark moody abstract and slide 5's as a bright airy photo. This makes the deck look like a collage of unrelated slides, not a cohesive presentation. **ALL background images must share the same color temperature, visual style, and complexity level.** Define the global BG identity ONCE in Step 3a and enforce it on every image prompt. If you notice tone drift mid-generation, stop and regenerate the outlier.
 - **Generic negative space instead of content-aware composition**: Asking the AI for "dark area on the left for text" without connecting the image's CONTENT to the slide's MESSAGE. The image should visually support what the text says — subjects positioned to create meaning with the overlay, not just blank space for text to sit on. The image and text are ONE composition telling ONE story.
 
 ---
 
-## 25 Critical Rules
+## 28 Critical Rules
 
 1. **Never set any font below 14pt.** Not on labels, footnotes, axis text, or table cells.
 2. **Always set explicit positions.** Every shape and image must have left, top, width, height.
@@ -562,8 +595,8 @@ The audit is **not optional**, **not skippable**, and **not deferrable**. It run
 10. **Verify after building.** Check overlaps, overflow, and visual quality.
 11. **Composition-first: plan image + overlay as ONE design.** Before generating any background image, decide where text/content zones go and where the image focal point lives. Generate images with intentional negative space (dark/empty/blurred areas) matching your content zones. The best slides need NO overlay because the image was composed for the layout. When overlays are needed, use targeted overlays (only where text sits), not full-bleed. Never overlay the image's focal point. See the Composition Planning section in [Design System](references/design-system.md#composition-planning) for the full layout catalog and coordination rules.
 12. **Use lxml for gradients.** The python-pptx `fill.gradient()` API can fail; the lxml XML approach is bulletproof.
-13. **Use AppleScript IPC for quick edits.** Don't rebuild an entire deck when you only need to change one text box. Read -> edit -> save, all live.
-14. **Remember the unit difference.** AppleScript uses points (72/inch). python-pptx uses EMUs (914400/inch). Convert: `EMU = points * 12700`.
+13. **AppleScript is not an editor — it's a remote control.** All content/design changes go through python-pptx, even one-line tweaks. When the file is open in PowerPoint, the edit cycle is: quit app → wait for process exit → rebuild with python-pptx → reopen. Do NOT use AppleScript to set fonts, colors, positions, fills, or any other shape property — half the properties you need aren't exposed and the rest are unreliable.
+14. **Remember the unit difference.** AppleScript reads positions in points (72/inch). python-pptx uses EMUs (914400/inch). Convert: `EMU = points * 12700`. You'll mostly only need this when reading shape positions for debugging.
 15. **Always calculate text frame dimensions.** **Width first, height second.** Before setting any text box dimensions, estimate the rendered width of the longest line: `rendered_width ≈ font_size_pt × 0.6 × char_count` (0.6 is average char width ratio for proportional fonts; use 0.7 for bold). If `rendered_width > box_width`, the text WILL wrap — causing unexpected extra lines, height overflow, and overlap with elements below. **Fix the width first** by widening the box to fit the text on the intended number of lines. Only then calculate the height based on `font_size × 1.3 × actual_line_count`. Common anti-pattern: a 472pt-wide box for a 44pt bold title "THE PERFECT BREW" — that's ~12 chars × 44 × 0.7 = 369pt (fits), but "THE PERFECT BREW EXPERIENCE" at 27 chars × 44 × 0.7 = 831pt (wraps). Always check. Never guess frame sizes. For each paragraph, sum the widths of ALL runs to get the paragraph width, then compute `ceil(para_width / frame_width)` to get the wrapped line count, then derive height from total lines. Use `word_wrap=False` for single-line elements. See the [Text Frame Sizing](#text-frame-sizing) section in python-pptx Reference.
 16. **Surgical fixes only.** When fixing a bug (e.g., text overflow, overlap), change ONLY what's needed to fix that bug. Preserve all existing design decisions — border colors, accent bar direction, radius, opacity, card style, font sizes, spacing. Never redesign an element while fixing it. A fix that introduces a new visual inconsistency is not a fix.
 17. **Separate decorative elements from content.** Decorative elements (slide numbers, icons, accent shapes) must have clear spatial separation from content text (titles, body). Never place a decorative element in the same quadrant at a similar position to a title — they will visually crowd each other. Ensure no horizontal or vertical overlap between decorative and content elements.
@@ -574,15 +607,22 @@ The audit is **not optional**, **not skippable**, and **not deferrable**. It run
 22. **NEVER distort images — always preserve native aspect ratio.** `slide.shapes.add_picture(path, left, top, width, height)` STRETCHES the image to fit the given W×H regardless of native AR. If the image's native aspect ratio doesn't match the target box, the image gets visually compressed/stretched — this is immediately obvious and unprofessional. **Rules:** (a) For **full-bleed backgrounds only** (16:9 image → 16:9 slide), specifying both W and H is safe because ARs match. (b) For **ALL other placements** (side panels, content images, card images), you MUST use `add_picture_fit()` from the [python-pptx Reference](references/python-pptx-reference.md) — it fits the image within a bounding box while preserving native AR. (c) Before placing ANY non-background image, verify AR compatibility with `check_image_ar(path, target_w, target_h)`. (d) The audit (CHECK 12) catches distortion post-build, but prevention at code-writing time is mandatory — do not rely on the audit as the only safeguard. (e) If an image was generated at 16:9 and the target placement is a portrait panel, do NOT force it into the panel — either use it as a full-bleed background or regenerate at the correct ratio.
 23. **Card accent bars must be INSIDE the card boundary.** When adding a decorative accent bar to a card (top-bar, side-bar), position it inset within the card's bounding box — never floating above or detached from the card. A bar hovering 50px above a card looks like a layout bug. Place it flush at the card's top edge (inset by the corner radius if rounded) or as a thin strip inside the card's top/left padding area. The bar should visually belong to the card, not be a separate disconnected element.
 24. **If most slides have BG images, ALL slides must.** When a deck uses full-bleed background images on >50% of slides, every remaining slide must also have a BG image. A deck mixing 8 rich image slides with 2 plain gradient slides looks visually inconsistent — the gradient slides stick out as obviously cheaper/different. Either commit to BG images on ALL slides or NONE. During the composition plan (Phase 3), if you mark any slide as "No image," validate that it won't break visual consistency with the image slides.
-25. **Default to NO overlay on BG images.** When AI-generated background images are prompted with negative space directives (dark zones, quiet areas for text), do NOT add semi-transparent overlay rectangles on top. The image's built-in composition should provide sufficient text contrast. Overlays wash out the image and reduce its visual contribution to the slide — defeating the purpose of using BG images. Only add overlays as a last resort if text is genuinely unreadable on the raw image, and even then prefer regenerating the image with stronger negative space directives first. See Rule 8 in the Image Prompt Engineering section for the full option hierarchy.
+25. **NEVER use full-slide overlays. Use targeted gradient shapes OR no overlay.** Full-slide semi-transparent rectangles wash out the entire background image uniformly, blocking its visual message and defeating the purpose of using BG images. Instead:
+   - **Text directly on BG image?** Add a targeted gradient shape (via `add_gradient_shape()`) covering ONLY the text zone — fading from dark (where text sits) to transparent (where the image shows). This preserves the image's focal point.
+   - **Text inside opaque cards/panels (KPI, data tables)?** Add NO overlay at all. The cards have solid fills and handle their own contrast. The BG image shows through the gaps between cards — this is the whole point. Overlaying it provides zero readability benefit and just washes out the visual message (e.g., a satellite map of the Strait of Hormuz that IS the story).
+   - **Bottom line:** the BG image's visual content is a design asset, not decoration. Protect it from unnecessary coverage.
 26. **Pre-calculate text box width to prevent wrapping.** Before creating any text box, compute the rendered width of its longest text line using `font_size × 0.6 × char_count` (use 0.7 for bold fonts). If the rendered width exceeds the planned box width, widen the box — do NOT let text wrap unexpectedly. Unexpected wrapping is the #1 cause of cascading layout bugs: wrapped text increases height → overflows the box → overlaps elements below → triggers audit criticals. Prevention at creation time is 10× cheaper than fixing after the fact.
+
+27. **NEVER write custom gradient fill code — use `add_gradient_shape()`.** Writing your own lxml code to add `<a:gradFill>` to shapes is the #1 cause of "mystery blue rectangles" in presentations. The bug: `etree.SubElement(spPr, ...)` can silently attach the element to the wrong XML parent (`<p:sp>` instead of `<p:spPr>`), and the shape's `<p:style>` theme reference (`accent1` = blue) takes over. **The ONLY correct way to add a gradient fill to a shape is `add_gradient_shape()` from [python-pptx Reference](references/python-pptx-reference.md).** It handles theme override (`shape.fill.solid()` first), element removal, and OOXML schema ordering. If you ever find yourself writing `etree.SubElement(..., 'gradFill')` or `etree.SubElement(..., qn('a:gradFill'))` outside of `add_gradient_shape()`, STOP — you are about to create a blue rectangle. Copy-paste `add_gradient_shape()` instead.
+
+28. **BG images require dark tone + targeted gradient shapes for text contrast.** When using full-bleed background images, the contrast strategy is: (a) Generate dark/moody BG images — never bright or airy. (b) Add targeted `add_gradient_shape()` elements covering ONLY the text zones — fading from dark (opaque end at text) to transparent (toward image focal point). (c) Use light text colors (white, cream, gold). (d) EXCEPTION: skip all overlays on slides where content is inside opaque cards/panels (KPI cards, data tables) — the cards handle their own contrast and the BG image should show through freely. This rule replaces the old "generate images with built-in negative space" approach, which was unreliable because AI image generators can't precisely control dark zones.
 
 ## References
 
 Detailed reference documentation is split into focused files. Read the relevant file when needed:
 
 - **[python-pptx Reference](references/python-pptx-reference.md)**: Complete API reference — imports, opening/saving, shapes, text boxes, tables, charts, images, gradients, transparency, rounded corners, helper functions (`make_title_page()`, `make_chapter_divider()`, `make_narrative_page()`, `make_quote_page()`, `make_comparison_page()`, `make_kpi_card()`), overlap checker, audit code. **Read this before writing any python-pptx code.**
-- **[AppleScript Patterns](references/applescript-patterns.md)**: Full live IPC capability reference — dual-engine architecture, presentation management, slide operations, live text/font/position/fill/z-order/visibility/rotation/shadow editing, speaker notes, comprehensive slide reader, known limitations, unit system, decision matrix. **Read this before any PowerPoint automation or live editing.**
+- **[AppleScript Reference](references/applescript-patterns.md)**: App lifecycle and navigation commands — the reload pattern (critical), presentation lifecycle, navigation, slideshow control, read-only inspection, screenshot triggers, unit system. Includes a deprecated "legacy live edit" section explaining why those patterns were demoted. **Read this ONLY for app control — never for editing. All editing goes through python-pptx.**
 - **[Design System](references/design-system.md)**: Typography rules, color palettes (dark premium, light clean, warm earth, bold vibrant, tropical dark), layout rules, decorative elements, image generation capability (prompts, workflow, strategy, layering), **Layout Type Catalog** (11 layout types: Title Page, Chapter Divider, Narrative Page, Quote Page, Full-Bleed Image, KPI Cards, Comparison, Timeline, Data Table, Diagram, Grid/Mosaic), **Layout Type Matching Guide** (decision tree + anti-patterns), **Image Composition Patterns** (10 patterns for image-overlay coordination), layout rhythm, theme pairing, composition prompt engineering, EMU conversions. **Read this when planning a new deck's visual design — especially the Layout Type Catalog for choosing the right layout per slide.**
 - **[Design Styles Catalog](references/design-styles-catalog.md)**: 12 curated design styles (STYLE-01 through STYLE-12) with full layout, typography, color palette, and graphic treatment specs for each. Styles range from Strategy Consulting (McKinsey) to Retro Risograph. **Read this when the user requests a specific style or you're recommending one.**
 - **[Style → python-pptx Mapping](references/style-pptx-mapping.md)**: Concrete RGBColor values, font configs, accent bar settings, card/tile parameters, and design notes for each of the 12 styles. **Read this alongside the Design Styles Catalog to get implementation-ready values.**

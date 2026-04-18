@@ -202,14 +202,33 @@ alpha = etree.SubElement(srgbClr, qn('a:alpha'))
 alpha.set('val', '15000')  # 15% opacity (15000/1000)
 ```
 
-### KNOWN PITFALL: Gradient fills on shapes via lxml
+### ⛔ CRITICAL PITFALL: Gradient fills on shapes — NEVER write custom code
 
-**DO NOT** add `<a:gradFill>` directly to `spPr` via `etree.SubElement` after `add_shape()`. This produces a light blue (theme-default) rectangle instead of your gradient because:
+**THIS IS THE #1 CAUSE OF "MYSTERY BLUE RECTANGLES" IN PRESENTATIONS.**
 
-1. `add_shape()` creates shapes with theme style fills (`<p:style>`), not explicit `spPr` fills. Adding `gradFill` to `spPr` doesn't override the theme — the theme fill shows through.
-2. `etree.SubElement` appends at the end, placing `gradFill` AFTER `<a:ln>`, which violates OOXML schema order. PowerPoint silently ignores out-of-order elements.
+**DO NOT** write your own lxml code to add `<a:gradFill>` to shapes. **DO NOT** use `etree.SubElement(spPr, qn('a:gradFill'))` or any variant. **ALWAYS** use the `add_gradient_shape()` helper from the Embedded Helper Functions section below.
 
-**The fix:** Always call `shape.fill.solid()` first (creates explicit fill that overrides theme), then replace that `solidFill` with `gradFill` via lxml, inserting BEFORE `<a:ln>`. See the `add_gradient_shape()` helper in the Embedded Helper Functions section.
+**What goes wrong when you write custom gradient code:**
+1. `add_shape()` creates shapes with theme style fills (`<p:style>` referencing `accent1`), not explicit `spPr` fills. Adding `gradFill` to `spPr` doesn't override the theme — the theme fill (BLUE) shows through.
+2. `etree.SubElement` can silently attach to the wrong XML parent — `<p:sp>` (shape root) instead of `<p:spPr>` (shape properties). PowerPoint ignores fill elements outside `<p:spPr>` and falls back to the blue theme.
+3. Even if correctly placed in `spPr`, appending puts `gradFill` AFTER `<a:ln>`, violating OOXML schema order. PowerPoint silently ignores out-of-order elements.
+
+**The ONLY correct approach:** Use `add_gradient_shape()` (see Embedded Helper Functions below). It:
+1. Calls `shape.fill.solid()` first — creates an explicit fill that overrides the theme `<p:style>`
+2. Removes that `solidFill` and replaces with `gradFill` via lxml
+3. Inserts `gradFill` BEFORE `<a:ln>` to respect OOXML schema order
+
+**If you find yourself writing ANY of these, STOP and use `add_gradient_shape()` instead:**
+```python
+# ❌ ALL OF THESE ARE WRONG:
+etree.SubElement(spPr, qn('a:gradFill'))  # Wrong insertion point
+etree.SubElement(sp, '{...}gradFill')     # Wrong parent (sp not spPr)
+spPr.append(gradFill)                     # Wrong order (after ln)
+
+# ✅ THE ONLY CORRECT WAY:
+shape = add_gradient_shape(slide, left, top, w, h, '#0A1628', '#000000',
+                            alpha_start=40, alpha_end=75)
+```
 
 ## Rounded Rectangle Corner Radius (lxml)
 
@@ -811,10 +830,87 @@ def make_kpi_card(slide, left, top, width, height, label, value, note, pal,
     return tb
 
 
+def add_picture_cover(slide, image_path, left, top, width, height):
+    """Add image filling bounding box with fill-and-crop (CSS cover mode).
+
+    Unlike add_picture_fit() which fits INSIDE the box (may leave blank space),
+    this fills the ENTIRE box by scaling to the larger dimension and cropping
+    the overflow via a:srcRect — no blank space, no distortion.
+
+    USE THIS for portrait photo panels, side-panel images, and anywhere you
+    want the image to fully fill a defined area without letterboxing.
+
+    LESSON LEARNED (2026-04-07): add_picture(path, l, t, w, h) with both
+    dimensions set silently stretches the image, destroying aspect ratio.
+    This helper is the correct fill-and-crop solution.
+    """
+    from PIL import Image as PILImage
+    from lxml import etree
+    from pptx.oxml.ns import qn
+
+    img = PILImage.open(image_path)
+    iw, ih = img.size
+    img.close()
+    img_ar = iw / ih
+    box_ar = width / height
+
+    # Scale to fill: fit the larger dimension, overflow the other
+    if img_ar > box_ar:
+        # image is wider than box — fit by height, crop sides
+        fit_h = height
+        fit_w = int(height * img_ar)
+    else:
+        # image is taller than box — fit by width, crop top/bottom
+        fit_w = width
+        fit_h = int(width / img_ar)
+
+    # Place oversized image centered over the box
+    offset_l = left - (fit_w - width) // 2
+    offset_t = top - (fit_h - height) // 2
+    pic = slide.shapes.add_picture(image_path, Emu(offset_l), Emu(offset_t),
+                                   Emu(fit_w), Emu(fit_h))
+
+    # Apply srcRect crop to trim overflow
+    crop_l = max(0, (left - offset_l) / fit_w)
+    crop_t = max(0, (top - offset_t) / fit_h)
+    crop_r = max(0, (offset_l + fit_w - (left + width)) / fit_w)
+    crop_b = max(0, (offset_t + fit_h - (top + height)) / fit_h)
+
+    spTree = pic._element
+    blipFill = (spTree.find('.//' + qn('p:blipFill')) or
+                spTree.find('.//' + qn('pic:blipFill')))
+    if blipFill is not None:
+        srcRect = blipFill.find(qn('a:srcRect'))
+        if srcRect is None:
+            srcRect = etree.SubElement(blipFill, qn('a:srcRect'))
+        srcRect.set('l', str(int(crop_l * 100000)))
+        srcRect.set('t', str(int(crop_t * 100000)))
+        srcRect.set('r', str(int(crop_r * 100000)))
+        srcRect.set('b', str(int(crop_b * 100000)))
+
+    # Reposition shape to exact bounding box
+    spPr = (spTree.find('.//' + qn('p:spPr')) or
+            spTree.find('.//' + qn('pic:spPr')))
+    if spPr is not None:
+        xfrm = spPr.find(qn('a:xfrm'))
+        if xfrm is not None:
+            off = xfrm.find(qn('a:off'))
+            ext = xfrm.find(qn('a:ext'))
+            if off is not None:
+                off.set('x', str(int(left)))
+                off.set('y', str(int(top)))
+            if ext is not None:
+                ext.set('cx', str(int(width)))
+                ext.set('cy', str(int(height)))
+    return pic
+
+
 def add_picture_fit(slide, image_path, left, top, max_width, max_height,
                     align='center'):
-    """Add image preserving native aspect ratio within a bounding box.
-    ALWAYS use this for non-full-bleed images. Never call add_picture()
+    """Add image preserving native aspect ratio within a bounding box (fit/letterbox mode).
+    Fits INSIDE the box — may leave blank space at edges. Use add_picture_cover()
+    instead when you need the image to fill the entire box with no blank space.
+    ALWAYS use one of these for non-full-bleed images. Never call add_picture()
     with both W and H unless the image AR matches the target box AR."""
     img = PILImage.open(image_path)
     native_w, native_h = img.size

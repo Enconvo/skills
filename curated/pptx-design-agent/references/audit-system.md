@@ -3,7 +3,7 @@
 ## Table of Contents
 
 1. [Cascading Fix Problem](#cascading-fix-problem)
-2. [Checks 1-12](#check-1-bounds)
+2. [Checks 1-13](#check-1-bounds)
 3. [Word-Wrap Simulation](#word-wrap-simulation)
 4. [Iterative Fix Loop](#iterative-fix-loop)
 5. [Fix Strategies](#fix-strategies)
@@ -332,6 +332,133 @@ def check_image_ar_distortion(prs):
 After CHECK 12 fix → re-run CHECK 1 (bounds), CHECK 6 (overlap)
 ```
 
+## CHECK 13: BROKEN GRADIENT FILLS ("BLUE RECTANGLE" BUG) ⚠️ CRITICAL
+
+**This is the #1 shape fill bug.** When gradient fill XML is attached to the wrong parent element or the theme style isn't overridden, PowerPoint ignores the gradient and falls back to the theme's `accent1` color — typically blue. The result is an opaque blue rectangle where a semi-transparent gradient overlay should be.
+
+**Root cause:** Custom gradient code uses `etree.SubElement` to add `<a:gradFill>` but attaches it to `<p:sp>` (shape root) instead of `<p:spPr>` (shape properties), or doesn't remove the `<p:style>` theme reference.
+
+```
+For every non-image, non-textbox shape on every slide:
+  sp = shape.element
+  ns_a = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+  ns_p = 'http://schemas.openxmlformats.org/presentationml/2006/main'
+
+  13a — STRAY GRADIENT ON WRONG PARENT:
+    stray_grads = sp.findall(f'{{{ns_a}}}gradFill')
+    If any found:
+      FLAG CRITICAL: "gradFill attached to <p:sp> instead of <p:spPr> — 
+                      PowerPoint ignores this and shows blue theme fill"
+
+  13b — THEME FILL WITHOUT EXPLICIT OVERRIDE:
+    spPr = sp.find(f'{{{ns_p}}}spPr')
+    p_style = sp.find(f'{{{ns_p}}}style')
+    has_explicit_fill = spPr is not None and (
+        spPr.find(f'{{{ns_a}}}solidFill') is not None or
+        spPr.find(f'{{{ns_a}}}gradFill') is not None or
+        spPr.find(f'{{{ns_a}}}noFill') is not None
+    )
+    has_theme_fill = p_style is not None and 'accent1' in etree.tostring(p_style).decode()
+    If has_theme_fill and not has_explicit_fill:
+      # Shape has theme fill (likely blue) with no explicit override
+      # This is only CRITICAL for large shapes (overlays) — small accent bars are OK
+      If shape.width > slide_width * 0.5 or shape.height > slide_height * 0.3:
+        FLAG CRITICAL: "Large shape with theme accent1 fill and no explicit 
+                        spPr fill — likely a broken gradient overlay (blue rectangle)"
+
+  EXCEPTIONS (skip these):
+    - Image shapes (have shape.image)
+    - TextBox shapes (shape_type == TEXT_BOX)
+    - Shapes smaller than 1" × 0.1" (accent bars, thin decorative elements)
+```
+
+### Detection Code
+
+```python
+def check_broken_gradients(prs):
+    """CHECK 13: Detect broken gradient fills (blue rectangle bug)."""
+    from lxml import etree
+    ns_a = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+    ns_p = 'http://schemas.openxmlformats.org/presentationml/2006/main'
+    SW, SH = prs.slide_width, prs.slide_height
+    issues = []
+
+    for si, slide in enumerate(prs.slides):
+        for shape in slide.shapes:
+            # Skip images and textboxes
+            if hasattr(shape, 'image'):
+                continue
+            if shape.shape_type == 17:  # TEXT_BOX
+                continue
+
+            sp = shape.element
+
+            # 13a: Stray gradFill on <p:sp> (wrong parent)
+            stray_grads = sp.findall(f'{{{ns_a}}}gradFill')
+            if stray_grads:
+                issues.append({
+                    'slide': si + 1,
+                    'severity': 'CRITICAL',
+                    'check': 13,
+                    'shape': shape.name,
+                    'msg': f"'{shape.name}' on slide {si+1}: gradFill attached to "
+                           f"<p:sp> instead of <p:spPr> — blue rectangle bug"
+                })
+                continue
+
+            # 13b: Theme fill with no explicit override on large shapes
+            spPr = sp.find(f'{{{ns_p}}}spPr')
+            p_style = sp.find(f'{{{ns_p}}}style')
+            if spPr is None or p_style is None:
+                continue
+
+            has_explicit = (
+                spPr.find(f'{{{ns_a}}}solidFill') is not None or
+                spPr.find(f'{{{ns_a}}}gradFill') is not None or
+                spPr.find(f'{{{ns_a}}}noFill') is not None or
+                spPr.find(f'{{{ns_a}}}pattFill') is not None
+            )
+            style_xml = etree.tostring(p_style).decode()
+            has_accent = 'accent1' in style_xml
+
+            if has_accent and not has_explicit:
+                # Only flag large shapes (overlays, panels)
+                is_large = (shape.width > SW * 0.5 or shape.height > SH * 0.3)
+                if is_large:
+                    issues.append({
+                        'slide': si + 1,
+                        'severity': 'CRITICAL',
+                        'check': 13,
+                        'shape': shape.name,
+                        'msg': f"'{shape.name}' on slide {si+1}: large shape with "
+                               f"theme accent1 fill, no explicit spPr fill — "
+                               f"likely broken gradient (blue rectangle)"
+                    })
+
+    return issues
+```
+
+### Fix Strategies for CHECK 13
+
+```
+13a fix (stray gradFill on wrong parent):
+  1. Remove the stray gradFill from <p:sp>
+  2. Find <p:spPr> inside the shape
+  3. Call shape.fill.solid() to create an explicit fill that overrides the theme
+  4. Remove the solidFill from spPr
+  5. Insert the gradFill into spPr BEFORE <a:ln>
+  6. Remove <p:style> to prevent theme fallback
+  7. Add alpha values to gradFill stops if this was meant to be a semi-transparent overlay
+
+13b fix (theme fill with no explicit override):
+  1. Determine the intended fill from context (gradient overlay? solid dark panel?)
+  2. Call shape.fill.solid() to override the theme
+  3. Set the correct fill color/gradient
+  4. Optionally remove <p:style> if it's not needed
+
+After CHECK 13 fix → re-run CHECK 7 (z-order), CHECK 10 (color integrity)
+```
+
 ---
 
 ## Word-Wrap Simulation
@@ -376,7 +503,7 @@ def simulate_wrap(text, box_w_emu, font_size_pt, font='Georgia', bold=False):
 MAX_PASSES = 5
 
 for pass_num in range(1, MAX_PASSES + 1):
-    issues = run_all_checks(prs)  # Checks 1-11 (11 only if style active)
+    issues = run_all_checks(prs)  # Checks 1-13 (11 only if style active, 13 always)
     critical = [i for i in issues if i.severity == 'CRITICAL']
 
     if not critical:
@@ -524,3 +651,5 @@ TOTAL FIXES: N applied
 11. **Image aspect ratio distortion is invisible to text-based checks** — `add_picture()` silently stretches images. The ONLY way to catch distortion is to compare native pixel AR against placed EMU AR (CHECK 12). Always use `add_picture_fit()` for non-full-bleed images.
 
 12. **The most common AR distortion: 16:9 image placed as side panel** — An image generated as a background (16:9) but used as a portrait side panel gets horizontally compressed. This happens when the composition plan says "Full-bleed BG" but the build code places it as a side panel. The audit (CHECK 12) catches this, but prevention is better: always verify the image's planned role matches its actual placement before writing `add_picture()` code.
+
+13. **Custom gradient code is the #1 cause of "blue rectangle" bugs** — Writing `etree.SubElement(spPr, ...)` to add gradFill silently attaches to the wrong parent (`<p:sp>` instead of `<p:spPr>`), and the shape's `<p:style>` theme reference (`accent1` = blue) takes over. CHECK 13 detects this post-build, but prevention is better: ALWAYS use `add_gradient_shape()` from the reference. Never write custom gradient XML.
