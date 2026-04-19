@@ -117,6 +117,57 @@ def has_reply_keyboard(msg):
         return False
 
 
+def _reply_keyboard_buttons(msg):
+    """Return a list of reply-keyboard button texts, or [] if none."""
+    if not has_reply_keyboard(msg):
+        return []
+    out = []
+    for row in msg.reply_markup.rows:
+        for btn in row.buttons:
+            out.append(btn.text)
+    return out
+
+
+async def select_bot(client, msg, bot):
+    """Select a bot from BotFather's menu, supporting both inline and reply keyboards.
+
+    Returns the new messages from BotFather, or None if the bot wasn't found.
+    The `bot` argument may include or omit the leading '@'.
+    """
+    target = bot.lstrip('@').lower()
+
+    if has_inline_buttons(msg):
+        # Try exact / contains match against button text
+        for row in msg.reply_markup.rows:
+            for button in row.buttons:
+                btext = button.text.strip().lstrip('@').lower()
+                if btext == target or target in btext:
+                    await msg.click(data=button.data)
+                    await asyncio.sleep(2)
+                    entity = await client.get_entity(BOTFATHER_USERNAME)
+                    msgs = await client.get_messages(entity, limit=3)
+                    me_id = (await client.get_me()).id
+                    return [m for m in msgs if m.sender_id != me_id and m.id > msg.id]
+        return None
+
+    if has_reply_keyboard(msg):
+        # Find a matching button text and send it as a regular message
+        match = None
+        for row in msg.reply_markup.rows:
+            for button in row.buttons:
+                btext = button.text.strip().lstrip('@').lower()
+                if btext == target:
+                    match = button.text
+                    break
+            if match:
+                break
+        if not match:
+            return None
+        return await send_and_wait(client, match)
+
+    return None
+
+
 def format_response(messages):
     """Format BotFather response messages for output."""
     parts = []
@@ -263,21 +314,23 @@ async def cmd_delete(args):
     client = get_client(cfg)
     async with client:
         msgs = await send_and_wait(client, "/deletebot")
-        if msgs and has_inline_buttons(msgs[0]):
-            # Click the bot button
-            result = await click_button(client, msgs[0], args.bot)
-            if result:
-                # Confirm with "Yes, I'm totally sure."
-                confirm_msgs = await send_and_wait(client, "Yes, I'm totally sure.")
-                if args.json:
-                    print(format_json(confirm_msgs))
-                else:
-                    print(format_response(confirm_msgs))
-            else:
-                print(f"ERROR: Bot '{args.bot}' not found in button list", file=sys.stderr)
-                print(format_response(msgs))
-        else:
+        if not msgs:
+            print("ERROR: No response from BotFather", file=sys.stderr)
+            sys.exit(1)
+
+        result = await select_bot(client, msgs[0], args.bot)
+        if not result:
+            print(f"ERROR: Bot '{args.bot}' not found in menu", file=sys.stderr)
             print(format_response(msgs))
+            sys.exit(1)
+
+        # BotFather requires the EXACT phrase: "Yes, I am totally sure."
+        # (no contraction, exact punctuation)
+        confirm_msgs = await send_and_wait(client, "Yes, I am totally sure.")
+        if args.json:
+            print(format_json(confirm_msgs))
+        else:
+            print(format_response(confirm_msgs))
 
 
 async def cmd_set(args):
@@ -310,16 +363,13 @@ async def cmd_set(args):
             print("ERROR: No response from BotFather", file=sys.stderr)
             sys.exit(1)
 
-        # Step 2: Select the bot (click button or send bot username)
-        if has_inline_buttons(msgs[0]):
-            result = await click_button(client, msgs[0], args.bot)
-            if not result:
-                print(f"ERROR: Bot '{args.bot}' not found", file=sys.stderr)
-                print(format_response(msgs))
-                sys.exit(1)
-            msgs = result
-        else:
-            msgs = await send_and_wait(client, args.bot)
+        # Step 2: Select the bot — works for both inline and reply keyboards
+        result = await select_bot(client, msgs[0], args.bot)
+        if not result:
+            print(f"ERROR: Bot '{args.bot}' not found", file=sys.stderr)
+            print(format_response(msgs))
+            sys.exit(1)
+        msgs = result
 
         # For toggle settings (inline, joingroups, privacy), we may need to click a button or send text
         if args.setting in ("inline", "joingroups", "privacy", "inline-feedback"):
@@ -376,22 +426,25 @@ async def cmd_token(args):
 
     async with client:
         msgs = await send_and_wait(client, cmd)
-        if msgs and has_inline_buttons(msgs[0]):
-            result = await click_button(client, msgs[0], args.bot)
-            if result:
-                if args.revoke:
-                    # Confirm revocation
-                    confirm = await click_button(client, result[0], "Revoke") if has_inline_buttons(result[0]) else result
-                    if confirm:
-                        result = confirm
-                if args.json:
-                    print(format_json(result))
-                else:
-                    print(format_response(result))
-            else:
-                print(f"ERROR: Bot '{args.bot}' not found", file=sys.stderr)
-        else:
+        if not msgs:
+            print("ERROR: No response from BotFather", file=sys.stderr)
+            sys.exit(1)
+
+        result = await select_bot(client, msgs[0], args.bot)
+        if not result:
+            print(f"ERROR: Bot '{args.bot}' not found", file=sys.stderr)
             print(format_response(msgs))
+            sys.exit(1)
+
+        if args.revoke and result and has_inline_buttons(result[0]):
+            confirm = await click_button(client, result[0], "Revoke")
+            if confirm:
+                result = confirm
+
+        if args.json:
+            print(format_json(result))
+        else:
+            print(format_response(result))
 
 
 async def cmd_send(args):
@@ -422,18 +475,20 @@ async def cmd_bot_info(args):
     client = get_client(cfg)
     async with client:
         msgs = await send_and_wait(client, "/mybots")
-        if msgs and has_inline_buttons(msgs[0]):
-            result = await click_button(client, msgs[0], args.bot)
-            if result:
-                if args.json:
-                    print(format_json(result))
-                else:
-                    print(format_response(result))
-            else:
-                print(f"ERROR: Bot '{args.bot}' not found", file=sys.stderr)
-                print(format_response(msgs))
-        else:
+        if not msgs:
+            print("ERROR: No response from BotFather", file=sys.stderr)
+            sys.exit(1)
+
+        result = await select_bot(client, msgs[0], args.bot)
+        if not result:
+            print(f"ERROR: Bot '{args.bot}' not found", file=sys.stderr)
             print(format_response(msgs))
+            sys.exit(1)
+
+        if args.json:
+            print(format_json(result))
+        else:
+            print(format_response(result))
 
 
 async def cmd_status(args):
