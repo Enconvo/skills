@@ -56,70 +56,26 @@ Detect intent from the user's words + source material:
 
 ## Compositing Engines
 
-Two compositing engines are available. **Default to Remotion** for new projects.
+Two engines work together — each owns a different part of the video.
 
-### Remotion (Preferred)
+### HyperFrames (title cards — hook & CTA)
 
-React-based programmatic video. Better for: spring animations, light leaks, per-word captions, transitions, scene composition, iterative preview.
+HTML/CSS/JS composition engine for hook and CTA cards. Gives you spring animations, light leaks, per-word captions, and proper motion design.
 
-**Prerequisites check — run before starting:**
-```bash
-# Check if Remotion skill is installed
-ls ~/.claude/skills/remotion-best-practices/SKILL.md 2>/dev/null || ls ~/.agents/skills/remotion-best-practices/SKILL.md 2>/dev/null
-# If not found, prompt user:
-# "Remotion skill not installed. Run: npx skills add remotion-dev/skills --yes --global"
+- Install per-project (node_modules don't copy cleanly between dirs):
+  ```bash
+  cd <project-dir> && npm init -y && npm install hyperframes
+  ./node_modules/.bin/hyperframes lint .
+  ./node_modules/.bin/hyperframes render .
+  ```
+- `npx hyperframes` alone doesn't work — npm treats it as unknown. Use the local binary.
+- Skill reference: `~/.claude/skills/hyperframes` (+ `hyperframes-cli`, `gsap`).
 
-# Check if create-video CLI works
-npx create-video@latest --help 2>/dev/null
-# If fails, Node.js/npm is required
-```
+### ffmpeg + compose.py (middle content — screen recording)
 
-If either is missing, tell the user: "To use Remotion compositing, you need to install the Remotion skill first. Run: `npx skills add remotion-dev/skills --yes --global`" and wait for confirmation before proceeding.
+Shell + Python frame-by-frame compositing. Used by `scripts/compose.py` for zooms, captions, transitions, multi-segment screen-recording sequences.
 
-- Install skill: `npx skills add remotion-dev/skills --yes --global`
-- New project: `npx create-video@latest --blank <name>`
-- Preview: `npx remotion studio src/index.ts`
-- Render: `npx remotion render src/index.ts <CompositionId> out.mp4 --codec h264 --gl=angle`
-- Compress: `ffmpeg -i out.mp4 -c:v libx264 -preset veryslow -b:v 480k -pass 1 -tune stillimage -an -f null /dev/null && ffmpeg -i out.mp4 -c:v libx264 -preset veryslow -b:v 480k -pass 2 -tune stillimage -c:a aac -b:a 96k -movflags +faststart compressed.mp4`
-
-**Critical Remotion rules:**
-- `Audio` import from `remotion` core, NOT `@remotion/media`
-- `--gl=angle` flag required when rendering with `LightLeak` components
-- Two-pass with `-tune stillimage` for screen recording compression
-- Use clean VO WAV/MP3, never extract audio from a final mixed video
-
-**Remotion feature reference:** The `remotion-best-practices` skill (installed at `~/.agents/skills/remotion-best-practices/`) contains 38 rule files. Before writing any Remotion component, load the relevant rule file for domain-specific API guidance:
-
-| Feature | Rule File |
-|---------|-----------|
-| Animations (spring, interpolate) | `rules/animations.md` |
-| Scene transitions (slide, fade, wipe) | `rules/transitions.md` |
-| Text animations (typewriter, reveal) | `rules/text-animations.md` |
-| Light leak overlays | `rules/light-leaks.md` |
-| Sound effects (ding, page-turn, bruh) | `rules/sfx.md` |
-| Per-word captions | `rules/subtitles.md`, `rules/display-captions.md` |
-| Caption transcription | `rules/transcribe-captions.md` |
-| SRT import | `rules/import-srt-captions.md` |
-| Audio (trim, volume, speed) | `rules/audio.md` |
-| Audio visualization (spectrum, waveform) | `rules/audio-visualization.md` |
-| AI voiceover (ElevenLabs TTS) | `rules/voiceover.md` |
-| Images, Videos, GIFs | `rules/images.md`, `rules/videos.md`, `rules/gifs.md` |
-| Timing (easing, spring config) | `rules/timing.md` |
-| Sequencing (Series, Sequence) | `rules/sequencing.md` |
-| Charts & data viz | `rules/charts.md` |
-| 3D (Three.js) | `rules/3d.md` |
-| Fonts (Google, local) | `rules/fonts.md` |
-| Tailwind CSS | `rules/tailwind.md` |
-| FFmpeg operations | `rules/ffmpeg.md` |
-| Parametrizable videos (Zod schema) | `rules/parameters.md` |
-| Maps (Mapbox) | `rules/maps.md` |
-| Transparent video export | `rules/transparent-videos.md` |
-
-Source: https://github.com/JonnyBurger/whats-new-in-remotion — all latest Remotion features (light leaks, SFX library, Rspack bundler, visual mode, render on Vercel) are covered by these rules.
-
-### FFmpeg (Legacy)
-
-Shell-based frame-by-frame compositing. Used by `scripts/` pipeline. Good for: quick edits, simple zoom+caption overlays, batch processing.
+**Canonical pipeline:** HyperFrames hook.mp4 + compose.py middle.mp4 + HyperFrames cta.mp4 → concat.
 
 ## Design Language — Apple Keynote Style
 
@@ -193,7 +149,7 @@ Going with this — let me know if you want to adjust anything.
 ### Phase 2: Production
 8. **Prep sources** → `scripts/prep_source.sh` (any resolution → 1920×1080 @ 30fps)
 9. **Write script** → style driven by strategy (dramatic for marketing, instructional for guides)
-10. **Generate VO** → voicebox skill (clone or pick voice), get word timestamps via Groq Whisper
+10. **Generate VO** → TTS fallback sequence: **Enconvo active TTS** (if available) → **Voicebox** → **Edge-TTS** → **Kokoro**. Get word timestamps via Groq Whisper.
 11. **Optional: AI presenter** → nanobanana image → Veo I2V → extract frames → rembg cutout
 12. **Build config** → JSON config for compositor (segments, zooms, transitions, captions)
 13. **Compose frames** → `python3 scripts/compose.py --config config.json --output final.mp4`
@@ -203,7 +159,7 @@ Going with this — let me know if you want to adjust anything.
 ## Quick Start
 
 ```bash
-SKILL_DIR="$HOME/.agents/skills/screen-to-promo"
+SKILL_DIR="$HOME/.claude/skills/screen-to-promo"
 
 # 1. Prep screen recording
 bash "$SKILL_DIR/scripts/prep_source.sh" ~/Desktop/demo.mov ./frames/demo/ 30
@@ -282,9 +238,9 @@ Both `zoom` (single dict) and `zooms` (array) are supported.
 - **Frame numbering**: all frames are 1-indexed (`f_0001.jpg`, `f_0002.jpg`, ...).
 - **Zoom easing**: cosine ease-in-out on both zoom in and zoom out.
 - **Zoom accuracy**: never guess cx/cy — extract actual frames and measure pixel coordinates.
-- **ALWAYS use Remotion for hook/CTA**: never fall back to plain ffmpeg drawtext for title cards. Remotion gives spring animations, light leaks, and proper motion design. ffmpeg drawtext produces static, lifeless cards.
+- **ALWAYS use HyperFrames for hook/CTA**: never fall back to plain ffmpeg drawtext for title cards. HyperFrames gives spring animations, light leaks, and proper motion design. ffmpeg drawtext produces static, lifeless cards.
 - **ALWAYS read the Design Language section first**: before ANY visual compositing, check the aesthetic rules in this file. Do NOT default to colored text, navy backgrounds, or any non-approved palette.
-- **CJK font on macOS**: `/System/Library/Fonts/PingFang.ttc` does NOT work in ffmpeg drawtext. Use the full AssetsV2 path from `fc-list | grep PingFang`. Or better — use Remotion which handles system fonts natively.
+- **CJK font on macOS**: `/System/Library/Fonts/PingFang.ttc` does NOT work in ffmpeg drawtext. Use the full AssetsV2 path from `fc-list | grep PingFang`. Or better — use HyperFrames which handles system fonts natively.
 - **Concat codec matching**: when concatenating segments with ffmpeg `-f concat`, ALL segments MUST have identical codec params (fps, sample rate, channels, pixel format). Re-encode all to matching params BEFORE concat, or use full re-encode concat. Mismatched params cause DTS warnings and audio dropout.
 - **Voicebox output path**: voicebox `--output` flag appends `.wav` to the filename — if you pass `seg.wav`, you get `seg.wav.wav`. Account for this double extension.
 - **Silent video analysis**: DEFAULT — use the host LLM (Claude) to analyze extracted frames directly (ffmpeg extract keyframes → read images → describe scenes). FALLBACK — use `video_captioner.py` (MLX VLM, Qwen2.5-VL-3B) from video-processor skill when the host LLM is unavailable or the pipeline must run unattended. The host LLM produces significantly better scene descriptions than the local 3B model.
@@ -299,4 +255,74 @@ For full pipeline walkthrough, planning protocol, zoom playbook, strategy playbo
 - Python 3: PIL/Pillow, numpy, rembg (for presenter cutout)
 - ffmpeg/ffprobe
 - Groq API (Whisper word timestamps)
-- Optional: nanobanana skill (presenter image), voicebox skill (VO), veo skill (I2V)
+- VO skills (fallback chain): Enconvo active TTS → voicebox → edge-tts → kokoro
+- Optional: nanobanana skill (presenter image), veo skill (I2V), acestep (BGM)
+
+## Lessons Learned (Hard-Won — from real production runs)
+
+Capture discoveries that cost hours the first time. Check this list BEFORE starting any iteration loop.
+
+### Script Authoring & Timing
+
+- **Writers block gate**: do NOT start TTS generation until the full script, zoom plan, and segment durations are approved by the user. TTS burns time + credits. User-visible feedback loops (show the plan, get "go") are cheaper than regenerating audio.
+- **Reuse VO across iterations**: if only zoom timing / frames / cuts change, keep old VO WAVs — don't regenerate. Only regenerate the specific segment whose TEXT changed.
+- **Delay pattern for late-landing words**: when a specific word (e.g. "Approve", "ALIVE") must sync to a specific video frame, compute delay = `target_seg_time - raw_word_start_in_wav`, then apply via `ffmpeg -af "adelay=Nms|Nms,apad=pad_dur=D,atrim=0:D,asetpts=PTS-STARTPTS"`. Also shift the word-timings JSON by the same delay so captions stay synced.
+- **Word timing estimation fallback**: if Groq Whisper API key isn't available, evenly distribute words across `(duration - start_pad - end_pad)`. This is "good enough" for pop captions — perfect sync is not required for non-karaoke styles.
+
+### VO Providers
+
+- **TTS fallback sequence**: **Enconvo active TTS** (if available) → **Voicebox** → **Edge-TTS** → **Kokoro**. Check Enconvo's active TTS first via `~/.config/enconvo/installed_preferences/tts.json` → `selected` field; Gemini TTS (Puck / other prebuilt voices) via `tts/gemini_tts/generate` produces cleaner articulation on technical terms (BotFather, Ollama, IM Channels) than cloned voices. Fall through to Voicebox if Enconvo TTS is unavailable, then Edge-TTS (cloud, 50+ languages), then Kokoro (local, offline).
+- **Credentials are in Enconvo's credential manager — use the API, not the raw JSON file**. For Groq (Whisper word timestamps) and any other provider, call `local_api credentials/load_credentials {"providerName": "groq"}`. The returned `apiKey` is the real, usable key. Do NOT `cat ~/.config/enconvo/installed_preferences/credentials|groq.json` directly — that file stores an encrypted/hashed placeholder (128-char hex), not the working `gsk_...` key. Same pattern for `openai`, `elevenlabs`, `anthropic`, etc.
+- **Gemini TTS phonetic quirks**: `ANN` capitalized is read as "A-N-N" spelled out. Use the full phrase `Ann the Uncensored` for natural pronunciation. `I M Channels` (space-separated) reads cleaner than `IM Channels`.
+- **Preview before committing**: when user requests a voice/text change, generate to a `_new.wav` or `_v2.wav` filename FIRST, deliver preview, wait for approval, THEN swap into the master file. Never overwrite an approved VO in place.
+- **Voice switch workflow**: user can change Enconvo's active TTS voice between calls. To re-record with a new voice, just call `tts/tts` or `tts/gemini_tts/generate` with the same text — the active voice is picked up automatically.
+
+### Zoom Accuracy & Framing
+
+- **Subtle zoom is a zoom too**: when the frame already has all the content the viewer needs (hero layout with multiple panels), a scale of **1.05–1.10 with no cy shift** is enough to signal intentional motion without clipping anything. Don't force 1.5+ zoom when a 1.08 push-in tells the same story.
+- **Zoom preserves edge elements**: before picking scale/cx/cy, enumerate ALL UI elements that must stay in the final crop. Compute the required crop window (`cw = W/scale`, `ch = cw*H/W`, `x1 = cx - cw/2`, `y1 = cy - ch/2`) and check every element's bbox fits inside. A 1.4x zoom on a full-screen layout will clip the top OR the sidebar OR the phone mockup — you can't have all three.
+- **Wide-view beats zoom for "show all panels"**: if the user wants viewers to see both the Telegram chat AND the app UI AND the notes, DON'T zoom. Show the full 1920×1080 frame. Zoom is for "here is the detail that matters" moments.
+- **Sync click moments by measuring, not guessing**: for any action word ("click", "approve", "start") that must match a cursor click, extract frames around the expected action time at 2fps, find the exact source-time of the click, then compute the VO delay needed to land the word there. Don't estimate from transcript position.
+
+### Trim Surgery & Segment Preservation
+
+- **Trim destroys downstream payoff**: if you `ffmpeg -ss X -to Y` a chunk out of the middle, you may accidentally delete the payoff moment (the reveal frame + its synced VO word). Before every trim, ask: "Does this cut remove any synced audio-visual beat?" If yes, refuse or restructure.
+- **Preserve the payoff rule**: the climax moment (e.g. "Your pairing request is approved" + "ALIVE!" VO) is sacred. Never cut it. If the user wants to trim boring middle footage, trim BEFORE the approve-click or AFTER the payoff holds, not across it.
+- **Clean rebuild > patch**: after 3+ iterative trims/swaps, the video's audio-visual sync degrades. It's faster and safer to rebuild from config (hook.mp4 + middle from compose.py + cta.mp4) than to keep patching a mangled MP4.
+- **Verify from the user's reported timestamp**: when user says "it's broken at 42s", immediately extract frames at 0.5s intervals starting from 42s, read them with the host LLM, and confirm the problem is what you think it is. Don't re-edit blind.
+
+### Audio Mixing with BGM
+
+- **BGM volume sweet spot**: `volume=0.18` under a clean VO. Any louder and it fights the narration; any quieter and you can't hear it. Verify by ear on the final render.
+- **BGM fade choreography**: 1.5s fade-in at video start (blooms with hook), 1.5-2s fade-out before final black. Never hard-cut BGM into or out of silence.
+- **Preserve BGM when swapping only a CTA segment**: slice the matching BGM range from the original BGM file (same offset), add a local fade-out, mix with new VO, and splice back in. Don't re-mix the whole video.
+- **amix filter preserves both tracks**: `[voice]volume=1.0;[music]volume=0.18;[voice][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0` — the `normalize=0` is critical; without it, adding the BGM will attenuate the voice.
+- **ACE-Step for instrumental BGM**: use `~/.claude/skills/acestep` for cinematic/tech promo tracks. Good caption pattern: genre + instruments + mood + structural cues ("building tension with rising filter sweeps, triumphant major-key drop at the end"). Request `instrumental`, explicit `no vocals` if Gemini/Puck VO is on top. BPM 85–100 for narrator-driven videos. ALWAYS stop the server after generation (`pkill -f acestep-api`) — it holds ~27GB RAM.
+
+### Hook & CTA Design (HyperFrames)
+
+- **Use HyperFrames for title cards** — install locally per-project: `cd dir && npm init -y && npm install hyperframes`, then `./node_modules/.bin/hyperframes lint/render .`. `npx hyperframes` alone doesn't work because npm treats it as an unknown command.
+- **HyperFrames root composition requires `data-start="0"` AND `data-duration="N"`** on the composition div. The lint warning makes this obvious but it's easy to miss the first time.
+- **Standalone compositions must NOT use `<template>`** — the sub-composition wrapper pattern only applies when loaded via `data-composition-src`. For a standalone card, put the `data-composition-id` div directly in `<body>`.
+- **Node modules don't copy cleanly between project dirs**: if you `cp -r node_modules` from one hyperframes project to another, renders may fail with "Missing manifest" errors. Always fresh `npm install hyperframes` per project dir.
+- **Message > brand for product CTAs**: when the video is about a specific feature ("channel agent"), the CTA should lead with the feature name as hero, not the brand. Layout: small brand wordmark on top (`ENCONVO`) → hero feature name (`CHANNEL AGENT`) → amber promise tag (`SET UP IN SECONDS`). The feature is what the viewer wants; the brand is who made it.
+- **CTA VO should echo a climax word from the payoff**: if the video's emotional peak is "ALIVE!", the CTA VO should include "ALIVE" again. This creates a callback that makes the whole video feel like one argument. Avoid generic closings like "That's it" — they die on landing.
+
+### Scene Pacing & Breathing
+
+- **Insert a breath between content and CTA**: a 1.0–1.5s black silent pause after content fades and before CTA fades up gives the viewer a moment to absorb. Without it, the CTA feels rushed. Pattern: 0.4s video/audio fade-out → 1.2s black silent pause → 0.5s CTA fade-up (built into the HyperFrames CTA timeline already).
+- **Hook needs to hold the final word**: if the hook VO ends with "Watch this.", extend the card duration so "this." lands and has 0.2s of hold time before cutting to the next segment. Cutting mid-word is jarring.
+
+### Pipeline Efficiency
+
+- **Keep source-frame extraction cached**: `frames_src/` costs ~2GB for a 4min source but saves 20s per recompose. Only delete once the final render is approved.
+- **Compose.py handles the middle, HyperFrames handles the ends**: the canonical pipeline is HF hook.mp4 + compose.py middle.mp4 + HF cta.mp4 → concat. Don't try to render hook/CTA via compose.py's card type — it produces static, lifeless cards.
+- **Reuse word-timing JSON across delay iterations**: instead of regenerating word JSON from scratch, shift existing entries by the new delta. Example pattern: `for w in d: w['start'] += delta; w['end'] += delta`. Much faster than re-transcribing.
+- **Concat codec matching (restated for emphasis)**: before `ffmpeg -f concat -c copy`, re-encode ALL input clips to identical (codec, fps, sample_rate, channels, pixel_format). The safest pattern: `-c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -r 30 -vf "scale=1920:1080,setsar=1" -c:a aac -b:a 192k -ar 48000 -ac 2`.
+
+### User Interaction Patterns
+
+- **When user says "wrong, wrong and wrong" without specifics, STOP**. Don't guess. Ask: "can you describe what you saw starting at timestamp X?" OR extract frames from their reported timestamp, read them with the host LLM, and verify the problem. Multiple wrong guesses erode trust faster than one pause to ask.
+- **"Continue" after a design change means: apply the change and build the NEXT logical thing** (regenerate VO, re-render, re-concat). It does NOT mean wait for more instructions.
+- **Deliver previews for irreversible-feeling changes**: voice swap, BGM, major CTA copy changes — always deliver the isolated asset first (WAV, preview MP3) for approval, THEN splice into the master.
+- **Cleanup at the end, not between iterations**: keep `frames_src/`, `vo_gemini/`, `hf_hook/`, `hf_cta/` until the user confirms final. Deleting between iterations forces full re-extraction every time.

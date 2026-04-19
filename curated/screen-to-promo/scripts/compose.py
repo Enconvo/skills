@@ -444,7 +444,11 @@ class Compositor:
         return img
 
     def _draw_caption(self, img, word_text, t_in_word, word_group=None, active_idx=-1):
-        """Draw pop/static/karaoke caption with cached fonts."""
+        """Draw pop/static/karaoke caption with cached fonts.
+
+        Keynote-style (v2): soft rounded pill backdrop with blur-feel dark fill,
+        single white word centered, subtle scale pop on entry, no hard outline.
+        """
         if not self.cap_cfg.get("enabled") or not self.font:
             return img
         cc = self.cap_cfg
@@ -456,47 +460,71 @@ class Compositor:
         if not word_text:
             return img
 
-        # Pop scale bounce at word onset
-        if style == "pop" and t_in_word < 0.3:
-            scale = 1.0 + 0.15 * math.sin(min(t_in_word / 0.3, 1.0) * math.pi)
+        # Case handling: preserve user's case unless uppercase=True
+        uppercase = cc.get("uppercase", True)
+        text = word_text.upper() if uppercase else word_text
+
+        base_size = cc.get("font_size", 52)
+        # Pop scale bounce: enters at 1.08, settles to 1.0 over first 0.18s — subtler than before
+        if style == "pop" and t_in_word < 0.22:
+            p = min(1.0, t_in_word / 0.22)
+            # ease-out overshoot
+            scale = 1.10 - 0.10 * (1 - (1 - p) ** 3)
         else:
             scale = 1.0
-
-        text = word_text.upper()
-        base_size = cc.get("font_size", 52)
         fs = int(base_size * scale)
 
-        # Use cached font — only create a new one if scale changed the size
         if fs == base_size:
             f = self.font
         else:
             f = _resolve_font(max(20, fs), self._font_path)
 
-        d = ImageDraw.Draw(img)
-        bb = d.textbbox((0, 0), text, font=f)
-        tw, th = bb[2] - bb[0], bb[3] - bb[1]
-        x = (self.W - tw) // 2
-        y = self.H + cc.get("position_y", -130)
+        # Entry fade: 0 → 1 over first 0.12s
+        fade_in = min(1.0, t_in_word / 0.12) if t_in_word < 0.12 else 1.0
 
-        oc = tuple(cc.get("outline_color", [0, 0, 0]))
         tc = tuple(cc.get("color", [255, 255, 255]))
-        ac = tuple(cc.get("accent_color", [255, 200, 50]))
-        no_outline = cc.get("no_outline", False)
 
-        # Outline (3px stroke) — skip if no_outline
-        if not no_outline:
-            for dx in range(-3, 4):
-                for dy in range(-3, 4):
-                    if dx * dx + dy * dy <= 9:
-                        d.text((x + dx, y + dy), text, fill=oc, font=f)
-        d.text((x, y), text, fill=tc, font=f)
+        # --- Layer 1: transparent overlay for pill + text (enables alpha blending) ---
+        overlay = Image.new("RGBA", (self.W, self.H), (0, 0, 0, 0))
+        od = ImageDraw.Draw(overlay)
 
-        # Accent underline swipe
-        if style == "pop" and t_in_word > 0.2:
-            lp = min(1.0, (t_in_word - 0.2) / 0.3)
-            lw = int(tw * lp)
-            lx = x + (tw - lw) // 2
-            d.rectangle([lx, y + th + 4, lx + lw, y + th + 8], fill=ac)
+        bb = od.textbbox((0, 0), text, font=f)
+        tw, th = bb[2] - bb[0], bb[3] - bb[1]
+        # actual glyph ascender offset (Pillow textbbox y0 isn't always 0)
+        ty_off = bb[1]
+        x = (self.W - tw) // 2
+        y = self.H + cc.get("position_y", -150)
+
+        # --- Pill backdrop (dark translucent, rounded) ---
+        show_pill = cc.get("pill", True)
+        if show_pill:
+            pill_pad_x = cc.get("pill_pad_x", 42)
+            pill_pad_y = cc.get("pill_pad_y", 20)
+            pill_alpha = int(cc.get("pill_alpha", 160) * fade_in)
+            pill_bg = cc.get("pill_bg", [10, 10, 10])
+            pill_radius = cc.get("pill_radius", 18)
+            px1 = x - pill_pad_x
+            py1 = y + ty_off - pill_pad_y
+            px2 = x + tw + pill_pad_x
+            py2 = y + ty_off + th + pill_pad_y
+            od.rounded_rectangle([px1, py1, px2, py2], radius=pill_radius,
+                                  fill=(pill_bg[0], pill_bg[1], pill_bg[2], pill_alpha))
+
+        # --- Soft drop shadow (multi-pass approximation — no gaussian for speed) ---
+        shadow_alpha = int(cc.get("shadow_alpha", 110) * fade_in)
+        if shadow_alpha > 0 and not cc.get("no_shadow", False):
+            # 3 offsets at varying alpha simulate a soft shadow
+            for dx, dy, a_mult in [(0, 3, 0.55), (0, 6, 0.30), (0, 10, 0.15)]:
+                od.text((x + dx, y + dy), text, fill=(0, 0, 0, int(shadow_alpha * a_mult)), font=f)
+
+        # --- Main white text (with alpha for fade-in) ---
+        text_alpha = int(255 * fade_in)
+        od.text((x, y), text, fill=(tc[0], tc[1], tc[2], text_alpha), font=f)
+
+        # --- Composite overlay onto image ---
+        base = img.convert("RGBA")
+        base.alpha_composite(overlay)
+        img = base.convert("RGB")
 
         return img
 
