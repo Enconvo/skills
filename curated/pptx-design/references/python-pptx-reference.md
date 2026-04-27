@@ -324,15 +324,60 @@ chart.legend.include_in_layout = False
 
 **Rules:**
 - For **full-bleed backgrounds** (16:9 image → 16:9 slide): safe to specify both width and height — they match.
-- For **ALL other placements**: use `add_picture_fit()` or `add_picture_cover()` (both preserve AR).
+- For **ALL other placements**: **DEFAULT to native-AR-by-construction** (see below). Use `add_picture_fit()` only when both slot dimensions are immutable. **AVOID `add_picture_cover()`** for portraits/faces — see warning below.
 - **NEVER** call `add_picture(path, left, top, width, height)` with both width and height when the image AR doesn't match the target area AR.
 
-**Choosing between fit and cover:**
+**⭐ RECOMMENDED PATTERN — Native AR by construction:**
+
+When at least ONE slot dimension is flexible (you control the layout), derive the other dimension from the image's native AR. This eliminates stretching by construction — no crop, no srcRect, no renderer quirks.
+
+```python
+from PIL import Image as PILImage
+
+def add_picture_native_ar(slide, image_path, left, top,
+                           fixed_dim, axis='height',
+                           slide_w=12192000, slide_h=6858000):
+    """Place image preserving native AR. ONE dimension is fixed; other is derived.
+
+    This is the SAFEST helper for portrait/face images on landscape slides.
+    No crop, no srcRect — just native AR placement. No stretch is possible.
+
+    Args:
+        fixed_dim: the fixed dimension in EMU (e.g., slide height for full-height panel)
+        axis: 'height' (fix h, derive w) or 'width' (fix w, derive h)
+    Returns: (pic_shape, actual_w, actual_h)
+    """
+    img = PILImage.open(image_path)
+    iw, ih = img.size
+    img.close()
+    native_ar = iw / ih
+    if axis == 'height':
+        h = fixed_dim
+        w = int(h * native_ar)
+    else:
+        w = fixed_dim
+        h = int(w / native_ar)
+    pic = slide.shapes.add_picture(image_path, Emu(left), Emu(top), Emu(w), Emu(h))
+    return pic, w, h
+```
+
+Usage:
+```python
+# Full-height portrait panel on right side of slide — width derived from height
+pic, panel_w, _ = add_picture_native_ar(slide, 'portrait.png',
+                                         left=0, top=0, fixed_dim=SH, axis='height')
+# panel_w is now exactly SH * native_ar — image displays at native AR, no stretch
+```
+
+**Choosing the right helper:**
 
 | Helper | Behavior | Use when |
 |--------|----------|----------|
-| `add_picture_fit()` | Letterbox inside the box. May leave blank edges. Never crops. | The full image matters (product shots, diagrams, portraits where the whole frame is composed). |
-| `add_picture_cover()` | Fill-and-crop. No blank space. Crops image edges that don't fit. | Side panels, card images, decorative photos where losing some edge is acceptable. Most common choice. |
+| **`add_picture_native_ar()`** ⭐ | One dim fixed, other derived. No crop, no stretch. | **DEFAULT for portrait/face images.** When you control at least one slot dimension. |
+| `add_picture_fit()` | Letterbox inside the box. May leave blank edges. Never crops. | Both slot dims fixed AND you accept letterbox; product/diagram images where full frame matters. |
+| ~~`add_picture_cover()`~~ | Fill-and-crop via srcRect+xfrm. | **⚠️ AVOID for faces/portraits.** Math-correct but renders inconsistently in macOS PowerPoint — cropped portion can be stretched to display rect, distorting face proportions. Only use when both slot dims are immutable AND you've side-by-side-verified the rendered output against the source image. |
+
+**⚠️ Empirical lesson on `add_picture_cover()`:** The srcRect-based crop+resize XML is mathematically equivalent to a CSS-cover layout, but macOS PowerPoint's renderer applies srcRect inconsistently when the cropped visible AR == box AR. Faces in portrait images come out visibly horizontally stretched. **The XML can pass `visible_AR == box_AR` checks while still rendering stretched.** If you must use cover, mandatorily render-and-side-by-side-verify before delivering. Better default: redesign the slot to use native AR via `add_picture_native_ar()`.
 
 If neither feels right, the AR of the image doesn't match the slot — regenerate the image at the slot's AR instead of forcing a fit.
 
@@ -354,121 +399,16 @@ pic = slide.shapes.add_picture(
 
 ### Aspect-Ratio-Safe Image Placement
 
-```python
-from PIL import Image as PILImage
+The canonical implementations of **`add_picture_fit()`**, **`add_picture_cover()`**, **`check_image_ar()`**, and **`verify_generated_image()`** live in [Embedded Helper Functions § Helper Functions](#helper-functions) — they are part of the standard helper library you import alongside `pal`, `make_*_page`, etc. Don't redefine them here.
 
-def add_picture_fit(slide, image_path, left, top, max_width, max_height,
-                    align='center'):
-    """Add image preserving native aspect ratio within a bounding box.
+Quick API surface (full docstrings at the canonical defs):
 
-    Fits the image inside max_width × max_height WITHOUT distortion.
-    Centers the image within the box (or aligns per 'align' param).
-
-    Args:
-        slide: pptx slide object
-        image_path: path to image file
-        left, top: top-left corner of bounding box (EMU)
-        max_width, max_height: maximum dimensions (EMU)
-        align: 'center' (default), 'top-left', 'top', 'bottom'
-
-    Returns:
-        (pic_shape, actual_left, actual_top, actual_width, actual_height)
-    """
-    img = PILImage.open(image_path)
-    native_w, native_h = img.size
-    img.close()
-    native_ar = native_w / native_h
-    box_ar = max_width / max_height
-
-    if native_ar > box_ar:
-        # Image is wider than box — constrain by width
-        w = max_width
-        h = int(w / native_ar)
-    else:
-        # Image is taller than box — constrain by height
-        h = max_height
-        w = int(h * native_ar)
-
-    # Alignment within bounding box
-    if align == 'center':
-        actual_left = left + (max_width - w) // 2
-        actual_top = top + (max_height - h) // 2
-    elif align == 'top-left':
-        actual_left = left
-        actual_top = top
-    elif align == 'top':
-        actual_left = left + (max_width - w) // 2
-        actual_top = top
-    elif align == 'bottom':
-        actual_left = left + (max_width - w) // 2
-        actual_top = top + max_height - h
-    else:
-        actual_left = left + (max_width - w) // 2
-        actual_top = top + (max_height - h) // 2
-
-    pic = slide.shapes.add_picture(
-        image_path,
-        Emu(actual_left), Emu(actual_top), Emu(w), Emu(h)
-    )
-    return pic, actual_left, actual_top, w, h
-
-
-def check_image_ar(image_path, target_w_emu, target_h_emu, tolerance=0.08):
-    """Check if image AR matches target placement AR. Returns (ok, native_ar, target_ar).
-    Use BEFORE placing to detect mismatches early."""
-    img = PILImage.open(image_path)
-    native_w, native_h = img.size
-    img.close()
-    native_ar = native_w / native_h
-    target_ar = target_w_emu / target_h_emu
-    diff = abs(native_ar - target_ar) / native_ar
-    return diff <= tolerance, native_ar, target_ar
-
-
-def verify_generated_image(image_path, intended_role, intended_ar=None):
-    """MANDATORY post-generation check. Run IMMEDIATELY after every image generation.
-
-    Args:
-        image_path: Path to the generated image file
-        intended_role: One of 'full-bleed', 'side-panel', 'content', 'accent-strip'
-        intended_ar: Expected AR as float (e.g., 1.78 for 16:9, 0.75 for 3:4).
-                     If None, uses role defaults.
-
-    Returns:
-        (ok, actual_ar, message) — ok=True if image matches role, False if mismatch.
-    """
-    # Role → expected AR ranges
-    ROLE_AR = {
-        'full-bleed':   (1.5, 2.0),    # landscape 16:9 ± tolerance
-        'side-panel':   (0.5, 1.0),    # portrait 3:4 to 2:3
-        'content':      (0.6, 1.8),    # flexible, depends on slot
-        'accent-strip': (2.0, 5.0),    # very wide panoramic
-    }
-
-    img = PILImage.open(image_path)
-    w, h = img.size
-    img.close()
-    actual_ar = round(w / h, 2)
-
-    if intended_ar:
-        diff = abs(actual_ar - intended_ar) / intended_ar
-        if diff > 0.15:
-            return False, actual_ar, (
-                f"AR MISMATCH: generated {w}x{h} (AR={actual_ar}), "
-                f"intended AR={intended_ar} for {intended_role}. "
-                f"Deviation={diff:.0%}. REGENERATE or change role."
-            )
-        return True, actual_ar, f"OK: {w}x{h} AR={actual_ar} matches {intended_role}"
-
-    lo, hi = ROLE_AR.get(intended_role, (0.5, 2.0))
-    if actual_ar < lo or actual_ar > hi:
-        return False, actual_ar, (
-            f"AR MISMATCH: generated {w}x{h} (AR={actual_ar}), "
-            f"but {intended_role} expects AR in [{lo}-{hi}]. "
-            f"REGENERATE or change role."
-        )
-    return True, actual_ar, f"OK: {w}x{h} AR={actual_ar} fits {intended_role}"
-```
+| Function | Signature | Returns |
+|---|---|---|
+| `add_picture_fit(slide, path, left, top, max_w, max_h, align='center')` | letterbox inside box | `(pic, l, t, w, h)` |
+| `add_picture_cover(slide, path, left, top, w, h)` | fill-and-crop | `pic` |
+| `check_image_ar(path, target_w_emu, target_h_emu, tolerance=0.08)` | pre-placement AR check | `(ok, native_ar, target_ar)` |
+| `verify_generated_image(path, role, intended_ar=None, text_zone=None, text_color=None)` | post-generation AR + text-zone luminance check (CHECK 14) | `(ok, actual_ar, message)` |
 
 **Post-generation workflow:**
 ```python
@@ -506,7 +446,6 @@ if not ok:
     print(f"⚠️ AR mismatch: image is {native_ar:.2f}, target is {target_ar:.2f}")
     # Either: use add_picture_fit() to fit without distortion
     # Or: regenerate the image at the correct AR
-```
 ```
 
 ## Reading All Slide Content (Audit)
@@ -1032,10 +971,22 @@ def add_picture_cover(slide, image_path, left, top, width, height):
 def add_picture_fit(slide, image_path, left, top, max_width, max_height,
                     align='center'):
     """Add image preserving native aspect ratio within a bounding box (fit/letterbox mode).
+
     Fits INSIDE the box — may leave blank space at edges. Use add_picture_cover()
     instead when you need the image to fill the entire box with no blank space.
     ALWAYS use one of these for non-full-bleed images. Never call add_picture()
-    with both W and H unless the image AR matches the target box AR."""
+    with both W and H unless the image AR matches the target box AR.
+
+    Args:
+        slide: pptx slide object
+        image_path: path to image file
+        left, top: top-left corner of bounding box (EMU)
+        max_width, max_height: maximum dimensions (EMU)
+        align: 'center' (default), 'top-left', 'top', 'bottom'
+
+    Returns:
+        (pic_shape, actual_left, actual_top, actual_width, actual_height)
+    """
     img = PILImage.open(image_path)
     native_w, native_h = img.size
     img.close()
@@ -1047,17 +998,17 @@ def add_picture_fit(slide, image_path, left, top, max_width, max_height,
     else:
         h = max_height
         w = int(h * native_ar)
-    if align == 'center':
-        al = left + (max_width - w) // 2
-        at = top + (max_height - h) // 2
+    if align == 'top-left':
+        al, at = left, top
     elif align == 'top':
         al = left + (max_width - w) // 2
         at = top
     elif align == 'bottom':
         al = left + (max_width - w) // 2
         at = top + max_height - h
-    else:
-        al, at = left, top
+    else:  # 'center' (default)
+        al = left + (max_width - w) // 2
+        at = top + (max_height - h) // 2
     pic = slide.shapes.add_picture(image_path, Emu(al), Emu(at), Emu(w), Emu(h))
     return pic, al, at, w, h
 

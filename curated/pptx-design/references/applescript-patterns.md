@@ -259,12 +259,48 @@ for i, slide in enumerate(prs.slides):
 
 ---
 
-## Screenshot / Screen Capture Trigger
+## Visual Verification — Rendering Slides
 
-For verifying a slide visually (e.g., after rebuild, before declaring done):
+The audit (CHECKs 1–13) catches structural defects but is blind to: text bleeding into a photo's focal area, low text/photo contrast, decorative bars that *look* like they cut text but are intentional design. A visual pass on rendered PNGs is the only way to catch these.
+
+### Headless render — full deck (preferred for agents)
+
+PowerPoint's `save as PNG` AppleScript verb **silently no-ops on macOS** (returns success, writes nothing). Don't use it. The reliable headless path is **PowerPoint → PDF → `pdftoppm` → PNG**:
 
 ```bash
-# Bring PowerPoint to front, navigate to slide N, then screenshot
+# Requires poppler: brew install poppler
+OUT=~/Pictures/Screenshots   # /tmp/ is sandboxed for PowerPoint — use a writable user dir
+mkdir -p "$OUT"
+
+osascript <<EOF
+tell application "Microsoft PowerPoint"
+    try
+        close every presentation saving no
+    end try
+    delay 1
+    open POSIX file "/abs/path/to/deck.pptx"
+    delay 3
+    save active presentation in (POSIX file "$OUT/deck.pdf") as save as PDF
+    delay 5
+    close active presentation saving no
+end tell
+EOF
+
+pdftoppm -png -r 110 "$OUT/deck.pdf" "$OUT/slide"   # 110 dpi = web-quality thumbnails
+# pdftoppm -png -r 180 -f N -l N "$OUT/deck.pdf" "$OUT/slidehi"   # one slide at inspection-quality
+```
+
+Then `Read` each `slide-1.png`, `slide-2.png`, … to inspect visually.
+
+**Sandbox notes:**
+- PowerPoint on macOS cannot write to `/tmp/` (sandboxed). Use `~/Pictures/Screenshots/`, `~/Downloads/`, or `~/Pictures/<subdir>/`.
+- `save as PDF` works reliably; `save as PNG` and per-slide `save theSlide ... as save as PNG` both fail (parameter error -50 or silent no-op).
+
+### One-slide interactive screenshot (fallback)
+
+For a single quick visual check while debugging — when a human is at the keyboard:
+
+```bash
 osascript <<'EOF'
 tell application "Microsoft PowerPoint"
     activate
@@ -273,11 +309,10 @@ tell application "Microsoft PowerPoint"
 end tell
 EOF
 sleep 0.8
-# Capture the active window (user can interactively click the target)
-screencapture -iW /tmp/slide2.png
+screencapture -iW /tmp/slide2.png   # interactive: prompts for window click
 ```
 
-`screencapture -iW` prompts for window click and captures just that window. Pair with `macos-utilities` skill for a non-interactive version.
+Don't use this in agent workflows — it requires a human click. Use the headless render above instead.
 
 ---
 
