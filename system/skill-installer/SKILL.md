@@ -20,7 +20,7 @@ Use the helper scripts based on the task:
 1. **From Enconvo store** (by skill name, with fallback chain): Look up the skill in the Enconvo store. If not found, search Skills.sh. If still not found, search ClawHub.
    - Example: `scripts/install-skill.py --name pdf`
 2. **From GitHub URL** (supports full repo or subdirectory): Install directly from a GitHub URL.
-   - Repo: `scripts/install-skill.py --url https://github.com/tivojn/xlsx-design-agent`
+   - Repo: `scripts/install-skill.py --url https://github.com/tivojn/xlsx-design`
    - Subdir: `scripts/install-skill.py --url https://github.com/anthropics/skills/tree/main/skills/pptx`
 3. **From Skills.sh** (by slug): Install directly from Skills.sh by owner/repo@skill slug.
    - Example: `scripts/install-skill.py --skills-slug anthropics/skills@pdf`

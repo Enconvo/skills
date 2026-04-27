@@ -1,4 +1,4 @@
-# xlsx-design-agent
+# xlsx-design
 
 A Claude Code skill for creating and editing professional Excel workbooks on macOS with premium design quality.
 macOS 上的专业 Excel 工作簿创建与编辑技能，具备高品质表格设计。
@@ -34,10 +34,10 @@ macOS 上的专业 Excel 工作簿创建与编辑技能，具备高品质表格�
 
 ## Installation
 
-1. Copy the `xlsx-design-agent/` folder into your Claude Code skills directory:
+1. Copy the `xlsx-design/` folder into your Claude Code skills directory:
 
 ```bash
-cp -r xlsx-design-agent ~/.claude/skills/
+cp -r xlsx-design ~/.claude/skills/
 ```
 
 2. Install Python dependencies:
@@ -49,7 +49,7 @@ python3 -m pip install openpyxl lxml Pillow
 ## Skill Structure
 
 ```
-xlsx-design-agent/
+xlsx-design/
 ├── README.md                              # This file
 ├── SKILL.md                               # Main skill configuration & 19 critical rules
 └── references/

@@ -1,6 +1,6 @@
 ---
 name: nanobanana
-description: "AI image generation via Google Nano Banana (Gemini image models) with native aspect ratio and resolution control. Use when: (1) Generating images with specific aspect ratios (16:9, 9:16, 1:1, etc.), (2) Generating images at specific resolutions (1K, 2K, 4K), (3) Other skills need image generation backend (pptx-design-agent, docx-design-agent, xlsx-design-agent), (4) User says 'generate image', 'nanobanana', 'nano banana', or needs AI image generation with precise dimension control."
+description: "AI image generation via Google Nano Banana (Gemini image models) with native aspect ratio and resolution control. Use when: (1) Generating images with specific aspect ratios (16:9, 9:16, 1:1, etc.), (2) Generating images at specific resolutions (1K, 2K, 4K), (3) Other skills need image generation backend (pptx-design, docx-design, xlsx-design), (4) User says 'generate image', 'nanobanana', 'nano banana', or needs AI image generation with precise dimension control."
 ---
 
 # Nano Banana Image Generation
@@ -162,7 +162,7 @@ When user asks for a "portrait", "selfie", or "headshot" without specifying AR, 
 
 ## Integration with Design Skills
 
-When called from pptx-design-agent, docx-design-agent, or xlsx-design-agent:
+When called from pptx-design, docx-design, or xlsx-design:
 
 | Image Role | Recommended AR | Recommended Size |
 |------------|---------------|-----------------|

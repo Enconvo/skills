@@ -836,7 +836,7 @@ def add_horizontal_rule(doc, color='C9A84C', thickness_pt=1.5, width_pct=100):
 
 
 def add_accent_underline(doc, color='C9A84C', thickness_pt=2):
-    """Add a short accent underline (like the pptx-design-agent accent bar).
+    """Add a short accent underline (like the pptx-design accent bar).
     This is a thin paragraph border, visually separating title from content."""
     return add_horizontal_rule(doc, color, thickness_pt)
 ```

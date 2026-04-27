@@ -142,9 +142,9 @@ for run in shape.text_frame.paragraphs[0].runs:
     run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
 ```
 
-## Integration with pptx-design-agent
+## Integration with pptx-design
 
-When using this skill after creating/editing slides with the `pptx-design-agent` skill:
+When using this skill after creating/editing slides with the `pptx-design` skill:
 1. Run the audit on the output file
 2. Review the report for CRITICAL and WARNING issues
 3. **For sparse slides (< 8 text shapes):** Apply auto-fixes with `fix_all()`
