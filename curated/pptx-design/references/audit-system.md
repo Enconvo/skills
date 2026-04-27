@@ -24,6 +24,24 @@ Fixing one issue often creates another. This is the #1 reason audits fail:
 
 **The iterative loop is NON-NEGOTIABLE. A single-pass audit is useless.**
 
+## Triage Before Fixing — Render and Look
+
+**Don't blindly fix every CRITICAL.** The audit is text-based; it can flag things that look fine and miss things that look broken. Real-world example: a 5-slide deck reported 11 CRITICAL + 62 WARNING, but only **2 were actual visible defects** — the rest were estimator overestimates (text height ratio overstates by ~30%) and intentional decorative elements (small red accent bars on cards getting flagged as "Rectangle cuts through Rounded Rectangle").
+
+**After the audit, render the deck to PNGs and look** before committing to fixes. See [applescript-patterns.md → Visual Verification](applescript-patterns.md#visual-verification--rendering-slides) for the headless render pipeline (PowerPoint AppleScript → PDF → `pdftoppm`).
+
+Common false positives to filter out:
+- **Decorative bars on cards** — short shapes (<5pt tall) intersecting a card by <5pt are accent design, not bugs.
+- **Text "overflow" by 4–10pt** — the line-height ratio overestimates; PowerPoint renders ~30% more compactly. Trust visual rendering over the estimate for borderline cases.
+- **Page numbers/labels with low-contrast colors** — sometimes intentional (subtle footer). Confirm by looking at the rendered slide.
+
+Common defects the audit cannot catch (only visible in PNGs):
+- Text bleeding into a photo's focal area (faces, key subjects, busy texture).
+- A subtitle/body box that wraps past a sidebar onto a busy background after a layout fix.
+- Color collisions between text and a multi-tone background photo.
+
+**Fix-then-render-again** — a fix that resolves the original defect can introduce a new visible problem (e.g., moving a subtitle below the title may push it onto a chair in the background photo). Re-render after every fix pass.
+
 ---
 
 ## CHECK 1: BOUNDS
@@ -761,28 +779,6 @@ Option D (layout change): Move the text zone to a darker part of the image.
 After CHECK 14 fix → re-run CHECK 1 (bounds), CHECK 6 (overlap), CHECK 7 (z-order)
 ```
 
-## Pass B: pptx-audit-and-fix tool (optional)
-
-If the `pptx-audit-and-fix` skill is installed at `~/.claude/skills/pptx-audit-and-fix/`, run it as a second pass AFTER Pass A is clean. Pass B adds WCAG contrast validation, composition coverage (overlay shapes blocking BG images), and text truth estimation. Skip if the skill is not installed — Pass A alone is sufficient.
-
-```python
-import os, importlib.util
-
-audit_path = os.path.expanduser("~/.claude/skills/pptx-audit-and-fix/references/pptx_audit.py")
-if os.path.exists(audit_path):
-    spec = importlib.util.spec_from_file_location("pptx_audit", audit_path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    auditor = mod.PptxAuditor(pptx_path)
-    report = auditor.run_full_audit()
-    print(report)
-    # Fix auto-fixable issues
-    if any(i.severity.name == 'CRITICAL' for i in report.issues):
-        auditor.fix_all(report)
-        auditor.save(pptx_path)
-else:
-    print("ℹ️ pptx-audit-and-fix skill not installed — skipping Pass B.")
-```
 
 ## Key Lessons Learned
 
