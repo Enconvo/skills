@@ -1,6 +1,6 @@
 # OpenClaw CLI Commands (Condensed Reference)
 
-Generated from openclaw v2026.3.1. One line per command, key flags only.
+Generated from openclaw v2026.4.21. One line per command, key flags only.
 
 ---
 
@@ -37,12 +37,13 @@ models image-fallbacks Manage image model fallback list. Sub: add, list, remove,
 ```
 plugins enable        Enable a plugin in config. <id>
 plugins disable       Disable a plugin in config. <id>
-plugins install       Install a plugin (path, archive, or npm spec). <path-or-spec> --link --pin
+plugins install       Install a plugin or hook pack (path, archive, npm spec, clawhub:package, or marketplace entry). <path-or-spec> --link --pin
 plugins uninstall     Uninstall a plugin. <id> --dry-run --force --keep-files
 plugins list          List discovered plugins. --enabled --json --verbose
-plugins info          Show plugin details. <id> --json
+plugins inspect       Inspect plugin details. <id> --json
 plugins doctor        Report plugin load issues.
-plugins update        Update installed plugins (npm installs only). [id] --all --dry-run
+plugins marketplace   Inspect Claude-compatible plugin marketplaces.
+plugins update        Update installed plugins and tracked hook packs. [id] --all --dry-run
 ```
 
 ## 4. Gateway
@@ -66,9 +67,12 @@ gateway usage-cost    Fetch usage cost summary from session logs.
 
 ```
 config get            Get a config value by dot path. <path> --json
-config set            Set a config value by dot path. <path> <value> --json --strict-json
+config set            Set config values by path (value, ref/provider builder, or batch JSON mode). <path> <value> --json --strict-json
 config unset          Remove a config value by dot path. <path>
-configure             Interactive setup wizard. --section <workspace|model|web|gateway|daemon|channels|skills|health>
+config file           Print the active config file path.
+config schema         Print the JSON schema for openclaw.json.
+config validate       Validate config against schema without starting gateway.
+configure             Interactive configuration for credentials, channels, gateway, and agent defaults. --section <workspace|model|web|gateway|daemon|channels|skills|health>
 ```
 
 ## 6. Agents
@@ -306,6 +310,15 @@ acp client            Run an interactive ACP client against the local ACP bridge
 skills list           List all available skills. --eligible --json --verbose
 skills info           Show detailed information about a skill. <name> --json
 skills check          Check which skills are ready vs missing requirements.
+skills install        Install a skill from ClawHub into the active workspace. <slug>
+skills search         Search ClawHub skills. <query>
+skills update         Update ClawHub-installed skills in the active workspace.
+```
+
+## 26. Tasks
+
+```
+tasks                 Inspect durable background task state.
 ```
 
 ## 25. Other Top-Level

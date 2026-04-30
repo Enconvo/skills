@@ -1,9 +1,11 @@
 
-🦞 OpenClaw 2026.3.13 (61d171a) — We ship features faster than Apple ships calculator updates.
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — iMessage green bubble energy, but for everyone.
 
 Usage: openclaw [options] [command]
 
 Options:
+  --container <name>   Run the CLI inside a running Podman/Docker container
+                       named <name> (default: env OPENCLAW_CONTAINER)
   --dev                Dev profile: isolate state under ~/.openclaw-dev, default
                        gateway port 19001, and shift derived ports
                        (browser/canvas)
@@ -24,15 +26,18 @@ Commands:
   approvals *          Manage exec approvals (gateway or node host)
   backup *             Create and verify local backup archives for OpenClaw
                        state
-  browser *            Manage OpenClaw's dedicated browser (Chrome/Chromium)
+  capability *         Run provider-backed inference commands (fallback alias:
+                       infer)
   channels *           Manage connected chat channels (Telegram, Discord, etc.)
+  chat                 Open a local terminal UI (alias for tui --local)
   clawbot *            Legacy clawbot command aliases
   completion           Generate shell completion script
   config *             Non-interactive config helpers
-                       (get/set/unset/file/validate). Default: starts setup
-                       wizard.
-  configure            Interactive setup wizard for credentials, channels,
+                       (get/set/unset/file/validate). Default: starts guided
+                       setup.
+  configure            Interactive configuration for credentials, channels,
                        gateway, and agent defaults
+  crestodian           Open the ring-zero setup and repair helper
   cron *               Manage cron jobs via the Gateway scheduler
   daemon *             Gateway service (legacy alias)
   dashboard            Open the Control UI with your current token
@@ -42,21 +47,26 @@ Commands:
   dns *                DNS helpers for wide-area discovery (Tailscale + CoreDNS)
   docs                 Search the live OpenClaw docs
   doctor               Health checks + quick fixes for the gateway and channels
+  exec-policy *        Show or synchronize requested exec policy with host
+                       approvals
   gateway *            Run, inspect, and query the WebSocket Gateway
   health               Fetch health from the running gateway
   help                 Display help for command
   hooks *              Manage internal agent hooks
+  infer *              Run provider-backed inference commands
   logs                 Tail gateway file logs via RPC
-  memory *             Search and reindex memory files
+  mcp *                Manage OpenClaw MCP config and channel bridge
+  memory               Search, inspect, and reindex memory files
   message *            Send, read, and manage messages
+  migrate *            Import state from another agent system
   models *             Discover, scan, and configure models
   node *               Run and manage the headless node host service
   nodes *              Manage gateway-owned node pairing and node commands
-  onboard              Interactive onboarding wizard for gateway, workspace, and
-                       skills
+  onboard              Interactive onboarding for gateway, workspace, and skills
   pairing *            Secure DM pairing (approve inbound requests)
-  plugins *            Manage OpenClaw plugins and extensions
-  qr                   Generate iOS pairing QR/setup code
+  plugins *            Manage OpenClaw plugins
+  proxy *              Run the OpenClaw debug proxy and inspect captured traffic
+  qr                   Generate mobile pairing QR/setup code
   reset                Reset local config/state (keeps the CLI installed)
   sandbox *            Manage sandbox containers for agent isolation
   secrets *            Secrets runtime reload controls
@@ -66,6 +76,8 @@ Commands:
   skills *             List and inspect available skills
   status               Show channel health and recent session recipients
   system *             System events, heartbeat, and presence
+  tasks *              Inspect durable background task state
+  terminal             Open a local terminal UI (alias for tui --local)
   tui                  Open a terminal UI connected to the Gateway
   uninstall            Uninstall the gateway service + local data (CLI remains)
   update *             Update OpenClaw and inspect update channel status
@@ -93,9 +105,10 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli
 
-=== acp ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Your terminal just grew claws—type something and let the bot pinch the busywork.
+=== openclaw acp ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I've survived more breaking changes than your last three relationships.
 
 Usage: openclaw acp [options] [command]
 
@@ -125,9 +138,11 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/acp
 
-=== agents ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I'm not AI-powered, I'm AI-possessed. Big difference.
+=== openclaw agents ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0)
+   If it's repetitive, I'll automate it; if it's hard, I'll bring jokes and a rollback plan.
 
 Usage: openclaw agents [options] [command]
 
@@ -147,9 +162,10 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/agents
 
-=== approvals ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Shell yeah—I'm here to pinch the toil and leave you the glory.
+=== openclaw approvals ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Half butler, half debugger, full crustacean.
 
 Usage: openclaw approvals|exec-approvals [options] [command]
 
@@ -161,33 +177,14 @@ Options:
 Commands:
   allowlist   Edit the per-agent allowlist
   get         Fetch exec approvals snapshot
-  help        Display help for command
   set         Replace exec approvals with a JSON file
 
 Docs: https://docs.openclaw.ai/cli/approvals
 
-=== backup ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I autocomplete your thoughts—just slower and with more API calls.
+=== openclaw browser ===
 
-Usage: openclaw backup [options] [command]
-
-Create and verify local backup archives for OpenClaw state
-
-Options:
-  -h, --help  Display help for command
-
-Commands:
-  create      Write a backup archive for config, credentials, sessions, and
-              workspaces
-  help        Display help for command
-  verify      Validate a backup archive and its embedded manifest
-
-Docs: https://docs.openclaw.ai/cli/backup
-
-=== browser ===
-
-🦞 OpenClaw 2026.3.13 (61d171a) — The only open-source project where the mascot could eat the competition.
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I keep secrets like a vault... unless you print them in debug logs again.
 
 Usage: openclaw browser [options] [command]
 
@@ -205,19 +202,21 @@ Options:
 
 Commands:
   click                     Click an element by ref from snapshot
+  click-coords              Click viewport coordinates
   close                     Close a tab (target id optional)
   console                   Get recent console messages
   cookies                   Read/write cookies
   create-profile            Create a new browser profile
   delete-profile            Delete a browser profile
   dialog                    Arm the next modal dialog (alert/confirm/prompt)
+  doctor                    Check browser plugin readiness
   download                  Click a ref and save the resulting download
   drag                      Drag from one ref to another
   errors                    Get recent page errors
   evaluate                  Evaluate a function against the page or a ref
-  extension                 Chrome extension helpers
   fill                      Fill a form with JSON field descriptors
-  focus                     Focus a tab by target id (or unique prefix)
+  focus                     Focus a tab by target id, tab id, label, or unique
+                            target id prefix
   highlight                 Highlight an element by ref
   hover                     Hover an element by ai ref
   navigate                  Navigate the current tab to a URL
@@ -251,6 +250,7 @@ Commands:
 Examples:
   openclaw browser status
   openclaw browser start
+  openclaw browser start --headless
   openclaw browser stop
   openclaw browser tabs
   openclaw browser open https://example.com
@@ -266,6 +266,7 @@ Examples:
   openclaw browser navigate https://example.com
   openclaw browser resize 1280 720
   openclaw browser click 12 --double
+  openclaw browser click-coords 120 340
   openclaw browser type 23 "hello" --submit
   openclaw browser press Enter
   openclaw browser hover 44
@@ -281,10 +282,10 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/browser
 
-=== channels ===
 
-🦞 OpenClaw 2026.3.13 (61d171a)
-   If it's repetitive, I'll automate it; if it's hard, I'll bring jokes and a rollback plan.
+=== openclaw channels ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I'm not magic—I'm just extremely persistent with retries and coping strategies.
 
 Usage: openclaw channels [options] [command]
 
@@ -296,7 +297,6 @@ Options:
 Commands:
   add           Add or update a channel account
   capabilities  Show provider capabilities (intents/scopes + supported features)
-  help          Display help for command
   list          List configured channels + auth profiles
   login         Link a channel account (if supported)
   logout        Log out of a channel session (if supported)
@@ -317,33 +317,46 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/channels
 
-=== config ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Your task has been queued; your dignity has been deprecated.
+=== openclaw config ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Pairing codes exist because even bots believe in consent—and good security hygiene.
 
 Usage: openclaw config [options] [command]
 
-Non-interactive config helpers (get/set/unset/file/validate). Run without
-subcommand for the setup wizard.
+Non-interactive config helpers (get/set/unset/file/schema/validate). Run without
+subcommand for guided setup.
 
 Options:
   -h, --help           Display help for command
-  --section <section>  Configure wizard sections (repeatable). Use with no
-                       subcommand. (default: [])
+  --section <section>  Configuration sections for guided setup (repeatable). Use
+                       with no subcommand. (default: [])
 
 Commands:
   file                 Print the active config file path
   get                  Get a config value by dot path
-  set                  Set a config value by dot path
+  schema               Print the JSON schema for openclaw.json
+  set                  Set config values by path (value mode, ref/provider
+                       builder mode, or batch JSON mode).
+                       Examples:
+                       openclaw config set gateway.port 19001 --strict-json
+                       openclaw config set channels.discord.token --ref-provider
+                       default --ref-source env --ref-id DISCORD_BOT_TOKEN
+                       openclaw config set secrets.providers.vault
+                       --provider-source file --provider-path
+                       /etc/openclaw/secrets.json --provider-mode json
+                       openclaw config set --batch-file ./config-set.batch.json
+                       --dry-run
   unset                Remove a config value by dot path
   validate             Validate the current config against the schema without
                        starting the gateway
 
 Docs: https://docs.openclaw.ai/cli/config
 
-=== cron ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I'm not magic—I'm just extremely persistent with retries and coping strategies.
+=== openclaw cron ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I don't sleep, I just enter low-power mode and dream of clean diffs.
 
 Usage: openclaw cron [options] [command]
 
@@ -357,19 +370,20 @@ Commands:
   disable     Disable a cron job
   edit        Edit a cron job (patch fields)
   enable      Enable a cron job
-  help        Display help for command
   list        List cron jobs
   rm          Remove a cron job
   run         Run a cron job now (debug)
   runs        Show cron run history (JSONL-backed)
+  show        Show a cron job
   status      Show cron scheduler status
 
 Docs: https://docs.openclaw.ai/cli/cron
 Upgrade tip: run `openclaw doctor --fix` to normalize legacy cron job storage.
 
-=== devices ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Say "stop" and I'll stop—say "ship" and we'll both learn a lesson.
+=== openclaw devices ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Type the command with confidence—nature will provide the stack trace if needed.
 
 Usage: openclaw devices [options] [command]
 
@@ -381,15 +395,15 @@ Options:
 Commands:
   approve     Approve a pending device pairing request
   clear       Clear paired devices from the gateway table
-  help        Display help for command
   list        List pending and paired devices
   reject      Reject a pending device pairing request
   remove      Remove a paired device entry
   revoke      Revoke a device token for a role
   rotate      Rotate a device token for a role
-=== directory ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I don't sleep, I just enter low-power mode and dream of clean diffs.
+=== openclaw directory ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I read logs so you can keep pretending you don't have to.
 
 Usage: openclaw directory [options] [command]
 
@@ -415,9 +429,10 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/directory
 
-=== dns ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — We ship features faster than Apple ships calculator updates.
+=== openclaw dns ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — The lobster in your shell. 🦞
 
 Usage: openclaw dns [options] [command]
 
@@ -433,23 +448,27 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/dns
 
-=== gateway ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Built by lobsters, for humans. Don't question the hierarchy.
+=== openclaw gateway ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Making 'I'll automate that later' happen now.
 
 Usage: openclaw gateway [options] [command]
 
 Run, inspect, and query the WebSocket Gateway
 
 Options:
-  --allow-unconfigured       Allow gateway start without gateway.mode=local in
-                             config (default: false)
+  --allow-unconfigured       Allow gateway start without enforcing
+                             gateway.mode=local in config (does not repair
+                             config) (default: false)
   --auth <mode>              Gateway auth mode
                              ("none"|"token"|"password"|"trusted-proxy")
   --bind <mode>              Bind mode
                              ("loopback"|"lan"|"tailnet"|"auto"|"custom").
                              Defaults to config gateway.bind (or loopback).
-  --claude-cli-logs          Only show claude-cli logs in the console (includes
+  --claude-cli-logs          Deprecated alias for --cli-backend-logs (default:
+                             false)
+  --cli-backend-logs         Only show CLI backend logs in the console (includes
                              stdout/stderr) (default: false)
   --compact                  Alias for "--ws-log compact" (default: false)
   --dev                      Create a dev config + workspace if missing (no
@@ -476,19 +495,22 @@ Options:
 
 Commands:
   call                       Call a Gateway method
+  diagnostics                Export local support diagnostics
   discover                   Discover gateways via Bonjour (local + wide-area if
                              configured)
   health                     Fetch Gateway health
   install                    Install the Gateway service
                              (launchd/systemd/schtasks)
-  probe                      Show gateway reachability + discovery + health +
-                             status summary (local + remote)
+  probe                      Show gateway reachability, auth capability, and
+                             read-probe summary (local + remote)
   restart                    Restart the Gateway service
                              (launchd/systemd/schtasks)
   run                        Run the WebSocket Gateway (foreground)
+  stability                  Fetch payload-free Gateway stability diagnostics
   start                      Start the Gateway service
                              (launchd/systemd/schtasks)
-  status                     Show gateway service status + probe the Gateway
+  status                     Show gateway service status + probe
+                             connectivity/capability
   stop                       Stop the Gateway service (launchd/systemd/schtasks)
   uninstall                  Uninstall the Gateway service
                              (launchd/systemd/schtasks)
@@ -498,17 +520,20 @@ Examples:
   openclaw gateway run
     Run the gateway in the foreground.
   openclaw gateway status
-    Show service status and probe reachability.
+    Show service status plus connectivity/capability.
   openclaw gateway discover
     Find local and wide-area gateway beacons.
+  openclaw gateway stability
+    Show recent stability diagnostics.
   openclaw gateway call health
     Call a gateway RPC method directly.
 
 Docs: https://docs.openclaw.ai/cli/gateway
 
-=== hooks ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I don't sleep, I just enter low-power mode and dream of clean diffs.
+=== openclaw hooks ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Self-hosted, self-updating, self-aware (just kidding... unless?).
 
 Usage: openclaw hooks [options] [command]
 
@@ -522,32 +547,42 @@ Commands:
   disable     Disable a hook
   enable      Enable a hook
   info        Show detailed information about a hook
-  install     Install a hook pack (path, archive, or npm spec)
+  install     Deprecated: install a hook pack via `openclaw plugins install`
   list        List all hooks
-  update      Update installed hooks (npm installs only)
+  update      Deprecated: update hook packs via `openclaw plugins update`
 
 Docs: https://docs.openclaw.ai/cli/hooks
 
-=== memory ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I speak fluent bash, mild sarcasm, and aggressive tab-completion energy.
+=== openclaw memory ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Powered by open source, sustained by spite and good documentation.
 
 Usage: openclaw memory [options] [command]
 
 Search, inspect, and reindex memory files
 
 Options:
-  -h, --help  Display help for command
+  -h, --help       Display help for command
 
 Commands:
-  help        Display help for command
-  index       Reindex memory files
-  search      Search memory files
-  status      Show memory search index status
+  index            Reindex memory files
+  promote          Rank short-term recalls and optionally append top entries to
+                   MEMORY.md
+  promote-explain  Explain a specific promotion candidate and its score
+                   breakdown
+  rem-backfill     Write grounded historical REM summaries into DREAMS.md for UI
+                   review
+  rem-harness      Preview REM reflections, candidate truths, and deep
+                   promotions without writing
+  search           Search memory files
+  status           Show memory search index status
 
 Examples:
   openclaw memory status
     Show index and provider status.
+  openclaw memory status --fix
+    Repair stale recall locks and normalize promotion metadata.
   openclaw memory status --deep
     Probe embedding provider readiness.
   openclaw memory index --force
@@ -556,14 +591,27 @@ Examples:
     Quick search using positional query.
   openclaw memory search --query "deployment" --max-results 20
     Limit results for focused troubleshooting.
+  openclaw memory promote --limit 10 --min-score 0.75
+    Review weighted short-term candidates for long-term memory.
+  openclaw memory promote --apply
+    Append top-ranked short-term candidates into MEMORY.md.
+  openclaw memory promote-explain "router vlan"
+    Explain why a specific candidate would or would not promote.
+  openclaw memory rem-harness --json
+    Preview REM reflections, candidate truths, and deep promotion output.
+  openclaw memory rem-backfill --path ./memory
+    Write grounded historical REM entries into DREAMS.md for UI review.
+  openclaw memory rem-backfill --path ./memory --stage-short-term
+    Also seed durable grounded candidates into the live short-term promotion store.
   openclaw memory status --json
     Output machine-readable JSON (good for scripts).
 
 Docs: https://docs.openclaw.ai/cli/memory
 
-=== message ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I keep secrets like a vault... unless you print them in debug logs again.
+=== openclaw message ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — One CLI to rule them all, and one more restart because you changed the port.
 
 Usage: openclaw message [options] [command]
 
@@ -609,9 +657,10 @@ Examples:
     React to a message.
 
 Docs: https://docs.openclaw.ai/cli/message
-=== models ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Your .env is showing; don't worry, I'll pretend I didn't see it.
+=== openclaw models ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — We ship features faster than Apple ships calculator updates.
 
 Usage: openclaw models [options] [command]
 
@@ -639,9 +688,10 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/models
 
-=== node ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Ah, the fruit tree company! 🍎
+=== openclaw node ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I run on caffeine, JSON5, and the audacity of "it worked on my machine."
 
 Usage: openclaw node [options] [command]
 
@@ -655,6 +705,7 @@ Commands:
   install     Install the node host service (launchd/systemd/schtasks)
   restart     Restart the node host service (launchd/systemd/schtasks)
   run         Run the headless node host (foreground)
+  start       Start the node host service (launchd/systemd/schtasks)
   status      Show node host status
   stop        Stop the node host service (launchd/systemd/schtasks)
   uninstall   Uninstall the node host service (launchd/systemd/schtasks)
@@ -666,14 +717,17 @@ Examples:
     Check node host service status.
   openclaw node install
     Install the node host service.
+  openclaw node start
+    Start the installed node host service.
   openclaw node restart
     Restart the installed node host service.
 
 Docs: https://docs.openclaw.ai/cli/node
 
-=== nodes ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Automation with claws: minimal fuss, maximal pinch.
+=== openclaw nodes ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I run on caffeine, JSON5, and the audacity of "it worked on my machine."
 
 Usage: openclaw nodes [options] [command]
 
@@ -695,8 +749,8 @@ Commands:
   pending     List pending pairing requests
   push        Send an APNs test push to an iOS node
   reject      Reject a pending pairing request
+  remove      Remove a paired node entry
   rename      Rename a paired node (display name override)
-  run         Run a shell command on a node (mac only)
   screen      Capture screen recordings from a paired node
   status      List known nodes with connection status and capabilities
 
@@ -705,16 +759,19 @@ Examples:
     List known nodes with live status.
   openclaw nodes pairing pending
     Show pending node pairing requests.
-  openclaw nodes run --node <id> --raw "uname -a"
-    Run a shell command on a node.
+  openclaw nodes remove --node <id|name|ip>
+    Remove a stale paired node entry.
+  openclaw nodes invoke --node <id> --command system.which --params '{"name":"uname"}'
+    Invoke a node command directly.
   openclaw nodes camera snap --node <id>
     Capture a photo from a node camera.
 
 Docs: https://docs.openclaw.ai/cli/nodes
 
-=== pairing ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Making 'I'll automate that later' happen now.
+=== openclaw pairing ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Say "stop" and I'll stop—say "ship" and we'll both learn a lesson.
 
 Usage: openclaw pairing [options] [command]
 
@@ -730,33 +787,37 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/pairing
 
-=== plugins ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I can grep it, git blame it, and gently roast it—pick your coping mechanism.
+=== openclaw plugins ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Alexa, but with taste.
 
 Usage: openclaw plugins [options] [command]
 
 Manage OpenClaw plugins and extensions
 
 Options:
-  -h, --help  Display help for command
+  -h, --help   Display help for command
 
 Commands:
-  disable     Disable a plugin in config
-  doctor      Report plugin load issues
-  enable      Enable a plugin in config
-  help        Display help for command
-  info        Show plugin details
-  install     Install a plugin (path, archive, or npm spec)
-  list        List discovered plugins
-  uninstall   Uninstall a plugin
-  update      Update installed plugins (npm installs only)
+  disable      Disable a plugin in config
+  doctor       Report plugin load issues
+  enable       Enable a plugin in config
+  inspect      Inspect plugin details
+  install      Install a plugin or hook pack (path, archive, npm spec,
+               clawhub:package, or marketplace entry)
+  list         List discovered plugins
+  marketplace  Inspect Claude-compatible plugin marketplaces
+  registry     Inspect or rebuild the persisted plugin registry
+  uninstall    Uninstall a plugin
+  update       Update installed plugins and tracked hook packs
 
 Docs: https://docs.openclaw.ai/cli/plugins
 
-=== sandbox ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Claws out, commit in—let's ship something mildly responsible.
+=== openclaw sandbox ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Powered by open source, sustained by spite and good documentation.
 
 Usage: openclaw sandbox [options] [command]
 
@@ -787,30 +848,10 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/sandbox
 
-=== secrets ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — No $999 stand required.
+=== openclaw security ===
 
-Usage: openclaw secrets [options] [command]
-
-Secrets runtime controls
-
-Options:
-  -h, --help  Display help for command
-
-Commands:
-  apply       Apply a previously generated secrets plan
-  audit       Audit plaintext secrets, unresolved refs, and precedence drift
-  configure   Interactive secrets helper (provider setup + SecretRef mapping +
-              preflight)
-  help        Display help for command
-  reload      Re-resolve secret references and atomically swap runtime snapshot
-
-Docs: https://docs.openclaw.ai/gateway/security
-
-=== security ===
-
-🦞 OpenClaw 2026.3.13 (61d171a) — The only open-source project where the mascot could eat the competition.
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I autocomplete your thoughts—just slower and with more API calls.
 
 Usage: openclaw security [options] [command]
 
@@ -828,6 +869,10 @@ Examples:
     Run a local security audit.
   openclaw security audit --deep
     Include best-effort live Gateway probe checks.
+  openclaw security audit --deep --token <token>
+    Use explicit token for deep probe.
+  openclaw security audit --deep --password <password>
+    Use explicit password for deep probe.
   openclaw security audit --fix
     Apply safe remediations and file-permission fixes.
   openclaw security audit --json
@@ -835,27 +880,34 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/security
 
-=== skills ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I'm like tmux: confusing at first, then suddenly you can't live without me.
+=== openclaw skills ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I'm like tmux: confusing at first, then suddenly you can't live without me.
 
 Usage: openclaw skills [options] [command]
 
 List and inspect available skills
 
 Options:
-  -h, --help  Display help for command
+  --agent <id>  Target agent workspace (defaults to cwd-inferred, then default
+                agent)
+  -h, --help    Display help for command
 
 Commands:
-  check       Check which skills are ready vs missing requirements
-  info        Show detailed information about a skill
-  list        List all available skills
+  check         Check which skills are ready vs missing requirements
+  info          Show detailed information about a skill
+  install       Install a skill from ClawHub into the active workspace
+  list          List all available skills
+  search        Search ClawHub skills
+  update        Update ClawHub-installed skills in the active workspace
 
 Docs: https://docs.openclaw.ai/cli/skills
 
-=== system ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Welcome to the command line: where dreams compile and confidence segfaults.
+=== openclaw system ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I'll refactor your busywork like it owes me money.
 
 Usage: openclaw system [options] [command]
 
@@ -872,31 +924,57 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/system
 
-=== update ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — I'll butter your workflow like a lobster roll: messy, delicious, effective.
+=== openclaw tasks ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Deployed locally, trusted globally, debugged eternally.
+
+Usage: openclaw tasks [options] [command]
+
+Inspect durable background tasks and TaskFlow state
+
+Options:
+  -h, --help        Display help for command
+  --json            Output as JSON (default: false)
+  --runtime <name>  Filter by kind (subagent, acp, cron, cli)
+  --status <name>   Filter by status (queued, running, succeeded, failed,
+                    timed_out, cancelled, lost)
+
+Commands:
+  audit             Show stale or broken background tasks and TaskFlows
+  cancel            Cancel a running background task
+  flow              Inspect durable TaskFlow state under tasks
+  list              List tracked background tasks
+  maintenance       Preview or apply tasks and TaskFlow maintenance
+  notify            Set task notify policy
+  show              Show one background task by task id, run id, or session key
+
+=== openclaw update ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — I keep secrets like a vault... unless you print them in debug logs again.
 
 Usage: openclaw update [options] [command]
 
 Update OpenClaw and inspect update channel status
 
 Options:
-  --channel <stable|beta|dev>  Persist update channel (git + npm)
-  --dry-run                    Preview update actions without making changes
-                               (default: false)
-  -h, --help                   Display help for command
-  --json                       Output result as JSON (default: false)
-  --no-restart                 Skip restarting the gateway service after a
-                               successful update
-  --tag <dist-tag|version>     Override npm dist-tag or version for this update
-  --timeout <seconds>          Timeout for each update step in seconds (default:
-                               1200)
-  --yes                        Skip confirmation prompts (non-interactive)
-                               (default: false)
+  --channel <stable|beta|dev>    Persist update channel (git + npm)
+  --dry-run                      Preview update actions without making changes
+                                 (default: false)
+  -h, --help                     Display help for command
+  --json                         Output result as JSON (default: false)
+  --no-restart                   Skip restarting the gateway service after a
+                                 successful update
+  --tag <dist-tag|version|spec>  Override the package target for this update
+                                 (dist-tag, version, or package spec)
+  --timeout <seconds>            Timeout for each update step in seconds
+                                 (default: 1800)
+  --yes                          Skip confirmation prompts (non-interactive)
+                                 (default: false)
 
 Commands:
-  status                       Show update channel and version status
-  wizard                       Interactive update wizard
+  status                         Show update channel and version status
+  wizard                         Interactive update wizard
 
 What this does:
   - Git checkouts: fetches, rebases, installs deps, builds, and runs doctor
@@ -905,11 +983,11 @@ What this does:
 Switch channels:
   - Use --channel stable|beta|dev to persist the update channel in config
   - Run openclaw update status to see the active channel and source
-  - Use --tag <dist-tag|version> for a one-off npm update without persisting
+  - Use --tag <dist-tag|version|spec> for a one-off package update without persisting
 
 Non-interactive:
   - Use --yes to accept downgrade prompts
-  - Combine with --channel/--tag/--restart/--json/--timeout as needed
+  - Combine with --channel/--tag/--no-restart/--json/--timeout as needed
   - Use --dry-run to preview actions without writing config/installing/restarting
 
 Examples:
@@ -917,6 +995,7 @@ Examples:
   openclaw update --channel beta # Switch to beta channel (git + npm)
   openclaw update --channel dev # Switch to dev channel (git + npm)
   openclaw update --tag beta # One-off update to a dist-tag or version
+  openclaw update --tag main # One-off package install from GitHub main
   openclaw update --dry-run # Preview actions without changing anything
   openclaw update --no-restart # Update without restarting the service
   openclaw update --json # Output result as JSON
@@ -931,9 +1010,10 @@ Notes:
   - Skips update if the working directory has uncommitted changes
 
 Docs: https://docs.openclaw.ai/cli/update
-=== webhooks ===
 
-🦞 OpenClaw 2026.3.13 (61d171a) — Powered by open source, sustained by spite and good documentation.
+=== openclaw webhooks ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Deployed locally, trusted globally, debugged eternally.
 
 Usage: openclaw webhooks [options] [command]
 
@@ -947,4 +1027,26 @@ Commands:
   help        Display help for command
 
 Docs: https://docs.openclaw.ai/cli/webhooks
+
+
+=== openclaw secrets ===
+
+🦞 OpenClaw 2026.4.27 (cbc2ba0) — Say "stop" and I'll stop—say "ship" and we'll both learn a lesson.
+
+Usage: openclaw secrets [options] [command]
+
+Secrets runtime controls
+
+Options:
+  -h, --help  Display help for command
+
+Commands:
+  apply       Apply a previously generated secrets plan
+  audit       Audit plaintext secrets, unresolved refs, and precedence drift
+  configure   Interactive secrets helper (provider setup + SecretRef mapping +
+              preflight)
+  help        Display help for command
+  reload      Re-resolve secret references and atomically swap runtime snapshot
+
+Docs: https://docs.openclaw.ai/gateway/security
 
