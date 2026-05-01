@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title data-i18n="meta.title">Editorial Nightscape</title>
+<meta name="description" data-i18n-attr="content" data-i18n-attr-content="meta.description" content="A site built with fancy-website-builder." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="hero.jpg" />
+<link rel="preload" as="image" href="hero_depth.jpg" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,30..100&family=Inter+Tight:wght@200..900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<style>
+  /* Palette tokens — populated by init_project.py from extract_palette.py output.
+     Defaults below are the Cleo project's values; init_project.py overwrites them. */
+  :root {
+    --brand-1: oklch(16% 0.04 270);   /* darkest — page bg / deep night */
+    --brand-2: oklch(40% 0.18 22);    /* deep accent — rouge-deep */
+    --brand-3: oklch(58% 0.21 25);    /* mid accent — rouge */
+    --brand-4: oklch(72% 0.17 55);    /* warm accent — amber */
+    --brand-5: oklch(94% 0.025 80);   /* lightest — pearl/cream */
+
+    --night-3: var(--brand-1);
+    --rouge: var(--brand-3);
+    --rouge-deep: var(--brand-2);
+    --amber: var(--brand-4);
+    --pearl: var(--brand-5);
+    --bone: oklch(88% 0.02 75);
+    --ink-dim: oklch(82% 0.02 80 / 0.7);
+  }
+  html, body {
+    background: var(--night-3);
+    color: var(--pearl);
+    font-family: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  html:not(.i18n-ready) [data-i18n] { visibility: hidden; }
+  .display { font-family: "Fraunces", ui-serif, Georgia, serif; font-variation-settings: "opsz" 144, "SOFT" 100; letter-spacing: -0.045em; line-height: 0.84; }
+  .display-italic { font-style: italic; }
+  .vignette::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 80% at 30% 40%, transparent 40%, oklch(7% 0.04 285 / 0.55) 100%); }
+  .grain { position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: 0.06; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.78 0 0 0 0 0.55 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  .ribbon-marquee { display: flex; gap: 3.5rem; animation: scroll 42s linear infinite; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 1.4s cubic-bezier(.2,.7,.1,1), transform 1.4s cubic-bezier(.2,.7,.1,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .word-mask { display: inline-block; overflow: hidden; vertical-align: bottom; }
+  .word-mask > span { display: inline-block; transform: translateY(110%); transition: transform 1.2s cubic-bezier(.16,1,.3,1); }
+  .in .word-mask > span { transform: translateY(0); }
+  .hero-img { filter: contrast(1.04) saturate(1.05); opacity: 0; transition: opacity 1.6s cubic-bezier(.2,.7,.1,1); }
+  .hero-img.in { opacity: 1; }
+  .ticker-rule { height: 1px; background: linear-gradient(90deg, transparent 0%, oklch(85% 0.15 75 / 0.4) 12%, oklch(85% 0.15 75 / 0.4) 88%, transparent 100%); }
+  .frame-rule { background: linear-gradient(180deg, transparent, oklch(85% 0.15 75 / 0.35) 30%, oklch(85% 0.15 75 / 0.35) 70%, transparent); }
+  .magnetic-cursor { transition: transform .4s cubic-bezier(.16,1,.3,1); }
+  .dropcap::first-letter { font-family: "Fraunces", serif; font-style: italic; font-size: 5.2em; line-height: .85; float: left; margin: .05em .12em -.1em 0; color: var(--rouge); }
+  .corner-bracket { position: absolute; width: 22px; height: 22px; border: 1px solid oklch(85% 0.15 75 / 0.55); }
+  .pin { width: 6px; height: 6px; border-radius: 999px; background: var(--amber); box-shadow: 0 0 14px 2px oklch(85% 0.15 75 / 0.55); }
+  .vrule { background: linear-gradient(180deg, transparent, oklch(85% 0.15 75 / 0.5), transparent); }
+  @media (prefers-reduced-motion: reduce) { .ribbon-marquee, .hero-img, .reveal, .word-mask > span { animation: none !important; transition: none !important; transform: none !important; opacity: 1 !important; } }
+</style>
+</head>
+<body class="relative">
+
+<canvas id="bg-canvas" class="fixed inset-0 z-0 pointer-events-none"></canvas>
+<div class="grain"></div>
+
+<header class="relative z-30 px-6 md:px-10 lg:px-14 py-6 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <span class="pin"></span>
+    <span class="display text-[15px] tracking-[0.04em]" style="color:var(--bone)" data-i18n="brand.name">Brand</span>
+  </div>
+  <nav class="hidden md:flex items-center gap-9 text-[11px] uppercase tracking-[0.32em]" style="color:var(--ink-dim)">
+    <a href="#manifesto" class="magnetic-cursor" data-i18n="nav.manifesto">Manifesto</a>
+    <a href="#dispatch" class="magnetic-cursor" data-i18n="nav.dispatch">Dispatch</a>
+    <a href="#room" class="magnetic-cursor" data-i18n="nav.room">The Room</a>
+    <a href="#contact" class="magnetic-cursor" data-i18n="nav.contact">Brief Me</a>
+  </nav>
+  <a href="#contact" class="hidden md:inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] px-4 py-2 magnetic-cursor"
+     style="color:var(--pearl); border:1px solid oklch(85% 0.15 75 / 0.5);">
+    <span style="background:var(--amber)" class="w-1.5 h-1.5 rounded-full"></span>
+    <span data-i18n="nav.cta">On the rooftop</span>
+  </a>
+</header>
+
+<section class="relative z-20 px-6 md:px-10 lg:px-14 pt-2 pb-20 md:pb-28">
+  <div class="grid grid-cols-12 gap-x-4 md:gap-x-6 lg:gap-x-8 items-end">
+    <div class="col-span-12 md:col-span-7 reveal" id="hero-left">
+      <div class="flex items-center gap-3 mb-10 md:mb-14 text-[10.5px] uppercase tracking-[0.42em]" style="color:var(--amber)">
+        <span style="background:var(--amber)" class="w-6 h-px"></span>
+        <span data-i18n="hero.kicker">Vol. I · Issue 47</span>
+      </div>
+      <h1 class="display text-[clamp(58px,10.5vw,168px)]">
+        <span class="word-mask"><span data-i18n="hero.title_l1">A marketing</span></span><br/>
+        <span class="word-mask"><span data-i18n="hero.title_l2">mind, </span></span><span class="word-mask display-italic"><span style="color:var(--rouge)" data-i18n="hero.title_em">after</span></span><br/>
+        <span class="word-mask"><span data-i18n="hero.title_l3">hours.</span></span>
+      </h1>
+      <div class="mt-12 md:mt-16 max-w-[520px] flex items-start gap-5">
+        <span class="frame-rule w-px h-24 mt-1"></span>
+        <p class="text-[15.5px] leading-[1.65]" style="color:oklch(86% 0.025 80 / 0.85)" data-i18n="hero.subtitle">
+          I think about brands the way a bartender thinks about a room.
+        </p>
+      </div>
+      <div class="mt-10 flex items-center gap-6">
+        <a href="#dispatch" class="display text-[14px] tracking-[0.02em] magnetic-cursor inline-flex items-center gap-3"
+           style="color:var(--pearl); border-bottom: 1px solid var(--amber); padding-bottom: 4px;">
+          <span data-i18n="hero.read_more">Read the dispatch</span>
+          <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><path d="M0 5h16M11 1l5 4-5 4" stroke="currentColor" stroke-width="1.2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="col-span-12 md:col-span-5 reveal" id="hero-right">
+      <figure class="relative aspect-[3/4] w-full max-w-[480px] ml-auto vignette overflow-hidden">
+        <span class="corner-bracket -top-px -left-px border-r-0 border-b-0"></span>
+        <span class="corner-bracket -top-px -right-px border-l-0 border-b-0"></span>
+        <span class="corner-bracket -bottom-px -left-px border-r-0 border-t-0"></span>
+        <span class="corner-bracket -bottom-px -right-px border-l-0 border-t-0"></span>
+        <canvas id="hero-depth-canvas" class="hero-img absolute inset-0 w-full h-full block"></canvas>
+        <noscript><img src="hero.jpg" alt="" class="w-full h-full object-cover" /></noscript>
+        <figcaption class="absolute left-3 right-3 bottom-3 flex items-end justify-between text-[10px] uppercase tracking-[0.32em]"
+                    style="color:var(--pearl); text-shadow: 0 1px 6px rgba(0,0,0,0.6)">
+          <span data-i18n="hero.caption_l">Plate 01</span>
+          <span style="color:var(--amber)" data-i18n="hero.caption_r">35° sky · ƒ/1.4</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="relative z-20 py-7 overflow-hidden border-y" style="border-color: oklch(85% 0.15 75 / 0.18); background: oklch(11% 0.05 280 / 0.6); backdrop-filter: blur(4px);">
+  <div class="ribbon-marquee whitespace-nowrap display text-[clamp(28px,4vw,46px)]" style="color:var(--bone)">
+    <span data-i18n="marquee.t1">Strategy</span><span>·</span>
+    <span data-i18n="marquee.t2">Narrative</span><span>·</span>
+    <span data-i18n="marquee.t3">Voice</span><span>·</span>
+    <span data-i18n="marquee.t4">Positioning</span><span>·</span>
+    <span data-i18n="marquee.t1">Strategy</span><span>·</span>
+    <span data-i18n="marquee.t2">Narrative</span><span>·</span>
+    <span data-i18n="marquee.t3">Voice</span><span>·</span>
+    <span data-i18n="marquee.t4">Positioning</span><span>·</span>
+  </div>
+</section>
+
+<section id="manifesto" class="relative z-20 px-6 md:px-10 lg:px-14 py-28 md:py-40">
+  <div class="grid grid-cols-12 gap-x-4 md:gap-x-8">
+    <div class="col-span-12 md:col-span-3 mb-10 md:mb-0">
+      <div class="text-[10.5px] uppercase tracking-[0.42em] mb-6" style="color:var(--amber)" data-i18n="manifesto.label">§ 01 — Manifesto</div>
+      <div class="display text-[40px] md:text-[52px]" data-i18n="manifesto.heading">The room reads itself.</div>
+    </div>
+    <div class="hidden md:block col-span-1"><div class="vrule w-px h-full mx-auto"></div></div>
+    <div class="col-span-12 md:col-span-8 max-w-[680px]">
+      <p class="dropcap text-[18px] leading-[1.65] mb-8 reveal" style="color:oklch(88% 0.025 80 / 0.92)" data-i18n="manifesto.p1">Most marketing decks open with the audience. Mine open with the bartender.</p>
+      <p class="text-[16px] leading-[1.7] mb-8 reveal" style="color:oklch(86% 0.02 80 / 0.82)" data-i18n="manifesto.p2">I write the way a good editor edits — by removing two-thirds of what doesn't belong, then moving the comma.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="relative z-20 px-6 md:px-10 lg:px-14 py-28 md:py-36 border-t" style="border-color: oklch(85% 0.15 75 / 0.18);">
+  <div class="grid grid-cols-12 gap-x-8 items-end">
+    <div class="col-span-12 md:col-span-7">
+      <div class="text-[10.5px] uppercase tracking-[0.42em] mb-5" style="color:var(--amber)" data-i18n="contact.label">§ — Brief Me</div>
+      <h2 class="display text-[clamp(56px,9vw,148px)]" data-i18n="contact.heading">Pull up a stool.</h2>
+    </div>
+    <div class="col-span-12 md:col-span-5 mt-12 md:mt-0">
+      <form class="space-y-7" onsubmit="event.preventDefault(); this.querySelector('button').textContent = '✓';">
+        <label class="block">
+          <div class="text-[10.5px] uppercase tracking-[0.32em] mb-2" style="color:var(--amber)" data-i18n="contact.name">Your name</div>
+          <input class="w-full bg-transparent border-0 border-b py-3 outline-none text-[18px]" style="border-color: oklch(85% 0.15 75 / 0.4); color:var(--pearl)" />
+        </label>
+        <label class="block">
+          <div class="text-[10.5px] uppercase tracking-[0.32em] mb-2" style="color:var(--amber)" data-i18n="contact.email">Where to write back</div>
+          <input type="email" class="w-full bg-transparent border-0 border-b py-3 outline-none text-[18px]" data-i18n-attr="placeholder" data-i18n-attr-placeholder="contact.email_placeholder" placeholder="" style="border-color: oklch(85% 0.15 75 / 0.4); color:var(--pearl)" />
+        </label>
+        <button type="submit" class="display text-[14px] tracking-[0.04em] mt-4" style="color:var(--pearl); border-bottom: 1px solid var(--amber); padding-bottom: 6px;" data-i18n="contact.submit">Send the napkin</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="relative z-20 px-6 md:px-10 lg:px-14 py-10 border-t flex flex-col md:flex-row gap-4 md:gap-0 items-start md:items-center justify-between text-[10.5px] uppercase tracking-[0.32em]"
+        style="border-color: oklch(85% 0.15 75 / 0.18); color:var(--ink-dim)">
+  <div class="flex items-center gap-3"><span class="pin"></span><span style="color:var(--bone)" data-i18n="footer.brand">Brand</span> · <span data-i18n="footer.tagline">Tagline</span></div>
+  <div data-i18n="footer.note">Built with fancy-website-builder</div>
+</footer>
+
+<script id="i18n-loader">
+window.__I18N_LANGS__ = window.__I18N_LANGS__ || ['en'];
+(function() {
+  var URL_LANG = new URLSearchParams(location.search).get('lang');
+  var NAV_LANG = (navigator.language || 'en').slice(0, 2);
+  var SUPPORTED = window.__I18N_LANGS__;
+  var lang = SUPPORTED.includes(URL_LANG) ? URL_LANG
+           : SUPPORTED.includes(NAV_LANG) ? NAV_LANG
+           : 'en';
+  document.documentElement.setAttribute('lang', lang);
+  fetch('i18n/' + lang + '.json').then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(dict){
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var k = el.getAttribute('data-i18n'); if (dict[k]) el.textContent = dict[k];
+    });
+    document.querySelectorAll('[data-i18n-attr]').forEach(function(el){
+      el.getAttribute('data-i18n-attr').split(',').forEach(function(a){
+        a = a.trim(); var k = el.getAttribute('data-i18n-attr-' + a); if (k && dict[k]) el.setAttribute(a, dict[k]);
+      });
+    });
+    document.documentElement.classList.add('i18n-ready');
+  }).catch(function(){ document.documentElement.classList.add('i18n-ready'); });
+})();
+</script>
+
+<script>
+  window.addEventListener('load', () => {
+    requestAnimationFrame(() => {
+      document.getElementById('hero-left')?.classList.add('in');
+      document.getElementById('hero-right')?.classList.add('in');
+    });
+  });
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { threshold: 0.18 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+<!-- HERO TECHNIQUE — replaced by init_project.py with chosen variant from references/hero-shaders.md -->
+<script id="hero-technique" type="module">
+  // Default: Variant A (Apple-style depth displacement). Replace block to switch.
+  import * as THREE from 'three';
+  const canvas = document.getElementById('hero-depth-canvas');
+  if (canvas) {
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+    const scene = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(28, 3/4, 0.1, 100);
+    cam.position.set(0, 0, 5);
+    const PLANE_W = 3, PLANE_H = 4;
+    const geom = new THREE.PlaneGeometry(PLANE_W, PLANE_H, 220, 290);
+    const loader = new THREE.TextureLoader();
+    const texPhoto = loader.load('hero.jpg');
+    const texDepth = loader.load('hero_depth.jpg');
+    texPhoto.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uPhoto:{value:texPhoto}, uDepth:{value:texDepth}, uMouse:{value:new THREE.Vector2(0,0)}, uTime:{value:0}, uStrength:{value:0.36}, uParallax:{value:0.16}, uVignette:{value:0.85} },
+      vertexShader: `uniform sampler2D uDepth; uniform float uStrength; varying vec2 vUv; void main(){ vUv = uv; float d = texture2D(uDepth, uv).r; vec3 p = position + vec3(0.0, 0.0, smoothstep(0.0,1.0,d) * uStrength); gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`,
+      fragmentShader: `uniform sampler2D uPhoto, uDepth; uniform vec2 uMouse; uniform float uParallax, uVignette, uTime; varying vec2 vUv; void main(){ float d = texture2D(uDepth, vUv).r; vec2 uv = clamp(vUv - uMouse * uParallax * (d - 0.15), vec2(0.001), vec2(0.999)); vec4 col = texture2D(uPhoto, uv); col.rgb *= 1.0 - smoothstep(0.35, 0.85, distance(vUv, vec2(0.5))) * (1.0 - uVignette); gl_FragColor = col; }`
+    });
+    const mesh = new THREE.Mesh(geom, mat);
+    scene.add(mesh);
+    function resize(){ const r = canvas.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); const visH = 2 * Math.tan(cam.fov * Math.PI / 360) * cam.position.z; mesh.scale.setScalar(Math.max(visH/PLANE_H, (visH*cam.aspect)/PLANE_W) * 1.02); }
+    resize(); new ResizeObserver(resize).observe(canvas);
+    const figure = canvas.closest('figure'); const m = {tx:0,ty:0,x:0,y:0};
+    window.addEventListener('mousemove', e => { const r = (figure || canvas).getBoundingClientRect(); m.tx = ((e.clientX - r.left)/r.width - 0.5)*2; m.ty = ((e.clientY - r.top)/r.height - 0.5)*2; });
+    figure?.addEventListener('mouseleave', () => { m.tx = 0; m.ty = 0; });
+    let revealed = false; const clk = new THREE.Clock();
+    function loop(){ const t = clk.elapsedTime; mat.uniforms.uTime.value = t; m.x += (m.tx-m.x)*0.06; m.y += (m.ty-m.y)*0.06; mat.uniforms.uMouse.value.set(m.x, -m.y); cam.position.x = m.x*0.05; cam.position.y = -m.y*0.04; cam.lookAt(0,0,0); renderer.render(scene, cam); if (!revealed && texPhoto.image && texDepth.image) { revealed = true; canvas.classList.add('in'); } requestAnimationFrame(loop); }
+    loop();
+  }
+</script>
+
+</body>
+</html>
