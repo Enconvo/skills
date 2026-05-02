@@ -1,10 +1,10 @@
 ---
 name: openclaw-configure
 description: "Expert-level OpenClaw CLI configuration skill. Covers channels, models, plugins, gateway, agents, hooks, cron, security, sandbox, memory, browser, nodes, DNS, webhooks, approvals, backup, ACP provenance, ClawHub skill registry, tasks, and more. Self-evolving: updates itself after learning new patterns."
-version: 2026.4.27
+version: 2026.4.29
 author: zanearcher
 category: infrastructure
-openclaw_version: "2026.4.27"
+openclaw_version: "2026.4.29"
 tags:
   - openclaw
   - cli
@@ -1179,6 +1179,136 @@ clawhub update --all
 
 ---
 
+## What's New in v2026.4.29
+
+_(npm jumped 4.27 → 4.29; no 4.28 published.)_
+
+### Breaking / Noteworthy Defaults
+- **Restrictive profiles no longer auto-widen** (v2026.4.29): Configured `tools.exec` / `tools.fs` sections **stop implicitly widening** the `messaging` and `minimal` profiles. Add explicit `alsoAllow` entries to keep behavior. Startup warning identifies affected configs.
+- **Active-run queue default = `steer`** (v2026.4.29): `messages.queue` now defaults to `steer` (drains all pending Pi steering messages at the next model boundary) with a 500ms followup-fallback debounce. Legacy one-at-a-time behavior is `queue`.
+- **Doctor migrates legacy TTS toggles** (v2026.4.29): `openclaw doctor --fix` now migrates legacy `messages.tts.enabled`, agent TTS, channel TTS, and voice-call plugin TTS toggles to `auto` mode.
+- **`agents.defaultId` no longer accepted** (v2026.4.29): Use `agents.list[].default` for Set Default. Old field is rejected by config validation.
+
+### New Features
+
+**Providers / Models:**
+- **NVIDIA bundled provider** (v2026.4.29): `NVIDIA_API_KEY` onboarding, setup docs, static catalog metadata, literal model-ref picker support so NVIDIA-hosted models can be selected with prefix intact. Bundled NVIDIA Chat Completions models marked as string-content compatible (fixes NIM model loading and OpenAI-compatible subagent calls).
+- **DeepSeek V4 `xhigh` / `max` thinking** (v2026.4.29): Native thinking levels exposed through `resolveThinkingProfile`. `/think xhigh|max` now applies intended effort instead of falling back.
+- **Bedrock Opus 4.7 thinking parity** (v2026.4.29): Full `xhigh`, `adaptive`, and `max` thinking profile exposed for Bedrock Claude Opus 4.7. Sonnet/Opus 4.6 stay on adaptive-by-default. Bedrock omits deprecated `temperature` for Opus 4.7 model ids.
+- **Vercel AI Gateway xhigh** (v2026.4.29): Provider-owned `/think xhigh` for trusted OpenAI/Codex upstream refs; Claude adaptive thinking for Anthropic upstream refs.
+- **Custom OpenAI-compat xhigh** (v2026.4.29): Honor `models.providers.<id>.models.<id>.compat.supportedReasoningEfforts` entries that include `xhigh` so `/think xhigh` is exposed and validated consistently across command menus, Gateway sessions, agent CLI, and `llm-task`.
+- **`openai-codex/gpt-5.4-mini` restored** (v2026.4.29): Live OAuth proof restored for ChatGPT/Codex OAuth PI runs. Manifest, forward-compat metadata, docs, and regression tests aligned. Stale cron and heartbeat configs resolve again.
+- **Codex `gpt-5.4-mini` inline suppression** (v2026.4.29): Explicitly configured `openai-codex/gpt-5.4-mini` inline entries are suppressed so a stale `models` config written by `openclaw doctor --fix` cannot bypass the manifest capability block.
+- **Yuanbao alias** (v2026.4.29): Channel catalog adds `"yuanbao"` alias; plugin moved to `YuanbaoTeam/yuanbao-openclaw-plugin`.
+
+**Memory / People Wiki:**
+- **People wiki** (v2026.4.29): Agent-facing people metadata, canonical aliases, person cards, relationship graphs, privacy/provenance reports, evidence-kind drilldown, search modes for person lookup, question routing, source evidence, raw claims.
+- **Active Memory chat-id filters** (v2026.4.29): Optional per-conversation `activeMemory.allowedChatIds` / `deniedChatIds` filters so operators enable recall only for selected DMs, groups, or channels.
+- **Active Memory partial recall on timeout** (v2026.4.29): When the hidden memory sub-agent times out, returns bounded partial recall summaries (default temporary-transcript path) so useful recovered context isn't discarded.
+- **REM dreaming preview RPC** (v2026.4.29): Read-only `doctor.memory.remHarness` RPC for previewing bounded REM dreaming output without running mutation paths.
+- **`memory.qmd.update.startup`** (v2026.4.29): Make gateway-start QMD refresh opt-in. Normal memory access stays lazy.
+- **`openclaw ltm list`** (v2026.4.29): Returns real memory records (with `--limit` and createdAt ordering) instead of placeholder.
+
+**Agents / Commitments:**
+- **Inferred follow-up commitments** (v2026.4.29): Opt-in `commitments.enabled` / `commitments.maxPerDay` config. Hidden batched extraction, per-agent/per-channel scoping, heartbeat delivery, CLI management, and heartbeat-interval due-time clamping (so check-ins don't echo immediately).
+- **`messages.visibleReplies`** (v2026.4.29): Global require-visible-output gate. Forces replies through `message(action=send)` for any source chat. `messages.groupChat.visibleReplies` stays as group/channel override.
+- **`spawnedBy` on subagent events** (v2026.4.29): Subagent chat and agent broadcast payloads now carry `spawnedBy` so clients can route child session events without an extra session lookup.
+- **`heartbeat.skipWhenBusy`** (v2026.4.29): Defer heartbeat turns while cron is active or queued. Retries busy skips without advancing the schedule. Local Ollama hosts no longer run heartbeat and cron concurrently.
+
+**Gateway / Diagnostics:**
+- **Startup diagnostics timeline** (v2026.4.29): Opt-in config flag emits gateway lifecycle and plugin-load phase timing so slow-start diagnosis no longer needs bespoke instrumentation.
+- **Event loop in `/readyz`** (v2026.4.29): Local or authenticated `/readyz` now includes `eventLoop` block (delay p99/max, utilization, CPU core ratio, `degraded` flag).
+- **`gateway.handshakeTimeoutMs`** (v2026.4.29): Configurable WebSocket pre-auth handshake timeout (env `OPENCLAW_HANDSHAKE_TIMEOUT_MS` still wins). Loaded/low-powered hosts can tune without patching dist files. Pre-auth timeout raised to 15s.
+- **Stuck-session recovery** (v2026.4.29): Conservative recovery releases only stale session lanes while active embedded runs, reply ops, and lane tasks remain serialized.
+- **Bounded restart deferral** (v2026.4.29): Default restart-deferral and SIGUSR1 drain bounded to 5 min (explicit `deferralTimeoutMs: 0` still indefinite).
+
+**CLI / Migration:**
+- **`openclaw plugins deps`** (v2026.4.29): New inspection and repair subcommand with script-free package-manager defaults so operators can repair missing bundled runtime deps without corrupting JSON output.
+- **`openclaw infer image describe` flags** (v2026.4.29): `--prompt` and `--timeout-ms` for media-understanding providers (Ollama, OpenAI, Google, OpenRouter).
+- **`openclaw infer model run` images** (v2026.4.29): Repeatable `--file` inputs for local/gateway multimodal model smokes (Ollama Qwen VL, Gemini, etc.).
+- **NVIDIA + Yuanbao docs entries** (v2026.4.29): Channel listing and sidebar nav.
+- **`OPENCLAW_SKIP_ONBOARDING`** Docker env (already in 4.27, restated): Automated Docker installs skip interactive onboarding while still applying gateway defaults.
+
+**Channels:**
+- **Telegram polling/webhook liveness** (v2026.4.29): Channel status and doctor warn when a long-poller has not completed `getUpdates` after startup grace, transport activity is stale, or `setWebhook` has not completed after grace.
+- **Telegram durable edit streaming** (v2026.4.29): Streaming previews use durable message edits instead of native draft state, eliminating draft-to-message flicker that looked like duplicates.
+- **Telegram quote retry** (v2026.4.29): On `QUOTE_TEXT_INVALID`, retries native quote replies without `reply_parameters.quote` so stale/truncated excerpts don't drop the whole reply.
+- **Telegram exec approvers from owner allowlist** (v2026.4.29): Telegram now infers native exec approvers from `commands.ownerAllowFrom` and auto-enables the approval client when an owner resolves. Owner-only `/diagnostics` etc. can be approved in Telegram without per-channel approver config.
+- **Discord rate-limit cooldown** (v2026.4.29): Cloudflare/Error 1015 HTML 429s during startup application lookup and `/gateway/bot` metadata fetches now cool down properly. New `channels.discord.applicationId` for app-id lookup bypass. HTML bodies sanitized before logging.
+- **Discord text-only intent drop** (v2026.4.29): Text-only configs can drop `GuildVoiceStates` gateway intent. Bounded `/gateway/bot` metadata timeout with rate-limited fallback logs.
+- **Discord CJK chunking** (v2026.4.29): Long CJK replies split at punctuation and code-point-safe boundaries.
+- **WhatsApp keepalive timings** (v2026.4.29): Explicit Baileys socket timings on every WhatsApp Web socket. New `web.whatsapp.*` keepalive, connect, and query timeout settings.
+- **WhatsApp recovery on quiet sockets** (v2026.4.29): Recovers recently active listeners when post-408 reconnect keeps receiving transport frames but stops delivering app messages. Forces earlier reconnects on silent transport stalls.
+- **Slack Block Kit limits** (v2026.4.29): Auto-truncates buttons/selects/fallback text to Slack's value, count, and message limits across native commands, exec approvals, message sends/edits, command argument menus, and confirmation dialogs.
+- **Slack `already_reacted` idempotent** (v2026.4.29): Repeated reaction adds no longer surface as tool failures.
+- **Mattermost ping/pong keepalive** (v2026.4.29): Protocol ping/pong with stale-pong reconnect.
+- **Matrix verify confirm-sas** (v2026.4.29): `openclaw matrix verify confirm-sas` now completes the cross-signing handshake.
+- **WhatsApp pairing tightened** (v2026.4.29): Pairing verification replies restricted to real inbound user content; receipts/typing/presence ignored.
+
+**Security:**
+- **OpenGrep rulepack** (v2026.4.29): Precise OpenGrep rulepack, source-rule compiler, provenance metadata check, and PR/full scan workflows uploading SARIF to GitHub Code Scanning.
+- **GHSA triage policy** (v2026.4.29): Media/base64 decode and format-conversion overhead after configured acceptance limits classified as performance-only unless a report demonstrates a limit bypass, crash, exhaustion, data exposure, or boundary bypass.
+- **`<system-reminder>` strip on outbound** (v2026.4.29): Internal runtime scaffolding stripped at the final channel delivery boundary so degraded harness replies can't leak those tags.
+- **Telegram DM `dmPolicy="open"` tightened** (v2026.4.29): Fails closed when account-level public DM settings conflict with restrictive top-level `allowFrom`. Requires effective wildcard before `dmPolicy="open"` is public.
+- **All-channels DM open semantics aligned** (v2026.4.29): Discord, Slack, Mattermost, Matrix, Feishu, LINE, IRC, Google Chat, Zalo, Zalo User, QQ Bot, Synology Chat — `dmPolicy="open"` is public only with effective wildcard; otherwise still respects sender allowlists.
+- **Group-scoped tool policy auth** (v2026.4.29): Validates caller group IDs against session/spawned context before applying group-scoped tool policies. Forged group IDs can't unlock more permissive tools.
+- **Subagent `/focus` boundary** (v2026.4.29): Leaf subagents rejected from `/focus`; fallback target resolution scoped to requesting subagent's children.
+- **Bootstrap pairing scopes capped** (v2026.4.29): Bootstrap handoff token issuance, redemption, and approved pairing baselines bounded to documented per-role scope allowlist. Bootstrap approvals can't persistently grant `operator.admin`, `operator.pairing`, or `node.exec`.
+
+### Key Fixes (highlights)
+- **Telegram `ALL_PROXY` / `OPENCLAW_PROXY_URL`** (v2026.4.29): Honored when constructing the HTTP/1-only Telegram Bot API transport so Windows/service installs don't fall back to direct egress.
+- **Anthropic Meridian content_block_start preservation** (v2026.4.29): Text and thinking content seeded on `content_block_start` is preserved so `[thinking, text]` replies don't persist as empty turns.
+- **Codex Responses input items** (v2026.4.29): Sends a non-empty Responses input item when a turn only has systemPrompt-backed instructions (avoids ChatGPT 400 on `input: []`).
+- **OpenAI-compat malformed SSE** (v2026.4.29): Malformed event-only or blank-data SSE frames dropped before the OpenAI SDK stream parser sees them. No more `Unexpected end of JSON input` from split proxies.
+- **`<final>` tag splitting on streaming** (v2026.4.29): Stripped before reaching SSE clients so `/v1/chat/completions` no longer emits tag remnants when final-answer wrappers cross chunk boundaries.
+- **Ollama `:cloud` model resolution** (v2026.4.29): Resolves explicitly selected signed-in `:cloud` models through `/api/show` when `/api/tags` omits them. Models like `gemini-3-flash-preview:cloud` and `deepseek-v4-pro:cloud` no longer fail dynamic resolution.
+- **Ollama provider-prefixed tool calls** (v2026.4.29): Normalizes `functions.exec` to `exec` at the native stream boundary.
+- **Local model context-window guard** (v2026.4.29): Derives thresholds from effective model window with 4k/8k safety floors. Small local models no longer rejected by fixed 16k/32k preflight cutoffs.
+- **Plugin Windows fast path** (v2026.4.29): Native `require()` for bundled plugin modules on Windows. Startup ~39s → ~2s on typical 6-plugin setups.
+- **macOS attach-only mode** (v2026.4.29): `--attach-only` / `--no-launchd` no longer uninstall the Gateway LaunchAgent or drop active sessions.
+- **PDF.js standard fonts** (v2026.4.29): Resolves from installed package root with filesystem path fallback. Built-in font PDFs render without `file://` lookup failures.
+- **Cron timeout cleanup** (v2026.4.29): Aborts and bounded-cleans timed-out isolated agent turns before recording the timeout. Stale cron sessions can't leave Discord/etc. stuck in `processing`.
+- **Cron heartbeat coordination** (v2026.4.29): Defers missed isolated agent-turn catch-up out of the channel startup window.
+
+### New Config Keys (v2026.4.29)
+| Config Path | Type | Description |
+|---|---|---|
+| `commitments.enabled` | boolean | Opt-in inferred follow-up commitments |
+| `commitments.maxPerDay` | number | Cap on commitments per day |
+| `messages.queue` | string | `steer` (default v2026.4.29) \| `queue` \| `replace` \| `coalesce` \| `drop` |
+| `messages.visibleReplies` | string | Global require-visible-output gate (`auto` \| `tool-only`) |
+| `activeMemory.allowedChatIds` | array | Per-conversation Active Memory recall whitelist |
+| `activeMemory.deniedChatIds` | array | Per-conversation Active Memory recall blacklist |
+| `memory.qmd.update.startup` | boolean | Opt-in QMD refresh at gateway start (default off) |
+| `gateway.handshakeTimeoutMs` | number | WebSocket pre-auth handshake timeout (default 15s) |
+| `tools.web.fetch.ssrfPolicy.allowIpv6UniqueLocalRange` | boolean | Allow `fc00::/7` for trusted fake-IP proxy stacks |
+| `web.whatsapp.keepalive.*` / `connect.*` / `query.*` | numbers | WhatsApp Web Baileys socket timings |
+| `channels.discord.applicationId` | string | Bypass `/gateway/bot` app-id lookup |
+| `heartbeat.skipWhenBusy` | boolean | Defer heartbeat while cron/subagent lanes are busy |
+| `agents.list[].default` | boolean | Set the default agent (replaces deprecated `agents.defaultId`) |
+
+### New Troubleshooting Entries (v2026.4.29)
+| Symptom | Cause | Fix |
+|---|---|---|
+| `tools.exec` / `tools.fs` config under `messaging` profile silently no-ops | v2026.4.29 stops implicit profile widening | Add explicit `alsoAllow` entries; check startup warning for affected configs |
+| `agents.defaultId` rejected by config validation | Field deprecated in v2026.4.29 | Use `agents.list[].default: true` instead |
+| Telegram messages flicker between draft and message | Pre-v2026.4.29 used native draft state for streaming previews | Upgrade to v2026.4.29+ — uses durable message edits |
+| Telegram polling claims healthy but messages stop flowing | Silent polling failure | v2026.4.29 surfaces polling liveness warnings in channel status / doctor |
+| Slack message rejected with `msg_too_long` | Long context fallback not capped | v2026.4.29 caps Block Kit fallback while preserving rendered blocks |
+| Discord startup failing on Cloudflare 429 HTML | Pre-v2026.4.29 didn't cool down HTML 429s | v2026.4.29 honors Retry-After + falls back to conservative cooldown; set `channels.discord.applicationId` to bypass |
+| WhatsApp transport silently dies after 408 reconnect | Listeners didn't recover when frames kept arriving but app messages stopped | Fixed v2026.4.29 |
+| `Unknown package 'sqlite-vec'` after upgrade | Memory bundled-plugin dep not mirrored | Fixed v2026.4.29 — mirrored into runtime deps |
+| Ollama signed-in `:cloud` model fails to load | `/api/tags` omitted the model | v2026.4.29 falls through to `/api/show` |
+| `[assistant copied inbound metadata omitted]` in chat output | Metadata-only assistant replay turns leaked as model output | Fixed v2026.4.29 — dropped before provider replay |
+| Discord/Slack `dmPolicy="open"` allowing all senders despite `allowFrom` | Pre-v2026.4.29 inconsistent semantics | v2026.4.29 — `dmPolicy="open"` is public only with effective wildcard; otherwise still respects allowlists |
+| Group-scoped tool policy applied to forged group ID | Caller group IDs not validated | Fixed v2026.4.29 — validated against session/spawned context |
+| Bootstrap approval persistently grants `operator.admin` | Pairing scopes weren't capped | Fixed v2026.4.29 — bounded to documented per-role allowlist |
+| `<final>` or `<system-reminder>` tag remnants in user-facing replies | Pre-v2026.4.29 didn't strip across chunk boundaries | Fixed v2026.4.29 |
+| Bedrock Opus 4.7 `/think xhigh` doesn't take effect | Pre-v2026.4.29 only adaptive exposed | Fixed v2026.4.29 — full xhigh/adaptive/max profile |
+| `models list` shows providers user has not authenticated | UI was always-show | Fixed v2026.4.29 — hides unauthenticated providers from default; use `models list --all` to browse all |
+
+---
+
 ## What's New in v2026.4.24–4.27
 
 ### Breaking / Noteworthy Defaults
@@ -1796,7 +1926,7 @@ This skill grows with every use. Never let hard-won knowledge be lost.
 
 ## Version Check & Auto-Update Protocol
 
-**This skill was last updated for:** `v2026.4.27`
+**This skill was last updated for:** `v2026.4.29`
 
 ### Version Check (MANDATORY — run at start of every OpenClaw session)
 

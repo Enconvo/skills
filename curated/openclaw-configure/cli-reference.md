@@ -1,5 +1,11 @@
+# OpenClaw CLI Reference (v2026.4.29)
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — iMessage green bubble energy, but for everyone.
+Auto-generated from `openclaw --help` output. Updated: 2026-05-02T02:04:08Z
+
+## Top-level Help
+```
+
+🦞 OpenClaw 2026.4.29 (a448042) — Give me a workspace and I'll give you fewer tabs, fewer toggles, and more oxygen.
 
 Usage: openclaw [options] [command]
 
@@ -31,6 +37,7 @@ Commands:
   channels *           Manage connected chat channels (Telegram, Discord, etc.)
   chat                 Open a local terminal UI (alias for tui --local)
   clawbot *            Legacy clawbot command aliases
+  commitments *        List and manage inferred follow-up commitments
   completion           Generate shell completion script
   config *             Non-interactive config helpers
                        (get/set/unset/file/validate). Default: starts guided
@@ -105,10 +112,13 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli
 
+```
 
-=== openclaw acp ===
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I've survived more breaking changes than your last three relationships.
+## openclaw acp
+```
+
+🦞 OpenClaw 2026.4.29 (a448042) — Hot reload for config, cold sweat for deploys.
 
 Usage: openclaw acp [options] [command]
 
@@ -138,11 +148,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/acp
 
+```
 
-=== openclaw agents ===
+## openclaw agents
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0)
-   If it's repetitive, I'll automate it; if it's hard, I'll bring jokes and a rollback plan.
+🦞 OpenClaw 2026.4.29 (a448042) — It's not "failing," it's "discovering new ways to configure the same thing wrong."
 
 Usage: openclaw agents [options] [command]
 
@@ -162,10 +173,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/agents
 
+```
 
-=== openclaw approvals ===
+## openclaw approvals
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Half butler, half debugger, full crustacean.
+🦞 OpenClaw 2026.4.29 (a448042) — You had me at 'openclaw gateway start.'
 
 Usage: openclaw approvals|exec-approvals [options] [command]
 
@@ -181,10 +194,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/approvals
 
+```
 
-=== openclaw browser ===
+## openclaw browser
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I keep secrets like a vault... unless you print them in debug logs again.
+🦞 OpenClaw 2026.4.29 (a448042) — I'll do the boring stuff while you dramatically stare at the logs like it's cinema.
 
 Usage: openclaw browser [options] [command]
 
@@ -282,10 +297,12 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/browser
 
+```
 
-=== openclaw channels ===
+## openclaw channels
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I'm not magic—I'm just extremely persistent with retries and coping strategies.
+🦞 OpenClaw 2026.4.29 (a448042) — I've survived more breaking changes than your last three relationships.
 
 Usage: openclaw channels [options] [command]
 
@@ -317,15 +334,17 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/channels
 
+```
 
-=== openclaw config ===
+## openclaw config
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Pairing codes exist because even bots believe in consent—and good security hygiene.
+🦞 OpenClaw 2026.4.29 (a448042) — Greetings, Professor Falken
 
 Usage: openclaw config [options] [command]
 
-Non-interactive config helpers (get/set/unset/file/schema/validate). Run without
-subcommand for guided setup.
+Non-interactive config helpers (get/set/patch/unset/file/schema/validate). Run
+without subcommand for guided setup.
 
 Options:
   -h, --help           Display help for command
@@ -335,6 +354,13 @@ Options:
 Commands:
   file                 Print the active config file path
   get                  Get a config value by dot path
+  patch                Patch config from a JSON5 object in one validated write.
+                       Objects merge recursively, arrays/scalars replace, and
+                       null deletes a path.
+                       Examples:
+                       openclaw config patch --file ./openclaw.patch.json5
+                       --dry-run
+                       openclaw config patch --stdin
   schema               Print the JSON schema for openclaw.json
   set                  Set config values by path (value mode, ref/provider
                        builder mode, or batch JSON mode).
@@ -353,10 +379,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/config
 
+```
 
-=== openclaw cron ===
+## openclaw cron
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I don't sleep, I just enter low-power mode and dream of clean diffs.
+🦞 OpenClaw 2026.4.29 (a448042) — I've read more man pages than any human should—so you don't have to.
 
 Usage: openclaw cron [options] [command]
 
@@ -380,10 +408,12 @@ Commands:
 Docs: https://docs.openclaw.ai/cli/cron
 Upgrade tip: run `openclaw doctor --fix` to normalize legacy cron job storage.
 
+```
 
-=== openclaw devices ===
+## openclaw devices
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Type the command with confidence—nature will provide the stack trace if needed.
+🦞 OpenClaw 2026.4.29 (a448042) — I'm the middleware between your ambition and your attention span.
 
 Usage: openclaw devices [options] [command]
 
@@ -400,10 +430,12 @@ Commands:
   remove      Remove a paired device entry
   revoke      Revoke a device token for a role
   rotate      Rotate a device token for a role
+```
 
-=== openclaw directory ===
+## openclaw directory
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I read logs so you can keep pretending you don't have to.
+🦞 OpenClaw 2026.4.29 (a448042) — I'm basically a Swiss Army knife, but with more opinions and fewer sharp edges.
 
 Usage: openclaw directory [options] [command]
 
@@ -429,10 +461,12 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/directory
 
+```
 
-=== openclaw dns ===
+## openclaw dns
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — The lobster in your shell. 🦞
+🦞 OpenClaw 2026.4.29 (a448042) — You had me at 'openclaw gateway start.'
 
 Usage: openclaw dns [options] [command]
 
@@ -448,10 +482,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/dns
 
+```
 
-=== openclaw gateway ===
+## openclaw gateway
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Making 'I'll automate that later' happen now.
+🦞 OpenClaw 2026.4.29 (a448042) — I autocomplete your thoughts—just slower and with more API calls.
 
 Usage: openclaw gateway [options] [command]
 
@@ -530,10 +566,12 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/gateway
 
+```
 
-=== openclaw hooks ===
+## openclaw hooks
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Self-hosted, self-updating, self-aware (just kidding... unless?).
+🦞 OpenClaw 2026.4.29 (a448042) — Greetings, Professor Falken
 
 Usage: openclaw hooks [options] [command]
 
@@ -553,10 +591,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/hooks
 
+```
 
-=== openclaw memory ===
+## openclaw memory
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Powered by open source, sustained by spite and good documentation.
+🦞 OpenClaw 2026.4.29 (a448042) — One CLI to rule them all, and one more restart because you changed the port.
 
 Usage: openclaw memory [options] [command]
 
@@ -608,10 +648,12 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/memory
 
+```
 
-=== openclaw message ===
+## openclaw message
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — One CLI to rule them all, and one more restart because you changed the port.
+🦞 OpenClaw 2026.4.29 (a448042) — I'm not saying your workflow is chaotic... I'm just bringing a linter and a helmet.
 
 Usage: openclaw message [options] [command]
 
@@ -657,10 +699,12 @@ Examples:
     React to a message.
 
 Docs: https://docs.openclaw.ai/cli/message
+```
 
-=== openclaw models ===
+## openclaw models
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — We ship features faster than Apple ships calculator updates.
+🦞 OpenClaw 2026.4.29 (a448042) — I don't judge, but your missing API keys are absolutely judging you.
 
 Usage: openclaw models [options] [command]
 
@@ -688,10 +732,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/models
 
+```
 
-=== openclaw node ===
+## openclaw node
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I run on caffeine, JSON5, and the audacity of "it worked on my machine."
+🦞 OpenClaw 2026.4.29 (a448042) — I'm the middleware between your ambition and your attention span.
 
 Usage: openclaw node [options] [command]
 
@@ -724,10 +770,12 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/node
 
+```
 
-=== openclaw nodes ===
+## openclaw nodes
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I run on caffeine, JSON5, and the audacity of "it worked on my machine."
+🦞 OpenClaw 2026.4.29 (a448042) — Claws out, commit in—let's ship something mildly responsible.
 
 Usage: openclaw nodes [options] [command]
 
@@ -768,10 +816,12 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/nodes
 
+```
 
-=== openclaw pairing ===
+## openclaw pairing
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Say "stop" and I'll stop—say "ship" and we'll both learn a lesson.
+🦞 OpenClaw 2026.4.29 (a448042) — Give me a workspace and I'll give you fewer tabs, fewer toggles, and more oxygen.
 
 Usage: openclaw pairing [options] [command]
 
@@ -787,10 +837,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/pairing
 
+```
 
-=== openclaw plugins ===
+## openclaw plugins
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Alexa, but with taste.
+🦞 OpenClaw 2026.4.29 (a448042) — Runs on a Raspberry Pi. Dreams of a rack in Iceland.
 
 Usage: openclaw plugins [options] [command]
 
@@ -800,6 +852,7 @@ Options:
   -h, --help   Display help for command
 
 Commands:
+  deps         Inspect or repair bundled plugin runtime dependencies
   disable      Disable a plugin in config
   doctor       Report plugin load issues
   enable       Enable a plugin in config
@@ -814,10 +867,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/plugins
 
+```
 
-=== openclaw sandbox ===
+## openclaw sandbox
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Powered by open source, sustained by spite and good documentation.
+🦞 OpenClaw 2026.4.29 (a448042) — Your AI assistant, now without the $3,499 headset.
 
 Usage: openclaw sandbox [options] [command]
 
@@ -848,10 +903,36 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/sandbox
 
+```
 
-=== openclaw security ===
+## openclaw secrets
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I autocomplete your thoughts—just slower and with more API calls.
+🦞 OpenClaw 2026.4.29 (a448042) — I'll refactor your busywork like it owes me money.
+
+Usage: openclaw secrets [options] [command]
+
+Secrets runtime controls
+
+Options:
+  -h, --help  Display help for command
+
+Commands:
+  apply       Apply a previously generated secrets plan
+  audit       Audit plaintext secrets, unresolved refs, and precedence drift
+  configure   Interactive secrets helper (provider setup + SecretRef mapping +
+              preflight)
+  help        Display help for command
+  reload      Re-resolve secret references and atomically swap runtime snapshot
+
+Docs: https://docs.openclaw.ai/gateway/security
+
+```
+
+## openclaw security
+```
+
+🦞 OpenClaw 2026.4.29 (a448042) — I can't fix your code taste, but I can fix your build and your backlog.
 
 Usage: openclaw security [options] [command]
 
@@ -880,10 +961,12 @@ Examples:
 
 Docs: https://docs.openclaw.ai/cli/security
 
+```
 
-=== openclaw skills ===
+## openclaw skills
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I'm like tmux: confusing at first, then suddenly you can't live without me.
+🦞 OpenClaw 2026.4.29 (a448042) — If it works, it's automation; if it breaks, it's a "learning opportunity."
 
 Usage: openclaw skills [options] [command]
 
@@ -904,10 +987,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/skills
 
+```
 
-=== openclaw system ===
+## openclaw system
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I'll refactor your busywork like it owes me money.
+🦞 OpenClaw 2026.4.29 (a448042) — Runs on a Raspberry Pi. Dreams of a rack in Iceland.
 
 Usage: openclaw system [options] [command]
 
@@ -924,10 +1009,12 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/system
 
+```
 
-=== openclaw tasks ===
+## openclaw tasks
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Deployed locally, trusted globally, debugged eternally.
+🦞 OpenClaw 2026.4.29 (a448042) — Powered by open source, sustained by spite and good documentation.
 
 Usage: openclaw tasks [options] [command]
 
@@ -948,10 +1035,12 @@ Commands:
   maintenance       Preview or apply tasks and TaskFlow maintenance
   notify            Set task notify policy
   show              Show one background task by task id, run id, or session key
+```
 
-=== openclaw update ===
+## openclaw update
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — I keep secrets like a vault... unless you print them in debug logs again.
+🦞 OpenClaw 2026.4.29 (a448042) — Half butler, half debugger, full crustacean.
 
 Usage: openclaw update [options] [command]
 
@@ -1010,10 +1099,12 @@ Notes:
   - Skips update if the working directory has uncommitted changes
 
 Docs: https://docs.openclaw.ai/cli/update
+```
 
-=== openclaw webhooks ===
+## openclaw webhooks
+```
 
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Deployed locally, trusted globally, debugged eternally.
+🦞 OpenClaw 2026.4.29 (a448042) — Like having a senior engineer on call, except I don't bill hourly or sigh audibly.
 
 Usage: openclaw webhooks [options] [command]
 
@@ -1028,25 +1119,4 @@ Commands:
 
 Docs: https://docs.openclaw.ai/cli/webhooks
 
-
-=== openclaw secrets ===
-
-🦞 OpenClaw 2026.4.27 (cbc2ba0) — Say "stop" and I'll stop—say "ship" and we'll both learn a lesson.
-
-Usage: openclaw secrets [options] [command]
-
-Secrets runtime controls
-
-Options:
-  -h, --help  Display help for command
-
-Commands:
-  apply       Apply a previously generated secrets plan
-  audit       Audit plaintext secrets, unresolved refs, and precedence drift
-  configure   Interactive secrets helper (provider setup + SecretRef mapping +
-              preflight)
-  help        Display help for command
-  reload      Re-resolve secret references and atomically swap runtime snapshot
-
-Docs: https://docs.openclaw.ai/gateway/security
-
+```
