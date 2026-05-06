@@ -1,7 +1,7 @@
 ---
 name: hermes-configure
 description: "Configure any aspect of Hermes Agent (Nous Research) via CLI. Channels, models, plugins, gateway, skills, cron, hooks, memory, MCP, and the ACP bridge. Mirrors the openclaw-configure skill structure."
-version: 0.3.0
+version: 0.12.0
 hermes_version: 0.12.0
 last_verified: 2026-05-06
 ---
@@ -30,7 +30,7 @@ Hermes and OpenClaw share a lot of surface area (almost certainly forks of the s
 | API keys | inline in JSON / auth-profiles | `~/.hermes/.env` (env-style file) |
 | Personality | `~/.openclaw/workspace/SOUL.md` | `~/.hermes/SOUL.md` |
 | Sessions | `~/.openclaw/agents/<id>/sessions/` | `~/.hermes/sessions/` |
-| Skills | `clawhub install` | bundled + `hermes skills` |
+| Skill registry | `clawhub install` | `hermes skills install` (browses skills.sh / GitHub / ClawHub / well-known endpoints — full registry surface, not just bundled) |
 | Multi-agent | `agents add`, bindings | **single-agent design** — no equivalent |
 | Importer | `openclaw migrate` (imports Hermes) | `hermes import` (imports Claude Code, etc.) |
 | OpenClaw bridge | n/a | `hermes claw` — compatibility layer |
@@ -40,7 +40,7 @@ Hermes and OpenClaw share a lot of surface area (almost certainly forks of the s
 1. **Config is YAML**, not JSON. You can edit `~/.hermes/config.yaml` directly, or use `hermes config` / `hermes config edit`.
 2. **API keys live in `~/.hermes/.env`**, not inside the main config. Set them via env-style `KEY=value` lines (or `hermes login` / `hermes auth` for OAuth providers).
 3. **No multi-agent**. Hermes is one agent per install. If you need multiple Hermeses, run multiple installs in different `HERMES_HOME` dirs.
-4. **No `clawhub` equivalent**. Skills ship bundled and synced from the repo; user-authored skills go in `~/.hermes/skills/`.
+4. **`hermes skills` IS the ClawHub equivalent** — `browse / search / install / inspect / audit / update / uninstall / publish / tap` against skills.sh, GitHub, ClawHub, and other well-known agent skill registries. Plus `hermes curator` for pruning agent-created skills.
 5. **Different default model**: `anthropic/claude-opus-4.6` (vs OpenClaw's `openai-codex/gpt-5.5`).
 
 ---
@@ -302,13 +302,26 @@ grep '^  default:' ~/.hermes/config.yaml
 
 Hermes ships with **89 bundled skills** out of the box, organized into 24 categories under `~/.hermes/skills/` (apple, autonomous-ai-agents, creative, data-science, devops, diagramming, dogfood, domain, email, gaming, …).
 
-### Commands
-```
-skills                Manage skills (list, sync, etc. — see hermes skills --help)
-curator               Skill curation tooling (Hermes-specific — see hermes curator --help)
-```
+`hermes skills` is a **full registry surface** — the closest Hermes equivalent to ClawHub. It can search, install, inspect, audit, update, uninstall, publish, and snapshot skills from multiple registries (skills.sh, well-known agent skill endpoints, GitHub, ClawHub).
 
-The `curator` command is the closest Hermes thing to ClawHub — a skill curation/management tool. It does NOT expose a public registry the way ClawHub does (as of v0.12.0), but it manages the local skill collection and may sync from upstream sources.
+### Commands
+
+```
+skills browse         Browse all available skills (paginated)
+skills search         Search skill registries
+skills install        Install a skill from a registry
+skills inspect        Preview a skill without installing
+skills list           List installed skills
+skills check          Check installed hub skills for updates
+skills update         Update installed hub skills
+skills audit          Re-scan installed hub skills (refresh local index)
+skills uninstall      Remove a hub-installed skill
+skills reset          Reset a bundled skill — clears 'user-modified' tracking so updates work again
+skills publish        Publish a skill to a registry
+skills snapshot       Export/import skill configurations
+skills tap            Manage skill sources (add/remove registries)
+skills config         Interactive enable/disable per-skill
+```
 
 ### Skill structure
 A Hermes skill is a folder under `~/.hermes/skills/<category>/<skill-name>/` with a `SKILL.md` (same convention as Claude / OpenClaw). After adding/changing a skill:
@@ -321,6 +334,26 @@ The repo also ships an `optional-skills/` directory inside `~/.hermes/hermes-age
 ```bash
 ls ~/.hermes/hermes-agent/optional-skills/
 ```
+
+### Curator (auxiliary-model background reviewer)
+
+`hermes curator` is **not the same as `hermes skills`**. It's an auxiliary-model background task that periodically reviews **agent-created** skills, prunes stale ones, consolidates overlaps, and archives obsolete skills. **Bundled and hub-installed skills are never touched.** Archives are recoverable; auto-deletion never happens.
+
+```
+curator status        Show curator status and skill stats
+curator run           Trigger a curator review now
+curator pause         Pause the curator until resumed
+curator resume        Resume a paused curator
+curator pin           Pin a skill so the curator never auto-transitions it
+curator unpin         Unpin a skill
+curator restore       Restore an archived skill
+curator archive       Manually archive a skill (move to .archive/, excluded from prompt)
+curator prune         Bulk-archive agent-created skills idle for >= N days (default 90)
+curator backup        Take a manual tar.gz snapshot of ~/.hermes/skills/
+curator rollback      Roll back the most recent curator action
+```
+
+(Curator runs auto-backup before every real run — no surprise data loss.)
 
 ---
 
@@ -385,11 +418,18 @@ Hermes hooks live at `~/.hermes/hooks/`. Auto-approve unseen shell hooks via `--
 ## Memory
 
 ```
-memory                Manage long-term memory store
+memory setup          Interactive provider selection and configuration
+memory status         Show current memory provider config
+memory off            Disable external provider (built-in only)
+memory reset          Erase all built-in memory (MEMORY.md and USER.md)
 ```
-Memory state at `~/.hermes/memories/`. Hermes' "self-improving" claim — the agent searches its own past conversations and builds a model of you across sessions. Inspect/curate with `hermes memory`.
 
-Bonus: `hermes insights` — likely surfaces the patterns Hermes has learned about you across sessions. Worth running periodically to see what's accumulated.
+**Two layers of memory**, both can be active at once:
+
+1. **Built-in (always on)**: `MEMORY.md` (agent-curated cross-session facts) and `USER.md` (model-of-you) live in `~/.hermes/memories/`. Edit by hand or let the agent maintain them.
+2. **External provider (optional, one at a time)**: Hermes integrates with **honcho, openviking, mem0, hindsight, holographic, retaindb, byterover** as pluggable memory backends. Switch via `hermes memory setup`.
+
+Bonus: `hermes insights` surfaces the patterns Hermes has accumulated about you across sessions. Worth running periodically to see what's been learned.
 
 ---
 
@@ -619,8 +659,11 @@ hermes gateway restart
 
 ### Upgrade Hermes
 ```bash
-hermes update    # in-place upgrade (reuses ~/.hermes/.env and config)
-hermes doctor    # run health checks after upgrade
+hermes update          # in-place upgrade (reuses ~/.hermes/.env and config)
+hermes config migrate  # apply any new config fields the new version added
+hermes config check    # warn on outdated keys
+hermes doctor          # run health checks after upgrade
+hermes gateway restart # pick up new code
 ```
 
 ### Backup state before risky changes
@@ -633,6 +676,28 @@ hermes backup    # snapshot ~/.hermes/
 hermes gateway stop
 hermes gateway run    # foreground; Ctrl-C to stop
 ```
+
+---
+
+## "Refresh" — what to use for what
+
+There's no single `hermes refresh` command; refresh is contextual. Mapping the common asks:
+
+| Want to refresh… | Use |
+|---|---|
+| **Hub skill catalog + installed versions** | `hermes skills check` (find updates) → `hermes skills update` (apply) |
+| **Local skill index** (re-scan filesystem after manual edits) | `hermes skills audit` |
+| **Curator-managed skills** (auxiliary background reviewer) | `hermes curator run` (trigger now) |
+| **Config** (after editing `~/.hermes/config.yaml` or `.env`) | `hermes gateway restart` — there is **no hot-reload** |
+| **Config schema** (after a Hermes upgrade adds new fields) | `hermes config migrate` |
+| **Codex OAuth tokens** | **Auto** — happens in background; `last_refresh` field in `~/.hermes/auth.json` shows when. Force re-auth: `hermes auth logout openai-codex && hermes auth add openai-codex --type oauth` |
+| **Channel state** (Telegram polling stuck, etc.) | `hermes gateway restart` |
+| **Anything weird** | `hermes doctor` (auto-fix where possible) |
+
+**No refresh exists for:**
+- **Provider model catalog** — fetched on-demand per request from each provider's API.
+- **Sessions** — append-only JSONL files; "refresh" = `--continue` to pick up the latest entry.
+- **Built-in memory** (`MEMORY.md` / `USER.md`) — always live, no caching to invalidate.
 
 ---
 
