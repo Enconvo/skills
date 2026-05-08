@@ -510,6 +510,16 @@ These came from real builds. Prevent them, don't repeat them.
 **Cause:** reusing a single `figcaption` styled with `position: absolute; left: 14px; bottom: 12px;` + bottom gradient overlay across every figure.
 **Fix:** caption position MUST vary by spread type. See §6.5 — each spread has a different caption convention (top-left mono stamp, italic Fraunces below the figure with gold left rule, vertical rotated mono in the gutter, mix-blend-mode difference against the photo, displaced open-quote glyph at lower-left with offset). Pick one PER spread, not one for all of them.
 
+### B22 · Relative image paths break under Vercel `cleanUrls` at non-trailing-slash URLs
+**Symptom:** site works perfectly on `python3 -m http.server`, ships to Vercel, then ALL images fail to load — only `alt` text shows. Direct `curl` to `/path/images/foo.jpg` returns 200, but the browser silently 404s.
+**Cause:** `vercel.json` has `"cleanUrls": true`. When the user visits `https://site.com/v17-page` (no trailing slash, no `.html`), Vercel internally rewrites that to `/v17-page/index.html` and serves it — but the URL bar stays `/v17-page`. The browser treats `/v17-page` as a *file*, not a directory. So when the HTML contains `<img src="images/foo.jpg">`, the browser resolves it relative to the parent of `/v17-page` → `/images/foo.jpg`, which 404s.
+**Fix:** in any subfolder variant deployed under Vercel `cleanUrls`, use **absolute paths** rooted at the variant folder: `src="/v17-page/images/foo.jpg"`, not `src="images/foo.jpg"`. Run a sed pass before deploying:
+```bash
+sed -i '' 's|src="images/|src="/<variant-folder>/images/|g' index.html
+```
+Alternative: turn off `cleanUrls` for subfolder pages, OR add a redirect rule that always appends a trailing slash. Absolute-path rewrite is the most portable fix.
+**Watch for:** the bug is invisible to `curl` if you happen to type the right path manually — only a real browser (or `puppeteer.requestfailed` listener) will reveal the 404 because only the browser does relative-path resolution.
+
 ### B21 · Hosted-variant misclassification (text-only → founder-with-photo)
 **Symptom:** original lesson built on Brutalist Index (correct for text-only finance). Then a host (Vivieen) is added with 6 portraits — but the page is still treated as text-only and the photos get bolted onto the same scaffold as rectangles.
 **Cause:** the auto-pick table treats subject type as fixed at start of session. Adding a named human host with ≥3 photographs *changes the subject type* mid-task.
@@ -572,6 +582,7 @@ If you can't name 3+ distinct treatments before writing the first `<figure>`, yo
 20. **No default `border: 1px solid` rings on content figures.** The photo's edge IS the edge. Use tonal gradient falloff at bleeding edges instead. Borders only when they evoke a specific medium (polaroid, contact sheet, gallery mat).
 21. **Re-evaluate subject type when a host is added.** If a text-only / informational page acquires a named human host with ≥3 photographs mid-task, switch shell to a Tier-B editorial register and apply §6.5 spread typology. Subject type is not fixed at start of session.
 22. **Hit ≥5 items from the §0.5 editorial details checklist** on any editorial-register page. Plate folios, drop caps, marginalia rules, displaced quote glyphs, vertical rotated captions, hanging Roman numerals, em-dash flanked labels, colophon — the marginalia is what separates designed from templated.
+23. **Use absolute paths for assets in any Vercel subfolder variant.** When deploying multi-variant gallery sites under `cleanUrls: true`, write `src="/<folder>/images/..."` not `src="images/..."` — otherwise the browser resolves relative paths against the parent (`/images/...`) and silently 404s. Always run puppeteer with a `requestfailed` listener post-deploy, not just `curl` — only a real browser does the wrong relative resolution that exposes the bug.
 
 ---
 
