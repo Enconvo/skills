@@ -215,6 +215,112 @@ Generic labels ("Menu", "Section 1") are forbidden — the chip is a microbrand 
 
 Full HTML+CSS templates per tier live in `references/navigation-tiers.md`.
 
+### Phase 4.6 — Figure-grid `.fx3d` effect (opt-in for multi-image editorial pages)
+
+When a page carries ≥3 content photographs (any §6.5 spread typology page), opt in to the `.fx3d` shared-physics figure effect to lift photos off the page with **static depth at rest** and **pointer-driven tilt + sheen on hover**. Distinct from §4 hero shaders — those run once on the hero. `.fx3d` runs on every figure container in the article.
+
+**What it does:**
+- **Static depth at rest** (visible in screenshots, satisfies critical rule 12): multi-layer `box-shadow` (deep ambient + inset highlight + 1px gold rim) makes each figure float off the page background.
+- **Pointer-driven tilt** (±5° / ±4°): mousemove updates `--rx` / `--ry` CSS variables; the container `transform: perspective(1400px) rotateX rotateY` follows the cursor with a 0.18s ease.
+- **Pointer-driven sheen**: a `radial-gradient` `::after` with `mix-blend-mode: screen` follows the cursor (`--mx` / `--my`), revealing a soft warm highlight that traces where the user is looking.
+- **Image parallax** on hover only: the `<img>` translates `Z(40px)` and `scale(1.025)` against its frame, creating real depth between photo and shadow.
+- **Reduced-motion respect**: `prefers-reduced-motion: reduce` retains the static box-shadow lift but drops all transform / sheen.
+
+**CSS skeleton** (drop into shell stylesheet, after the figure typography rules):
+```css
+.fx3d {
+  --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 50%; --lift: 0px;
+  --fx-radius: 14px;
+  border-radius: var(--fx-radius);
+  transform-style: preserve-3d;
+  transform: perspective(1400px) rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--lift));
+  transition: transform 0.45s cubic-bezier(0.2,0.7,0.2,1), box-shadow 0.45s cubic-bezier(0.2,0.7,0.2,1);
+  will-change: transform;
+  box-shadow:
+    0 1px 0 rgba(243,237,225,0.06) inset,
+    0 -1px 0 rgba(0,0,0,0.4) inset,
+    0 18px 40px -12px rgba(0,0,0,0.55),
+    0 40px 80px -20px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(212,175,91,0.08);
+}
+.fx3d > img { border-radius: inherit; transition: transform 0.45s cubic-bezier(0.2,0.7,0.2,1); }
+.fx3d:hover { --lift: 6px; transition-duration: 0.18s;
+  box-shadow:
+    0 1px 0 rgba(243,237,225,0.10) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    0 24px 56px -10px rgba(0,0,0,0.65),
+    0 56px 110px -16px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(212,175,91,0.18);
+}
+.fx3d:hover > img { transition-duration: 0.18s; transform: translateZ(40px) scale(1.025); }
+.fx3d::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(232,201,122,0.18), transparent 40%);
+  opacity: 0; transition: opacity 0.35s ease; mix-blend-mode: screen;
+}
+.fx3d:hover::after { opacity: 1; }
+.fx3d.fx3d-round { --fx-radius: 50%; border-radius: 50%; }
+.fx3d.fx3d-round::after { border-radius: 50%; }
+@media (prefers-reduced-motion: reduce) {
+  .fx3d, .fx3d > img { transition: none; transform: none; }
+  .fx3d:hover, .fx3d:hover > img { transform: none; }
+  .fx3d::after, .fx3d:hover::after { opacity: 0; }
+}
+```
+
+**JS skeleton** (≈30 lines vanilla, no dependency, drop into the shell's existing inline `<script>`):
+```js
+(function () {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('.fx3d').forEach(function (el) {
+    var raf = null, lastE = null;
+    function apply() {
+      if (!lastE) return;
+      var r = el.getBoundingClientRect();
+      var x = (lastE.clientX - r.left) / r.width;
+      var y = (lastE.clientY - r.top) / r.height;
+      el.style.setProperty('--rx', ((0.5 - y) * 8).toFixed(2) + 'deg');
+      el.style.setProperty('--ry', ((x - 0.5) * 10).toFixed(2) + 'deg');
+      el.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+      el.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+      raf = null;
+    }
+    el.addEventListener('mousemove', function (e) { lastE = e; if (!raf) raf = requestAnimationFrame(apply); });
+    el.addEventListener('mouseleave', function () {
+      el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg');
+      el.style.setProperty('--mx', '50%'); el.style.setProperty('--my', '50%');
+      lastE = null;
+    });
+  });
+})();
+```
+
+**Wiring:** add the `fx3d` class to every figure container that wraps a content photo. For circular portraits (host band, testimonial avatar) add `fx3d-round` alongside.
+
+**Per-figure radius tuning** (drop into the shell stylesheet to override the 14px default):
+| Figure size / role | `--fx-radius` |
+|---|---|
+| Hero figure, closer figure, cinematic 21:9 | `16px` |
+| Default full-bleed split (Spread A) | `14px` |
+| Tall inset (Spread B), pull-quote inset (Spread D) | `12px` |
+| Round portrait (Spread E half-circle) | `50%` |
+
+**Where it earns its place:**
+- Multi-image editorial pages (§6.5 spread typology) where the photographs are protagonist-grade and need to *feel* lifted off the dark page background.
+- Hosted-edition variants (B21 fix) — makes the host's portraits feel cinematic rather than CMS rectangles.
+- Personal brand / founder portfolio sites with 3+ supporting photos.
+
+**Where to NOT use it:**
+- Single-hero pages (§4 hero shaders A–F already provide depth there).
+- Light-paper shells (Glass Library, Gallery White, Soft Organic) — the dark `box-shadow` reads as muddy on cream paper. Tune the shadow stack to lighter / smaller offsets, or skip.
+- Comic / Riso / Panel shells — the flat-color register actively rejects soft 3D depth; the playful flatness *is* the design.
+- Newspaper / Reportage shells — newsprint is meant to look 2D. Lifting figures violates the medium.
+
+**Compatibility with §4 hero shaders:** orthogonal. A page can run hero shader B (Tilt & Sheen) on the hero photograph AND run `.fx3d` on every supporting figure below; both share the same physics vocabulary and don't fight each other visually.
+
+Full HTML drop-in + tuning knobs live in `references/figure-fx3d.md`.
+
 ### Phase 5 — Translate (if requested)
 
 ```bash
@@ -404,6 +510,16 @@ These came from real builds. Prevent them, don't repeat them.
 **Cause:** reusing a single `figcaption` styled with `position: absolute; left: 14px; bottom: 12px;` + bottom gradient overlay across every figure.
 **Fix:** caption position MUST vary by spread type. See §6.5 — each spread has a different caption convention (top-left mono stamp, italic Fraunces below the figure with gold left rule, vertical rotated mono in the gutter, mix-blend-mode difference against the photo, displaced open-quote glyph at lower-left with offset). Pick one PER spread, not one for all of them.
 
+### B22 · Relative image paths break under Vercel `cleanUrls` at non-trailing-slash URLs
+**Symptom:** site works perfectly on `python3 -m http.server`, ships to Vercel, then ALL images fail to load — only `alt` text shows. Direct `curl` to `/path/images/foo.jpg` returns 200, but the browser silently 404s.
+**Cause:** `vercel.json` has `"cleanUrls": true`. When the user visits `https://site.com/v17-page` (no trailing slash, no `.html`), Vercel internally rewrites that to `/v17-page/index.html` and serves it — but the URL bar stays `/v17-page`. The browser treats `/v17-page` as a *file*, not a directory. So when the HTML contains `<img src="images/foo.jpg">`, the browser resolves it relative to the parent of `/v17-page` → `/images/foo.jpg`, which 404s.
+**Fix:** in any subfolder variant deployed under Vercel `cleanUrls`, use **absolute paths** rooted at the variant folder: `src="/v17-page/images/foo.jpg"`, not `src="images/foo.jpg"`. Run a sed pass before deploying:
+```bash
+sed -i '' 's|src="images/|src="/<variant-folder>/images/|g' index.html
+```
+Alternative: turn off `cleanUrls` for subfolder pages, OR add a redirect rule that always appends a trailing slash. Absolute-path rewrite is the most portable fix.
+**Watch for:** the bug is invisible to `curl` if you happen to type the right path manually — only a real browser (or `puppeteer.requestfailed` listener) will reveal the 404 because only the browser does relative-path resolution.
+
 ### B21 · Hosted-variant misclassification (text-only → founder-with-photo)
 **Symptom:** original lesson built on Brutalist Index (correct for text-only finance). Then a host (Vivieen) is added with 6 portraits — but the page is still treated as text-only and the photos get bolted onto the same scaffold as rectangles.
 **Cause:** the auto-pick table treats subject type as fixed at start of session. Adding a named human host with ≥3 photographs *changes the subject type* mid-task.
@@ -466,6 +582,7 @@ If you can't name 3+ distinct treatments before writing the first `<figure>`, yo
 20. **No default `border: 1px solid` rings on content figures.** The photo's edge IS the edge. Use tonal gradient falloff at bleeding edges instead. Borders only when they evoke a specific medium (polaroid, contact sheet, gallery mat).
 21. **Re-evaluate subject type when a host is added.** If a text-only / informational page acquires a named human host with ≥3 photographs mid-task, switch shell to a Tier-B editorial register and apply §6.5 spread typology. Subject type is not fixed at start of session.
 22. **Hit ≥5 items from the §0.5 editorial details checklist** on any editorial-register page. Plate folios, drop caps, marginalia rules, displaced quote glyphs, vertical rotated captions, hanging Roman numerals, em-dash flanked labels, colophon — the marginalia is what separates designed from templated.
+23. **Use absolute paths for assets in any Vercel subfolder variant.** When deploying multi-variant gallery sites under `cleanUrls: true`, write `src="/<folder>/images/..."` not `src="images/..."` — otherwise the browser resolves relative paths against the parent (`/images/...`) and silently 404s. Always run puppeteer with a `requestfailed` listener post-deploy, not just `curl` — only a real browser does the wrong relative resolution that exposes the bug.
 
 ---
 
@@ -526,18 +643,19 @@ Full list: `references/ai-slop-fingerprints.md`.
 All 16 shells share the same content scaffold (masthead → hero → modules → equation → takeaways → footer), so heroes, palettes, and i18n are interchangeable across them.
 
 ### `references/`
-- `taste-manifesto.md` 🔜 — the studio inspiration list expanded with screenshots / DNA notes
-- `shells.md` — visual + content spec per shell
-- `hero-shaders.md` — 6 drop-in `<script type="module">` blocks (A–F) + the `none` typographic baseline
-- `navigation-tiers.md` 🔜 — full HTML+CSS+JS templates for Tier A / B / C nav patterns, plus per-shell tier mapping and label conventions
-- `spread-typology.md` 🔜 — full HTML+CSS templates for the 6 spread types (A–F) in §6.5, plus do/don't screenshots
-- `editorial-details.md` 🔜 — ready-to-paste CSS snippets for each item in the §0.5 checklist (drop caps, marginalia rules, displaced quote glyphs, vertical rotated captions, hanging Roman numerals, em-dash flanked labels)
-- `subject-types.md` — what each type allows / disallows
-- `i18n.md` — data-attribute contract + loader
-- `ai-slop-fingerprints.md` — the avoid list
-- `palette-by-domain.md` 🔜 — extracted from §5
-- `known-bugs.md` 🔜 — extracted from §6
-- `depth-portrait-tuning.md` — knobs for variant A
+- `taste-manifesto.md` ✅ — the studio inspiration list expanded with screenshots / DNA notes
+- `shells.md` ✅ — visual + content spec per shell
+- `hero-shaders.md` ✅ — 6 drop-in `<script type="module">` blocks (A–F) + the `none` typographic baseline
+- `navigation-tiers.md` ✅ — full HTML+CSS+JS templates for Tier A / B / C nav patterns, plus per-shell tier mapping and label conventions
+- `spread-typology.md` ✅ — full HTML+CSS templates for the 6 spread types (A–F) in §6.5
+- `editorial-details.md` ✅ — ready-to-paste CSS snippets for each item in the §0.5 checklist (drop caps, marginalia rules, displaced quote glyphs, vertical rotated captions, hanging Roman numerals, em-dash flanked labels)
+- `figure-fx3d.md` ✅ — full CSS + JS for the `.fx3d` figure-grid effect (§4.6) with tuning knobs for tilt range, lift amount, sheen color/opacity, per-shell radius scale, and reduced-motion fallbacks. Includes do/don't pairs (when to skip on light shells, comic shells, newsprint shells).
+- `subject-types.md` ✅ — what each type allows / disallows
+- `i18n.md` ✅ — data-attribute contract + loader
+- `ai-slop-fingerprints.md` ✅ — the avoid list
+- `palette-by-domain.md` ✅ — extracted from §5
+- `known-bugs.md` ✅ — extracted from §6, includes B11–B22
+- `depth-portrait-tuning.md` ✅ — knobs for variant A
 
 ---
 
