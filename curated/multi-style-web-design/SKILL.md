@@ -643,19 +643,19 @@ Full list: `references/ai-slop-fingerprints.md`.
 All 16 shells share the same content scaffold (masthead → hero → modules → equation → takeaways → footer), so heroes, palettes, and i18n are interchangeable across them.
 
 ### `references/`
-- `taste-manifesto.md` 🔜 — the studio inspiration list expanded with screenshots / DNA notes
-- `shells.md` — visual + content spec per shell
-- `hero-shaders.md` — 6 drop-in `<script type="module">` blocks (A–F) + the `none` typographic baseline
-- `navigation-tiers.md` 🔜 — full HTML+CSS+JS templates for Tier A / B / C nav patterns, plus per-shell tier mapping and label conventions
-- `spread-typology.md` 🔜 — full HTML+CSS templates for the 6 spread types (A–F) in §6.5, plus do/don't screenshots
-- `editorial-details.md` 🔜 — ready-to-paste CSS snippets for each item in the §0.5 checklist (drop caps, marginalia rules, displaced quote glyphs, vertical rotated captions, hanging Roman numerals, em-dash flanked labels)
-- `figure-fx3d.md` 🔜 — full CSS + JS for the `.fx3d` figure-grid effect (§4.6) with tuning knobs for tilt range, lift amount, sheen color/opacity, per-shell radius scale, and reduced-motion fallbacks. Includes do/don't pairs (when to skip on light shells, comic shells, newsprint shells).
-- `subject-types.md` — what each type allows / disallows
-- `i18n.md` — data-attribute contract + loader
-- `ai-slop-fingerprints.md` — the avoid list
-- `palette-by-domain.md` 🔜 — extracted from §5
-- `known-bugs.md` 🔜 — extracted from §6
-- `depth-portrait-tuning.md` — knobs for variant A
+- `taste-manifesto.md` ✅ — the studio inspiration list expanded with screenshots / DNA notes
+- `shells.md` ✅ — visual + content spec per shell
+- `hero-shaders.md` ✅ — 6 drop-in `<script type="module">` blocks (A–F) + the `none` typographic baseline
+- `navigation-tiers.md` ✅ — full HTML+CSS+JS templates for Tier A / B / C nav patterns, plus per-shell tier mapping and label conventions
+- `spread-typology.md` ✅ — full HTML+CSS templates for the 6 spread types (A–F) in §6.5
+- `editorial-details.md` ✅ — ready-to-paste CSS snippets for each item in the §0.5 checklist (drop caps, marginalia rules, displaced quote glyphs, vertical rotated captions, hanging Roman numerals, em-dash flanked labels)
+- `figure-fx3d.md` ✅ — full CSS + JS for the `.fx3d` figure-grid effect (§4.6) with tuning knobs for tilt range, lift amount, sheen color/opacity, per-shell radius scale, and reduced-motion fallbacks. Includes do/don't pairs (when to skip on light shells, comic shells, newsprint shells).
+- `subject-types.md` ✅ — what each type allows / disallows
+- `i18n.md` ✅ — data-attribute contract + loader
+- `ai-slop-fingerprints.md` ✅ — the avoid list
+- `palette-by-domain.md` ✅ — extracted from §5
+- `known-bugs.md` ✅ — extracted from §6, includes B11–B22
+- `depth-portrait-tuning.md` ✅ — knobs for variant A
 
 ---
 
