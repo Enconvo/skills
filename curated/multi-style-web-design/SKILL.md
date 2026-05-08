@@ -510,6 +510,49 @@ These came from real builds. Prevent them, don't repeat them.
 **Cause:** reusing a single `figcaption` styled with `position: absolute; left: 14px; bottom: 12px;` + bottom gradient overlay across every figure.
 **Fix:** caption position MUST vary by spread type. See §6.5 — each spread has a different caption convention (top-left mono stamp, italic Fraunces below the figure with gold left rule, vertical rotated mono in the gutter, mix-blend-mode difference against the photo, displaced open-quote glyph at lower-left with offset). Pick one PER spread, not one for all of them.
 
+### B23 · `repeat(N, 1fr)` grids overflow viewport when a cell holds an unbreakable long string
+**Symptom:** on iPhone (393px viewport) the hero-stats row in v1, v2, v17 is sliced — "CONCEPTS · 52" and "GOAL · Vocabulary & intuition" sit completely off the right edge of the screen. Desktop and tablet look fine; mobile gets cut. Hidden by `html { overflow-x: clip }` so the page silently sheds content instead of revealing the bug.
+**Cause:** the canonical content scaffold uses a `.hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); }` row of 4 KPI columns. CSS Grid `1fr` resolves to `minmax(auto, 1fr)`, where `auto` = the *content's intrinsic minimum width*. When a stat value is an unbreakable string like `Beginner→Intermediate` or `Vocabulary & intuition`, that intrinsic minimum is wider than `viewport / 4`. The grid then **overflows its container** to satisfy the minimum, and the overflow is silently clipped. The `@media (max-width: 720px) { repeat(2, 1fr) }` fallback inherits the same bug at 2-up.
+**Fix:** every multi-column grid that holds user-facing text must use the **defensive grid pattern**:
+```css
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));   /* minmax(0, 1fr), NOT 1fr */
+  border-top: 1px solid var(--rule-strong);
+}
+.hero-stats .stat {
+  min-width: 0;                                        /* allow shrink below intrinsic */
+  padding: 22px 20px 22px 0;
+  border-right: 1px solid var(--rule);
+}
+.hero-stats .stat:last-child { border-right: none; }
+.hero-stats .v {
+  font-family: var(--serif);
+  font-size: 24px;
+  word-break: break-word;                              /* break unbreakable words */
+  overflow-wrap: anywhere;                             /* allow break at any char if needed */
+  line-height: 1.2;
+}
+@media (max-width: 980px) {
+  .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-stats .stat { padding-right: 12px; border-bottom: 1px solid var(--rule); }
+  .hero-stats .stat:nth-child(2n) { border-right: none; }
+  .hero-stats .v { font-size: 20px; }
+}
+@media (max-width: 480px) {
+  .hero-stats { grid-template-columns: 1fr; }
+  .hero-stats .stat { border-right: none !important; }
+  .hero-stats .v { font-size: 18px; }
+}
+```
+Three changes do the work: (1) `minmax(0, 1fr)` overrides the auto-min so columns can shrink below intrinsic; (2) `min-width: 0` on the cell unblocks flex/grid shrink; (3) `word-break: break-word` + `overflow-wrap: anywhere` on the value text lets unbreakable strings wrap at any character when columns are too narrow. **Plus**: add a 480px fallback that goes single-column — at iPhone widths, 4 stats stacked vertically reads better than 2×2 cramped.
+**Also affected — same defensive pattern applies to:**
+- Any `.modules` / `.features` / `.takeaways` grid with `repeat(N, 1fr)`
+- Spread-04 / spread-06 / spread-07 inner heads with `grid-template-columns: 90px 1fr 0.85fr` etc.
+- Footer link rows that flex-wrap unbreakable email/URL strings
+**Symmetric fix for negative-margin bleeds:** any `figure { margin-right: -32px }` (full-bleed pattern) must scale its negative margin **in lockstep** with parent padding when padding shrinks at small viewports. If you change `.hero { padding: 0 32px → 0 20px }` at 600px, you MUST also change `.hero-figure { margin-right: -32px → -20px }` at the same breakpoint, or the figure overshoots the viewport by 12px.
+**Audit tooling:** run a CDP-based mobile audit at 393px viewport and check `getBoundingClientRect().right > clientWidth` on every element. False positives are limited to elements inside a parent with `overflow: hidden` (decorative blobs, spread-07 figures with parent overflow). A 25-line audit script lives in `references/mobile-audit.md`.
+
 ### B22 · Relative image paths break under Vercel `cleanUrls` at non-trailing-slash URLs
 **Symptom:** site works perfectly on `python3 -m http.server`, ships to Vercel, then ALL images fail to load — only `alt` text shows. Direct `curl` to `/path/images/foo.jpg` returns 200, but the browser silently 404s.
 **Cause:** `vercel.json` has `"cleanUrls": true`. When the user visits `https://site.com/v17-page` (no trailing slash, no `.html`), Vercel internally rewrites that to `/v17-page/index.html` and serves it — but the URL bar stays `/v17-page`. The browser treats `/v17-page` as a *file*, not a directory. So when the HTML contains `<img src="images/foo.jpg">`, the browser resolves it relative to the parent of `/v17-page` → `/images/foo.jpg`, which 404s.
@@ -583,6 +626,7 @@ If you can't name 3+ distinct treatments before writing the first `<figure>`, yo
 21. **Re-evaluate subject type when a host is added.** If a text-only / informational page acquires a named human host with ≥3 photographs mid-task, switch shell to a Tier-B editorial register and apply §6.5 spread typology. Subject type is not fixed at start of session.
 22. **Hit ≥5 items from the §0.5 editorial details checklist** on any editorial-register page. Plate folios, drop caps, marginalia rules, displaced quote glyphs, vertical rotated captions, hanging Roman numerals, em-dash flanked labels, colophon — the marginalia is what separates designed from templated.
 23. **Use absolute paths for assets in any Vercel subfolder variant.** When deploying multi-variant gallery sites under `cleanUrls: true`, write `src="/<folder>/images/..."` not `src="images/..."` — otherwise the browser resolves relative paths against the parent (`/images/...`) and silently 404s. Always run puppeteer with a `requestfailed` listener post-deploy, not just `curl` — only a real browser does the wrong relative resolution that exposes the bug.
+24. **Defensive mobile-grid pattern is mandatory on every `repeat(N, 1fr)` row that holds user text.** Use `minmax(0, 1fr)` (not `1fr`), `min-width: 0` on cells, and `word-break: break-word` + `overflow-wrap: anywhere` on the value text. Add 980 / 720 / 480 breakpoints with progressively narrower column counts (4 → 2 → 1). Negative-margin bleeds (`margin-right: -32px` on full-bleed figures) must scale in lockstep with parent padding when padding shrinks at small viewports — otherwise the figure overshoots viewport by the difference. Verify with a 393px CDP audit before shipping (see B23 + `references/mobile-audit.md`).
 
 ---
 
