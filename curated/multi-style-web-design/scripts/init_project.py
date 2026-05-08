@@ -3,7 +3,7 @@
 # requires-python = ">=3.10"
 # dependencies = []
 # ///
-"""Initialize a new fancy-website-builder project from a chosen shell.
+"""Initialize a new multi-style-web-design project from a chosen shell.
 
 Steps:
 1. Copy assets/shells/<shell>/ into <output_dir>/.

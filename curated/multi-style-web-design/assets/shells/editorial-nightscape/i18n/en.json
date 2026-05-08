@@ -1,6 +1,6 @@
 {
   "meta.title": "Brand — A Statement, After Hours",
-  "meta.description": "Editorial single-page site built with fancy-website-builder.",
+  "meta.description": "Editorial single-page site built with multi-style-web-design.",
   "brand.name": "Brand",
   "nav.manifesto": "Manifesto",
   "nav.dispatch": "Dispatch",
@@ -32,5 +32,5 @@
   "contact.submit": "Send the napkin",
   "footer.brand": "Brand",
   "footer.tagline": "After-hours marketing",
-  "footer.note": "Built with fancy-website-builder · single-file static · no build step"
+  "footer.note": "Built with multi-style-web-design · single-file static · no build step"
 }
