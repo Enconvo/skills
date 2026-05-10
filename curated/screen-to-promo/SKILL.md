@@ -149,7 +149,7 @@ Going with this — let me know if you want to adjust anything.
 ### Phase 2: Production
 8. **Prep sources** → `scripts/prep_source.sh` (any resolution → 1920×1080 @ 30fps)
 9. **Write script** → style driven by strategy (dramatic for marketing, instructional for guides)
-10. **Generate VO** → TTS fallback sequence: **Enconvo active TTS** (if available) → **Voicebox** → **Edge-TTS** → **Kokoro**. Get word timestamps via Groq Whisper.
+10. **Generate VO** → **ALWAYS use Enconvo's active TTS provider — no fallback, no exceptions.** Call `local_api tts/tts {input_text, audio_file_name, output_dir, speed}` (or read `~/.config/enconvo/installed_preferences/tts.json` → `selected` to confirm which provider is active). The user controls the voice/provider via Enconvo's TTS settings — respect their choice. If active TTS fails, STOP and surface the error to the user; do NOT silently fall through to Voicebox / Edge-TTS / Kokoro / any other engine. Get word timestamps via Groq Whisper after generation.
 11. **Optional: AI presenter** → nanobanana image → Veo I2V → extract frames → rembg cutout
 12. **Build config** → JSON config for compositor (segments, zooms, transitions, captions)
 13. **Compose frames** → `python3 scripts/compose.py --config config.json --output final.mp4`
@@ -255,7 +255,7 @@ For full pipeline walkthrough, planning protocol, zoom playbook, strategy playbo
 - Python 3: PIL/Pillow, numpy, rembg (for presenter cutout)
 - ffmpeg/ffprobe
 - Groq API (Whisper word timestamps)
-- VO skills (fallback chain): Enconvo active TTS → voicebox → edge-tts → kokoro
+- VO: **Enconvo active TTS only** (call `local_api tts/tts`; respects whatever provider/voice the user has selected in Enconvo's TTS settings). No fallback to voicebox/edge-tts/kokoro — if it fails, surface the error.
 - Optional: nanobanana skill (presenter image), veo skill (I2V), acestep (BGM)
 
 ## Lessons Learned (Hard-Won — from real production runs)
@@ -271,11 +271,11 @@ Capture discoveries that cost hours the first time. Check this list BEFORE start
 
 ### VO Providers
 
-- **TTS fallback sequence**: **Enconvo active TTS** (if available) → **Voicebox** → **Edge-TTS** → **Kokoro**. Check Enconvo's active TTS first via `~/.config/enconvo/installed_preferences/tts.json` → `selected` field; Gemini TTS (Puck / other prebuilt voices) via `tts/gemini_tts/generate` produces cleaner articulation on technical terms (BotFather, Ollama, IM Channels) than cloned voices. Fall through to Voicebox if Enconvo TTS is unavailable, then Edge-TTS (cloud, 50+ languages), then Kokoro (local, offline).
+- **TTS rule — Enconvo active TTS ONLY, no fallback**: ALWAYS generate VO via `local_api tts/tts` (or the `tts--tts` tool). This routes through whatever provider the user has set as Enconvo's active TTS in Settings → Text-to-Speech. To confirm which provider is currently active, read `~/.config/enconvo/installed_preferences/tts.json` → `selected` field (e.g. `tts|enconvo_xai`, `tts|enconvo_gemini`, `tts|mlx_kokoro`, etc.) and tell the user which one will be used before generating. NEVER silently fall through to Voicebox, Edge-TTS, Kokoro, or any other engine — that hijacks the user's chosen voice. If active TTS errors, STOP and ask the user to either fix their config or explicitly approve a different engine.
+- **Voice switch workflow**: the user can change Enconvo's active TTS provider/voice between calls. To re-record with a new voice, they switch the provider in Enconvo settings, then you call `tts/tts` again with the same text — the new active voice is picked up automatically. Always re-read `tts.json` → `selected` before each major regenerate so you can name the provider in your reply.
 - **Credentials are in Enconvo's credential manager — use the API, not the raw JSON file**. For Groq (Whisper word timestamps) and any other provider, call `local_api credentials/load_credentials {"providerName": "groq"}`. The returned `apiKey` is the real, usable key. Do NOT `cat ~/.config/enconvo/installed_preferences/credentials|groq.json` directly — that file stores an encrypted/hashed placeholder (128-char hex), not the working `gsk_...` key. Same pattern for `openai`, `elevenlabs`, `anthropic`, etc.
-- **Gemini TTS phonetic quirks**: `ANN` capitalized is read as "A-N-N" spelled out. Use the full phrase `Ann the Uncensored` for natural pronunciation. `I M Channels` (space-separated) reads cleaner than `IM Channels`.
+- **Gemini TTS phonetic quirks** (when user has Gemini selected): `ANN` capitalized is read as "A-N-N" spelled out. Use the full phrase `Ann the Uncensored` for natural pronunciation. `I M Channels` (space-separated) reads cleaner than `IM Channels`. Apply similar phonetic-spell tricks for whichever provider the user has active.
 - **Preview before committing**: when user requests a voice/text change, generate to a `_new.wav` or `_v2.wav` filename FIRST, deliver preview, wait for approval, THEN swap into the master file. Never overwrite an approved VO in place.
-- **Voice switch workflow**: user can change Enconvo's active TTS voice between calls. To re-record with a new voice, just call `tts/tts` or `tts/gemini_tts/generate` with the same text — the active voice is picked up automatically.
 
 ### Zoom Accuracy & Framing
 
@@ -299,13 +299,28 @@ Capture discoveries that cost hours the first time. Check this list BEFORE start
 - **amix filter preserves both tracks**: `[voice]volume=1.0;[music]volume=0.18;[voice][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0` — the `normalize=0` is critical; without it, adding the BGM will attenuate the voice.
 - **ACE-Step for instrumental BGM**: use `~/.claude/skills/acestep` for cinematic/tech promo tracks. Good caption pattern: genre + instruments + mood + structural cues ("building tension with rising filter sweeps, triumphant major-key drop at the end"). Request `instrumental`, explicit `no vocals` if Gemini/Puck VO is on top. BPM 85–100 for narrator-driven videos. ALWAYS stop the server after generation (`pkill -f acestep-api`) — it holds ~27GB RAM.
 
+### Brand Assets
+
+The skill ships with Enconvo brand material at `assets/brand/`:
+
+- `enconvo_icon_white.png` — pure-white Enconvo "leaf-fold" mark on transparent background, square. Use on the default #0a0a0a dark canvas.
+- `assets/brand/README.md` — full usage spec (sizing, drop-shadow, wordmark pairing).
+
+When the video is **Enconvo-branded** (Enconvo product demos, channel agent videos, skill showcases, or any video the user labels "for Enconvo"), the hook/CTA/outro cards SHOULD include the icon:
+
+- **Hook**: 64–96 px icon centered above the hero title, with subtle white drop-shadow `drop-shadow(0 0 24px rgba(255,255,255,0.15))`.
+- **CTA hero**: 120–160 px icon, paired with `ENCONVO` wordmark below in SF Pro Display weight 500, uppercase, letter-spacing 0.3em, white at 60%.
+- **Outro watermark**: 48 px icon top-right at 60% opacity.
+
+Do NOT tint the icon, do NOT place it on a light background, do NOT use it on third-party videos unless the user explicitly says Enconvo is the producer.
+
 ### Hook & CTA Design (HyperFrames)
 
 - **Use HyperFrames for title cards** — install locally per-project: `cd dir && npm init -y && npm install hyperframes`, then `./node_modules/.bin/hyperframes lint/render .`. `npx hyperframes` alone doesn't work because npm treats it as an unknown command.
 - **HyperFrames root composition requires `data-start="0"` AND `data-duration="N"`** on the composition div. The lint warning makes this obvious but it's easy to miss the first time.
 - **Standalone compositions must NOT use `<template>`** — the sub-composition wrapper pattern only applies when loaded via `data-composition-src`. For a standalone card, put the `data-composition-id` div directly in `<body>`.
 - **Node modules don't copy cleanly between project dirs**: if you `cp -r node_modules` from one hyperframes project to another, renders may fail with "Missing manifest" errors. Always fresh `npm install hyperframes` per project dir.
-- **Message > brand for product CTAs**: when the video is about a specific feature ("channel agent"), the CTA should lead with the feature name as hero, not the brand. Layout: small brand wordmark on top (`ENCONVO`) → hero feature name (`CHANNEL AGENT`) → amber promise tag (`SET UP IN SECONDS`). The feature is what the viewer wants; the brand is who made it.
+- **Message > brand for product CTAs**: when the video is about a specific feature ("channel agent"), the CTA should lead with the feature name as hero, not the brand. Layout: small brand wordmark on top (`ENCONVO` + the icon from `assets/brand/enconvo_icon_white.png`, ~48–64 px) → hero feature name (`CHANNEL AGENT`) → amber promise tag (`SET UP IN SECONDS`). The feature is what the viewer wants; the brand is who made it.
 - **CTA VO should echo a climax word from the payoff**: if the video's emotional peak is "ALIVE!", the CTA VO should include "ALIVE" again. This creates a callback that makes the whole video feel like one argument. Avoid generic closings like "That's it" — they die on landing.
 
 ### Scene Pacing & Breathing
