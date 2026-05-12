@@ -103,10 +103,13 @@ Hero:       <hero technique OR "typographic, no 3D">
 Palette:    <5 colors named, with the rationale>
 ```
 
-**Auto-pick rules** (industry → shell). 16 shells, all populated as live variants in `assets/shells/`:
+**Auto-pick rules** (industry → shell). 17 shells, all populated as live variants in `assets/shells/`.
+
+**Default shell** — if the user does not specify a shell, a style reference, or an industry hint that maps cleanly to a row below, use **Harvard Review**. It is the calmest, most subject-agnostic shell in the set: typographic hero, no 3D, ink-on-cream with a single crimson accent, editorial register that flatters essays, case studies, manifestos, lessons, founder think-pieces, and one-off pages alike. Switch away from it only when the auto-pick table below names a stronger match.
 
 | Industry / use case | Shell | Default hero | Reference DNA |
 |---|---|---|---|
+| **No hint given / "just make me a one-pager" / "no specific style"** | **Harvard Review** *(default)* | none (italic display + crimson) | Harvard Business Review × Pentagram × The Atlantic |
 | Personal brand / founder (with photo) | **Editorial Nightscape** | A · Depth Displacement | Apple × Klim |
 | Product launch (physical product) | **Glass Library** | D · Glass Refraction | Aesop × Le Labo |
 | B2B SaaS / dev tool / AI infra | **Studio Black** | none (typographic) | Linear × Vercel |
@@ -124,6 +127,7 @@ Palette:    <5 colors named, with the rationale>
 | Outdoor / gear / hardware / tools / makers / coffee | **Quartermaster** | none (field-manual stamps) | Snow Peak × Best Made × Ace Hotel |
 | AI / ML products / Web3 / futuristic hardware | **Holographic Future** | none (iridescent gradient + bento) | Arc Browser × Linear marketing × Gradient |
 | News / longform / documentary / NGO / public health | **Reportage** | none (newsprint + drop caps) | NYT × The Guardian × Magnum |
+| Business essay / case study / executive education / thought leadership / strategy whitepaper | **Harvard Review** | none (italic display + crimson accent + Idea-in-Brief callout) | Harvard Business Review × Pentagram × The Atlantic |
 
 **3D-skip rule:** if the subject is `text-only` or `abstract` AND the purpose is *informational* (lesson, essay, report), **default to typographic hero with no 3D shader**. Use type weight + size + italics + rule lines as the hero treatment. 3D is opt-in, not opt-out.
 
@@ -150,8 +154,10 @@ For text-only / abstract subjects with no image, **curate** the palette from the
 ### Phase 3 — Pick + initialize
 
 ```bash
-uv run scripts/init_project.py <output_dir> --shell <shell-name> --langs en,zh,ja [--hero <id>|none]
+uv run scripts/init_project.py <output_dir> [--shell <shell-name>] --langs en,zh,ja [--hero <id>|none]
 ```
+
+If `--shell` is omitted, the project initializes from **`harvard-review`** (the default — see Phase 1).
 
 This:
 1. Copies `assets/shells/<shell-name>/` into `<output_dir>/`
@@ -182,7 +188,7 @@ Pick **ONE of three navigation tiers** based on the shell's register:
 | Tier | Visual register | Components | Default for these shells |
 |---|---|---|---|
 | **A — Full** | App-polish, sticky pill nav | Sticky blur-glass nav bar + 4 link pills + active-section dot + scroll-progress bar + kbd hint chip + floating back-to-top | `studio-black` `stadium` `neon-arcade` `holographic-future` `reportage` |
-| **B — Editorial** | Sticky masthead-style TOC | Sticky thin masthead + 4 mono uppercase TOC links separated by hairline rules + section-symbol active marker + 1px scroll progress | `brutalist-index` `editorial-nightscape` `atelier-couture` `studio-spectrum` `panel` `quartermaster` |
+| **B — Editorial** | Sticky masthead-style TOC | Sticky thin masthead + 4 mono uppercase TOC links separated by hairline rules + section-symbol active marker + 1px scroll progress | `brutalist-index` `editorial-nightscape` `atelier-couture` `studio-spectrum` `panel` `quartermaster` `harvard-review` |
 | **C — Whisper-quiet** | Almost invisible | Right-edge dot rail (5px dots) + tiny scroll-progress hairline; **both fade in only after scrolling past 200px**; original masthead stays untouched | `glass-library` `swiss-modernist` `riso-pop` `gallery-white` `soft-organic` |
 
 **Required structural pieces in every variant** (regardless of tier):
@@ -672,7 +678,7 @@ Full list: `references/ai-slop-fingerprints.md`.
 - `swiss-modernist/` ✅ — Müller-Brockmann grid (manifesto, museum)
 - `riso-pop/` ✅ — Risograph indie (events, kids, comedy)
 
-**Industry-specific ten**
+**Industry-specific eleven**
 - `atelier-couture/` ✅ — Bureau Borsche × Vogue Italia (Fashion)
 - `studio-spectrum/` ✅ — Pentagram × Studio Dumbar (Creative agencies)
 - `stadium/` ✅ — Nike × ESPN (Sports / fitness / esports)
@@ -683,8 +689,9 @@ Full list: `references/ai-slop-fingerprints.md`.
 - `quartermaster/` ✅ — Snow Peak × Best Made × Ace Hotel (Outdoor / gear / makers)
 - `holographic-future/` ✅ — Arc × Linear × Gradient (AI / ML / Web3 / frontier)
 - `reportage/` ✅ — NYT × Guardian × Magnum (News / longform / documentary / NGO)
+- `harvard-review/` ✅ — Harvard Business Review × Pentagram × Atlantic (Business essay / case study / executive education / thought leadership)
 
-All 16 shells share the same content scaffold (masthead → hero → modules → equation → takeaways → footer), so heroes, palettes, and i18n are interchangeable across them.
+All 17 shells share the same content scaffold (masthead → hero → modules → equation → takeaways → footer), so heroes, palettes, and i18n are interchangeable across them.
 
 ### `references/`
 - `taste-manifesto.md` ✅ — the studio inspiration list expanded with screenshots / DNA notes
@@ -718,6 +725,7 @@ All 16 shells share the same content scaffold (masthead → hero → modules →
 | "Wellness brand, soft, kids" | product | Soft Organic | F (low) | Family.co |
 | "Indie event poster page" | abstract | Riso Pop | C | MSCHF |
 | "One-page manifesto" | text-only | Swiss Modernist | none | Müller-Brockmann |
+| **"Business essay / case study / strategy whitepaper"** | **text-only** | **Harvard Review** | **none (italic display + crimson + Idea-in-Brief)** | **Harvard Business Review × Pentagram × Atlantic** |
 
 ---
 

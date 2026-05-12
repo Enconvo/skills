@@ -12,8 +12,13 @@ Steps:
 4. Update window.__I18N_LANGS__ in index.html.
 
 Usage:
-  uv run init_project.py <output_dir> --shell editorial-nightscape \\
+  uv run init_project.py <output_dir> [--shell <name>] \\
       [--palette palette.json] [--langs en,zh,ja] [--hero A]
+
+  If --shell is omitted, defaults to "harvard-review" — the calmest, most
+  subject-agnostic shell in the set (ink-on-cream editorial register,
+  typographic hero, single crimson accent). Override only when the
+  auto-pick table in SKILL.md §3 names a stronger match.
 """
 from __future__ import annotations
 
@@ -56,7 +61,9 @@ def set_supported_langs(html_path: Path, langs: list[str]) -> None:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('output_dir', type=Path)
-    p.add_argument('--shell', required=True, help='Shell name (folder under assets/shells/)')
+    p.add_argument('--shell', default='harvard-review',
+                   help='Shell name (folder under assets/shells/). Default: harvard-review — '
+                        'the calmest subject-agnostic shell, used when no style hint is given.')
     p.add_argument('--palette', type=Path, help='palette.json from extract_palette.py')
     p.add_argument('--langs', default='en', help='Comma-separated language codes, e.g. en,zh,ja')
     p.add_argument('--hero', help='Hero variant id (A/B/C/D/E/F). If omitted, shell default is kept.')

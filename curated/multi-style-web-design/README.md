@@ -1,6 +1,6 @@
 # multi-style-web-design
 
-Studio-grade single-page web design skill with 16 swappable shells (Editorial Nightscape, Glass Library, Studio Black, Brutalist Index, Riso Pop, Swiss Modernist, Soft Organic, Atelier Couture, Studio Spectrum, Stadium, Neon Arcade, Panel, Gallery White, Quartermaster, Holographic Future, Reportage) and an opt-in 3D / motion / special-effects toolkit.
+Studio-grade single-page web design skill with 17 swappable shells (Harvard Review *(default)*, Editorial Nightscape, Glass Library, Studio Black, Brutalist Index, Riso Pop, Swiss Modernist, Soft Organic, Atelier Couture, Studio Spectrum, Stadium, Neon Arcade, Panel, Gallery White, Quartermaster, Holographic Future, Reportage) and an opt-in 3D / motion / special-effects toolkit. When no style is specified, the skill initializes from **Harvard Review** — a calm ink-on-cream editorial shell with crimson accent.
 
 See `SKILL.md` for the full spec.
 

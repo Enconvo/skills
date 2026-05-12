@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title data-i18n="meta.title">The Review — A Quarterly of Business and Decision</title>
+<meta name="description" data-i18n-attr="content" data-i18n-attr-content="meta.description" content="An editorial single-page essay built with multi-style-web-design." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,30..100;1,9..144,300..900,30..100&family=Inter+Tight:wght@300..700&display=swap" rel="stylesheet">
+<style>
+  /* Palette tokens — rewritten by init_project.py from extract_palette.py output. */
+  :root {
+    --brand-1: #f5f1ea;   /* paper cream — page bg */
+    --brand-2: #161311;   /* ink black — body */
+    --brand-3: #a51c30;   /* Harvard crimson — accent */
+    --brand-4: #7a0a13;   /* deep crimson — emphasis */
+    --brand-5: #5c5852;   /* warm gray — meta */
+
+    --paper: var(--brand-1);
+    --ink: var(--brand-2);
+    --crimson: var(--brand-3);
+    --crimson-deep: var(--brand-4);
+    --warm-gray: var(--brand-5);
+
+    --rule: rgba(22, 19, 17, 0.16);
+    --rule-strong: rgba(22, 19, 17, 0.55);
+    --ink-faint: rgba(22, 19, 17, 0.55);
+    --bg-glass: rgba(245, 241, 234, 0.82);   /* light glass — matches cream base (rule 18) */
+  }
+
+  /* Defensive overflow — see SKILL.md B12/B13 */
+  html { overflow-x: clip; scroll-behavior: smooth; }
+  body {
+    overflow-x: clip; width: 100%; max-width: 100vw;
+    margin: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: "Fraunces", ui-serif, Georgia, serif;
+    font-variation-settings: "opsz" 14, "SOFT" 30;
+    font-feature-settings: "ss01", "kern", "liga";
+    -webkit-font-smoothing: antialiased;
+  }
+  html:not(.i18n-ready) [data-i18n] { visibility: hidden; }
+
+  /* ---- Type primitives ---- */
+  .sans { font-family: "Inter Tight", ui-sans-serif, system-ui, sans-serif; }
+  .display {
+    font-family: "Fraunces", ui-serif, Georgia, serif;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+    line-height: 0.94; letter-spacing: -0.022em;
+  }
+  .kicker {
+    font-family: "Inter Tight", ui-sans-serif, sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--crimson);
+  }
+
+  /* ---- Layout primitives ---- */
+  section { scroll-margin-top: 80px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
+  .col-body { max-width: 720px; }
+
+  /* ---- Drop cap — red italic Fraunces (editorial details checklist) ---- */
+  p.dropcap::first-letter {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 4.4em;
+    line-height: 0.88;
+    float: left;
+    padding: 4px 12px 0 0;
+    color: var(--crimson);
+    font-weight: 500;
+  }
+
+  /* ============================================================
+     TIER B — sticky thin masthead (editorial register)
+     ============================================================ */
+  .masthead {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+    width: 100%; box-sizing: border-box;
+  }
+  .masthead .top-rule { height: 4px; background: var(--crimson); width: 100%; }
+  .masthead .row {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; padding: 14px 32px;
+    flex-wrap: wrap;
+  }
+  .masthead .brand { display: flex; align-items: baseline; gap: 16px; min-width: 0; }
+  .masthead .brand .mark {
+    font-family: "Fraunces", serif;
+    font-style: italic; font-weight: 500;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    font-variation-settings: "opsz" 24, "SOFT" 50;
+  }
+  .masthead .brand .edition {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .masthead nav { display: flex; align-items: center; }
+  .masthead nav a {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.26em; text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink-faint);
+    padding: 6px 16px;
+    border-right: 1px solid var(--rule);
+    transition: color 0.2s;
+    position: relative;
+  }
+  .masthead nav a:last-child { border-right: none; }
+  .masthead nav a:hover { color: var(--ink); }
+  .masthead nav a.active { color: var(--crimson); }
+  .masthead nav a.active::before {
+    content: "§";
+    position: absolute; left: 2px; top: 50%;
+    transform: translateY(-50%);
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    color: var(--crimson);
+    font-size: 12px;
+  }
+  .masthead .cta {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--paper); background: var(--crimson);
+    padding: 9px 18px;
+    text-decoration: none;
+    border: 1px solid var(--crimson);
+    transition: background 0.2s;
+  }
+  .masthead .cta:hover { background: var(--crimson-deep); }
+
+  /* Scroll progress hairline */
+  .scroll-progress {
+    position: fixed; top: 0; left: 0;
+    height: 1px;
+    background: var(--crimson);
+    width: 0; z-index: 60;
+    transition: width 0.06s linear;
+  }
+
+  /* ============================================================
+     HERO — typographic, no shader
+     ============================================================ */
+  .hero { padding: 80px 0 64px; }
+  .hero-kicker-row {
+    display: flex; align-items: center; flex-wrap: wrap;
+    padding: 0 0 28px 0;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 48px;
+  }
+  .hero-kicker-row .item {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-right: 18px; margin-right: 18px;
+    border-right: 1px solid var(--rule);
+  }
+  .hero-kicker-row .item:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+  .hero-kicker-row .item.cri { color: var(--crimson); }
+
+  .hero h1 {
+    font-family: "Fraunces", serif;
+    font-size: clamp(48px, 8.5vw, 124px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    font-weight: 400;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+    margin: 0 0 40px 0;
+    max-width: 18ch;
+    overflow-wrap: break-word;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--crimson);
+    font-variation-settings: "opsz" 144, "SOFT" 80;
+  }
+  .hero .lede {
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1.55;
+    color: var(--warm-gray);
+    max-width: 620px;
+    font-weight: 400;
+    font-variation-settings: "opsz" 22, "SOFT" 40;
+    margin: 0 0 48px 0;
+  }
+  .hero .lede em { color: var(--ink); font-style: italic; }
+
+  /* Byline */
+  .byline {
+    display: flex; align-items: center; gap: 20px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 22px 0; margin-bottom: 48px; max-width: 720px;
+  }
+  .byline .disc {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: var(--ink); color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif;
+    font-style: italic; font-size: 22px; font-weight: 500;
+    border: 1px solid var(--ink);
+    flex-shrink: 0;
+    font-variation-settings: "opsz" 24, "SOFT" 60;
+  }
+  .byline .meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .byline .meta .who {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--ink);
+  }
+  .byline .meta .who .by { color: var(--ink-faint); font-weight: 400; }
+  .byline .meta .role {
+    font-family: "Fraunces", serif;
+    font-style: italic; font-size: 14.5px;
+    color: var(--warm-gray);
+    line-height: 1.45;
+    font-variation-settings: "opsz" 14, "SOFT" 40;
+  }
+
+  /* Stat row — defensive grid pattern (rule 24) */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule);
+  }
+  .stats .stat {
+    min-width: 0;
+    padding: 22px 24px 22px 0;
+    border-right: 1px solid var(--rule);
+  }
+  .stats .stat:last-child { border-right: none; }
+  .stats .label {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .stats .v {
+    font-family: "Fraunces", serif;
+    font-size: 22px; font-weight: 400;
+    color: var(--ink);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+    font-variation-settings: "opsz" 22, "SOFT" 50;
+  }
+  .stats .v em { font-style: italic; color: var(--crimson); }
+
+  @media (max-width: 980px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stats .stat { padding-right: 16px; border-bottom: 1px solid var(--rule); }
+    .stats .stat:nth-child(2n) { border-right: none; }
+    .stats .stat:nth-last-child(-n+2) { border-bottom: none; }
+    .stats .v { font-size: 19px; }
+  }
+  @media (max-width: 480px) {
+    .stats { grid-template-columns: 1fr; }
+    .stats .stat { border-right: none !important; border-bottom: 1px solid var(--rule); }
+    .stats .stat:last-child { border-bottom: none; }
+    .stats .v { font-size: 18px; }
+  }
+
+  /* ============================================================
+     ARTICLE — numbered modules with hanging Roman numerals
+     ============================================================ */
+  .article { padding: 80px 0 48px; border-top: 1px solid var(--rule-strong); }
+  .module {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 32px;
+    padding: 56px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .module:first-child { border-top: none; padding-top: 16px; }
+  .module .roman {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 64px;
+    color: var(--crimson);
+    line-height: 0.9;
+    font-variation-settings: "opsz" 72, "SOFT" 60;
+    font-weight: 400;
+    padding-top: 8px;
+  }
+  .module .body { min-width: 0; max-width: 720px; }
+  .module .body .mod-kicker { margin-bottom: 16px; }
+  .module .body h2 {
+    font-family: "Fraunces", serif;
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin: 0 0 28px 0;
+    font-weight: 400;
+    font-variation-settings: "opsz" 60, "SOFT" 70;
+    max-width: 22ch;
+  }
+  .module .body h2 em { font-style: italic; color: var(--crimson); }
+  .module .body p {
+    font-size: 18px;
+    line-height: 1.72;
+    color: var(--ink);
+    margin: 0 0 22px 0;
+    font-variation-settings: "opsz" 18, "SOFT" 40;
+  }
+  .module .body p em {
+    font-style: italic;
+    color: var(--ink);
+    font-variation-settings: "opsz" 18, "SOFT" 50;
+  }
+
+  /* Pull quote — displaced quote glyph + crimson rule (editorial details) */
+  .pullquote {
+    position: relative;
+    margin: 44px 0 44px 24px;
+    padding-left: 28px;
+    border-left: 2px solid var(--crimson);
+    max-width: 620px;
+  }
+  .pullquote::before {
+    content: "\201C";
+    position: absolute;
+    left: -120px; top: -56px;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: clamp(180px, 22vw, 280px);
+    color: var(--crimson);
+    opacity: 0.16;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 0;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+  .pullquote q {
+    quotes: none;
+    display: block;
+    position: relative;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: clamp(22px, 2.6vw, 30px);
+    line-height: 1.32;
+    color: var(--ink);
+    font-variation-settings: "opsz" 60, "SOFT" 80;
+    margin: 0 0 16px 0;
+  }
+  .pullquote .attr {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* Marginalia — gold/accent left rule next to italic note */
+  .margin-note {
+    margin: 28px 0 28px 24px;
+    padding-left: 18px;
+    border-left: 1px solid var(--crimson);
+    max-width: 540px;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 14.5px;
+    color: var(--warm-gray);
+    line-height: 1.55;
+    font-variation-settings: "opsz" 14, "SOFT" 40;
+  }
+
+  /* Em-dash flanked label */
+  .section-mark {
+    text-align: center;
+    margin: 40px 0 8px;
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .section-mark::before, .section-mark::after {
+    content: "——";
+    color: var(--rule-strong);
+    margin: 0 16px;
+  }
+
+  /* ============================================================
+     IDEA IN BRIEF — the "equation" block (HBR's signature callout)
+     ============================================================ */
+  .brief {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 80px 0;
+    margin: 48px 0;
+  }
+  .brief .head {
+    border-bottom: 1px solid rgba(245, 241, 234, 0.16);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+  }
+  .brief .kicker { color: var(--crimson); margin-bottom: 18px; }
+  .brief h2 {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: clamp(34px, 5vw, 54px);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    color: var(--paper);
+    margin: 0;
+    max-width: 26ch;
+    font-weight: 400;
+    font-variation-settings: "opsz" 80, "SOFT" 80;
+  }
+  .brief h2 em { color: var(--crimson); font-style: italic; }
+  .brief .points {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 56px;
+  }
+  .brief .point { min-width: 0; }
+  .brief .point .num {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 32px;
+    color: var(--crimson);
+    line-height: 1;
+    margin-bottom: 14px;
+    font-variation-settings: "opsz" 48, "SOFT" 60;
+  }
+  .brief .point .label {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: rgba(245, 241, 234, 0.62);
+    margin-bottom: 12px;
+  }
+  .brief .point p {
+    font-family: "Fraunces", serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(245, 241, 234, 0.92);
+    margin: 0;
+    font-variation-settings: "opsz" 17, "SOFT" 30;
+  }
+  .brief .point p em { font-style: italic; color: var(--paper); }
+  @media (max-width: 980px) {
+    .brief .points { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  /* ============================================================
+     TAKEAWAYS — four numbered cards on cream
+     ============================================================ */
+  .takeaways { padding: 80px 0 96px; border-top: 1px solid var(--rule-strong); }
+  .takeaways .head { margin-bottom: 48px; }
+  .takeaways .head h2 {
+    font-family: "Fraunces", serif;
+    font-size: clamp(34px, 5vw, 54px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 18px 0 0 0;
+    max-width: 22ch;
+    font-weight: 400;
+    font-variation-settings: "opsz" 80, "SOFT" 70;
+  }
+  .takeaways .head h2 em { font-style: italic; color: var(--crimson); }
+  .takeaways .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--rule-strong);
+  }
+  .takeaways .item {
+    min-width: 0;
+    padding: 40px 32px 40px 0;
+    border-bottom: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 20px;
+  }
+  .takeaways .item:nth-child(2n) { border-right: none; padding-right: 0; padding-left: 32px; }
+  .takeaways .item:nth-last-child(-n+2) { border-bottom: none; }
+  .takeaways .item .num {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 38px;
+    color: var(--crimson);
+    line-height: 0.9;
+    font-variation-settings: "opsz" 48, "SOFT" 60;
+  }
+  .takeaways .item .text { min-width: 0; }
+  .takeaways .item h3 {
+    font-family: "Fraunces", serif;
+    font-size: 22px;
+    line-height: 1.22;
+    color: var(--ink);
+    margin: 0 0 12px 0;
+    font-weight: 400;
+    font-variation-settings: "opsz" 28, "SOFT" 60;
+  }
+  .takeaways .item h3 em { font-style: italic; color: var(--crimson); }
+  .takeaways .item p {
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--warm-gray);
+    margin: 0;
+    font-variation-settings: "opsz" 15, "SOFT" 30;
+  }
+  @media (max-width: 720px) {
+    .takeaways .grid { grid-template-columns: 1fr; }
+    .takeaways .item { border-right: none !important; padding-left: 0 !important; padding-right: 0 !important; }
+    .takeaways .item:nth-last-child(-n+2) { border-bottom: 1px solid var(--rule); }
+    .takeaways .item:last-child { border-bottom: none; }
+  }
+
+  /* ============================================================
+     FOOTER — colophon (editorial details checklist)
+     ============================================================ */
+  footer { padding: 56px 0 72px; border-top: 1px solid var(--rule); }
+  footer .row {
+    display: flex; justify-content: space-between; gap: 32px;
+    flex-wrap: wrap; align-items: flex-end;
+  }
+  footer .mark {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 32, "SOFT" 50;
+  }
+  footer .colophon {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 14.5px;
+    color: var(--warm-gray);
+    line-height: 1.55;
+    max-width: 480px;
+    margin: 10px 0 0 0;
+    font-variation-settings: "opsz" 14, "SOFT" 40;
+  }
+  footer .meta {
+    font-family: "Inter Tight", sans-serif;
+    font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: right;
+  }
+  footer .meta .edition { color: var(--crimson); margin-bottom: 6px; }
+
+  /* ============================================================
+     Mobile
+     ============================================================ */
+  @media (max-width: 720px) {
+    .wrap { padding: 0 20px; }
+    .masthead .row { padding: 12px 20px; gap: 14px; }
+    .masthead nav { display: none; }
+    .hero { padding: 56px 0 48px; }
+    .hero h1 { font-size: clamp(40px, 11vw, 72px); max-width: none; }
+    .module { grid-template-columns: 56px minmax(0, 1fr); gap: 18px; padding: 44px 0; }
+    .module .roman { font-size: 44px; padding-top: 4px; }
+    .pullquote { margin: 36px 0 36px 0; }
+    .pullquote::before { font-size: 160px; left: -30px; top: -36px; }
+    .brief { padding: 56px 0; }
+    .takeaways { padding: 56px 0 72px; }
+    .takeaways .item { padding: 32px 0 !important; grid-template-columns: 44px minmax(0, 1fr); }
+    footer .meta { text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .scroll-progress { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scroll-progress"></div>
+
+<header class="masthead">
+  <div class="top-rule"></div>
+  <div class="row">
+    <div class="brand">
+      <span class="mark" data-i18n="brand.name">The Review</span>
+      <span class="edition" data-i18n="brand.edition">Vol. CII · №3 · Spring 2026</span>
+    </div>
+    <nav>
+      <a href="#hero" data-i18n="nav.intro">Lede</a>
+      <a href="#article" data-i18n="nav.article">The Argument</a>
+      <a href="#brief" data-i18n="nav.brief">In Brief</a>
+      <a href="#takeaways" data-i18n="nav.takeaways">Takeaways</a>
+    </nav>
+    <a href="#takeaways" class="cta" data-i18n="nav.cta">Subscribe</a>
+  </div>
+</header>
+
+<section id="hero" class="hero">
+  <div class="wrap">
+    <div class="hero-kicker-row">
+      <span class="item cri" data-i18n="hero.topic">Strategy</span>
+      <span class="item" data-i18n="hero.reading">14 minute read</span>
+      <span class="item" data-i18n="hero.issue">Issue 03</span>
+      <span class="item" data-i18n="hero.date">Published 12 May 2026</span>
+    </div>
+
+    <h1 data-i18n="hero.title">When a strategy survives contact with <em>reality</em>.</h1>
+
+    <p class="lede" data-i18n="hero.lede">Most strategies, written on a Tuesday, do not survive the next Monday's standup. The ones that do share a quiet trait: they were <em>argued for</em>, not announced. This is an inquiry into what happens when an organization treats its own plan as a hypothesis, and the market as the reviewer.</p>
+
+    <div class="byline">
+      <div class="disc" data-i18n="byline.initials">AW</div>
+      <div class="meta">
+        <div class="who"><span class="by" data-i18n="byline.by">By</span>&nbsp;<span data-i18n="byline.author">Arthur R. Wellington</span></div>
+        <div class="role" data-i18n="byline.role">Professor of Strategy · Cambridge Business School · with research from the Strategy Practice Group</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="label" data-i18n="stats.l1">Discipline</div>
+        <div class="v" data-i18n="stats.v1">Corporate strategy</div>
+      </div>
+      <div class="stat">
+        <div class="label" data-i18n="stats.l2">Methodology</div>
+        <div class="v" data-i18n="stats.v2"><em>14</em> case studies, 3 sectors</div>
+      </div>
+      <div class="stat">
+        <div class="label" data-i18n="stats.l3">Edition</div>
+        <div class="v" data-i18n="stats.v3">Vol. CII · №3</div>
+      </div>
+      <div class="stat">
+        <div class="label" data-i18n="stats.l4">Format</div>
+        <div class="v" data-i18n="stats.v4">Essay & field notes</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="article" class="article">
+  <div class="wrap">
+
+    <div class="module">
+      <div class="roman">I</div>
+      <div class="body">
+        <div class="kicker mod-kicker"><span data-i18n="mod1.kicker">The Problem · §I</span></div>
+        <h2 data-i18n="mod1.heading">The plan is not the <em>strategy</em>.</h2>
+        <p class="dropcap" data-i18n="mod1.p1"><em>Every quarter</em>, somewhere in the building, a document is produced. It has slides. It has arrows. It has a section called "the strategy" and another called "execution," and these two sections — sealed off from each other by a section break — are precisely the problem. A plan describes the route. A strategy describes the <em>theory of why the route works</em>. When the theory is missing, the route is decoration.</p>
+        <p data-i18n="mod1.p2">We studied fourteen firms over the past decade, across financial services, industrial manufacturing, and consumer technology. The pattern repeated. Plans were written, presented, applauded. Within ninety days, the gap between document and behavior was wide enough to walk through. Not because the plan was wrong — but because the plan was never an argument that could be tested.</p>
+
+        <div class="pullquote">
+          <q data-i18n="mod1.quote">A plan is a contract with the future. A strategy is a wager on which future arrives first.</q>
+          <div class="attr" data-i18n="mod1.attr">— Field note, fourth interview, June 2025</div>
+        </div>
+
+        <p data-i18n="mod1.p3">The firms that broke the pattern did one thing differently: they treated their own plan as a hypothesis. They named the conditions under which it would fail. They scheduled the reviews of those conditions before they scheduled the celebration of the plan itself. This is not paranoia. It is the simple discipline of writing down what you don't yet know.</p>
+
+        <p class="margin-note" data-i18n="mod1.note">A note from the editors — the firms that performed this exercise once, ceremonially, did not improve. The firms that performed it quarterly, with the same seriousness as the budget, did.</p>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="roman">II</div>
+      <div class="body">
+        <div class="kicker mod-kicker"><span data-i18n="mod2.kicker">The Mechanism · §II</span></div>
+        <h2 data-i18n="mod2.heading">An <em>argued</em> strategy outlives an announced one.</h2>
+        <p class="dropcap" data-i18n="mod2.p1"><em>Consider the difference</em> between a strategy presented and a strategy defended. The first travels through the organization as a memo; the second travels as a debate. Memos are filed. Debates are remembered. Six months after an executive offsite, your people will not recall the slides — they will recall the questions that did not have answers, and what was eventually said when the silence broke.</p>
+
+        <div class="pullquote">
+          <q data-i18n="mod2.quote">The most useful artifact from a strategy review is not the deck. It is the list of objections that survived the room.</q>
+          <div class="attr" data-i18n="mod2.attr">— Director of Strategy, Industrial Manufacturer, anonymized</div>
+        </div>
+
+        <p data-i18n="mod2.p2">In our case work, the firms that produced <em>durable</em> strategy did three things in tension with conventional practice. They invited their sharpest internal critics to write the counter-memo before the strategy was approved. They retained those counter-memos in the planning archive. And, twelve months later, they read them aloud — not to embarrass anyone, but to ask the only question that matters: which of these did we answer, and which are we still pretending we have?</p>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="roman">III</div>
+      <div class="body">
+        <div class="kicker mod-kicker"><span data-i18n="mod3.kicker">The Practice · §III</span></div>
+        <h2 data-i18n="mod3.heading">What the <em>discipline</em> looks like on a Tuesday.</h2>
+        <p class="dropcap" data-i18n="mod3.p1"><em>None of the above</em> is exotic. It costs nothing beyond a willingness to be wrong on the record. The instrument is simple: a single page, written by the strategist, that names the three things that must be true for the strategy to work, the three signals that would tell us they are not true, and the date on which we will check. We call it the <em>premise sheet</em>. It belongs at the front of every plan and at the front of every review.</p>
+        <p data-i18n="mod3.p2">Organizations that adopted the premise sheet did not produce more strategies. They produced fewer. The strategies they produced, however, were continuous — they survived the contact with the market because they had been built, from the first sentence, to anticipate it.</p>
+
+        <div class="section-mark"><span data-i18n="mod3.end">End of the argument</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="brief" class="brief">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker" data-i18n="brief.kicker">The Idea in Brief</div>
+      <h2 data-i18n="brief.heading">A strategy survives the market when it was already <em>argued with</em> in the room.</h2>
+    </div>
+    <div class="points">
+      <div class="point">
+        <div class="num">i.</div>
+        <div class="label" data-i18n="brief.l1">The Idea</div>
+        <p data-i18n="brief.p1">Plans describe routes. Strategies describe <em>why those routes are the right ones</em>. The second is a hypothesis — and like all hypotheses, it must be testable, or it is decoration.</p>
+      </div>
+      <div class="point">
+        <div class="num">ii.</div>
+        <div class="label" data-i18n="brief.l2">The Evidence</div>
+        <p data-i18n="brief.p2">Across fourteen firms over a decade, the strategies that survived were the ones <em>defended</em> against named, written objections — not the ones that were merely approved.</p>
+      </div>
+      <div class="point">
+        <div class="num">iii.</div>
+        <div class="label" data-i18n="brief.l3">The Practice</div>
+        <p data-i18n="brief.p3">Adopt the <em>premise sheet</em>: name the three things that must be true, the three signals that would tell you they aren't, and the date you will check. Keep it at the front of the plan. Read it again.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways" class="takeaways">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker" data-i18n="take.kicker">Four Takeaways</div>
+      <h2 data-i18n="take.heading">What to do, on <em>Monday</em>.</h2>
+    </div>
+    <div class="grid">
+      <div class="item">
+        <div class="num">i.</div>
+        <div class="text">
+          <h3 data-i18n="take.t1.h">Write the <em>premise sheet</em> first.</h3>
+          <p data-i18n="take.t1.p">Before the slides, name the three propositions on which the strategy rests. If you cannot, you do not yet have a strategy — you have a wish list with a budget line attached.</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">ii.</div>
+        <div class="text">
+          <h3 data-i18n="take.t2.h">Invite the <em>counter-memo</em> into the archive.</h3>
+          <p data-i18n="take.t2.p">Ask your sharpest critic to write a one-page argument against the plan. File it next to the plan. Re-read both before any review. Memory will not do this work for you.</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">iii.</div>
+        <div class="text">
+          <h3 data-i18n="take.t3.h">Schedule the <em>disconfirmation</em> date.</h3>
+          <p data-i18n="take.t3.p">Plans rarely fail at announcement. They fail at the silence that follows. Put the date the world will tell you something on the calendar, before you celebrate the launch.</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">iv.</div>
+        <div class="text">
+          <h3 data-i18n="take.t4.h">Reread the <em>list of objections</em>.</h3>
+          <p data-i18n="take.t4.p">Twelve months in, do not ask "are we on track." Ask "which of the objections from the room have we actually answered, and which are we still pretending we have?"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <div class="mark" data-i18n="footer.mark">The Review</div>
+        <div class="colophon" data-i18n="footer.colophon">Set in Fraunces and Inter Tight. A quarterly of business and decision. Six essays per edition; four editions per year; no advertising.</div>
+      </div>
+      <div class="meta">
+        <div class="edition" data-i18n="footer.edition">Vol. CII · №3 · Spring 2026</div>
+        <div data-i18n="footer.copy">© The Review · All rights reserved</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script id="i18n-loader">
+window.__I18N_LANGS__ = window.__I18N_LANGS__ || ['en'];
+(function() {
+  var URL_LANG = new URLSearchParams(location.search).get('lang');
+  var NAV_LANG = (navigator.language || 'en').slice(0, 2);
+  var SUPPORTED = window.__I18N_LANGS__;
+  var lang = SUPPORTED.includes(URL_LANG) ? URL_LANG
+           : SUPPORTED.includes(NAV_LANG) ? NAV_LANG
+           : 'en';
+  document.documentElement.setAttribute('lang', lang);
+  fetch('i18n/' + lang + '.json').then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(dict){
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var k = el.getAttribute('data-i18n'); if (dict[k]) el.innerHTML = dict[k];
+    });
+    document.querySelectorAll('[data-i18n-attr]').forEach(function(el){
+      el.getAttribute('data-i18n-attr').split(',').forEach(function(a){
+        a = a.trim(); var k = el.getAttribute('data-i18n-attr-' + a); if (k && dict[k]) el.setAttribute(a, dict[k]);
+      });
+    });
+    document.documentElement.classList.add('i18n-ready');
+  }).catch(function(){ document.documentElement.classList.add('i18n-ready'); });
+})();
+</script>
+
+<script id="nav-scrollspy">
+(function() {
+  var progress = document.getElementById('scroll-progress');
+  var navLinks = document.querySelectorAll('.masthead nav a');
+  var sections = Array.prototype.map.call(navLinks, function(a) {
+    var id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  });
+
+  function onScroll() {
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    if (progress) progress.style.width = pct + '%';
+
+    var pivot = window.scrollY + 120;
+    var activeIdx = 0;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i] && sections[i].offsetTop <= pivot) activeIdx = i;
+    }
+    navLinks.forEach(function(a, i) { a.classList.toggle('active', i === activeIdx); });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>
