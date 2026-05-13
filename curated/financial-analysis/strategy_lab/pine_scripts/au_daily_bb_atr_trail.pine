@@ -1,0 +1,74 @@
+// ═══════════════════════════════════════════════════════════════════
+// AU Daily #3: Bollinger Entry + ATR Trailing Stop
+// ═══════════════════════════════════════════════════════════════════
+// Evolved via /evolve-strategy AU Daily (2026-02-11)
+// Backtest: 185.1% return | Sharpe 0.11 | Sortino 0.18 | MaxDD -78.4%
+// Win Rate: 41.5% | 142 trades | SQN 1.04
+// Data: 28 years daily (1998-2026) — validated on TradingView full history
+//
+// LOGIC: Buy when price touches lower Bollinger Band.
+// Exit via 2.5x ATR trailing stop (adaptive, locks in profits).
+// Most active of the top 3 — 142 trades for statistical confidence.
+// ═══════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy("AU BB+ATR Trail [Daily Evolved #3]", overlay=true, initial_capital=100000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ── Inputs ──────────────────────────────────────────────────────
+bb_period    = input.int(20, "Bollinger Period", minval=5)
+bb_std       = input.float(2.0, "Bollinger StdDev", minval=0.5, step=0.5)
+atr_period   = input.int(14, "ATR Period", minval=1)
+atr_mult     = input.float(2.5, "ATR Trail Multiplier", minval=0.5, step=0.5)
+
+// ── Bollinger Bands ─────────────────────────────────────────────
+bb_mid   = ta.sma(close, bb_period)
+bb_dev   = bb_std * ta.stdev(close, bb_period)
+bb_upper = bb_mid + bb_dev
+bb_lower = bb_mid - bb_dev
+
+// ── ATR ─────────────────────────────────────────────────────────
+atr_val = ta.atr(atr_period)
+
+// ── Trailing Stop Logic ─────────────────────────────────────────
+var float highest_price = 0.0
+var float trail_stop = 0.0
+
+if strategy.position_size > 0
+    highest_price := math.max(highest_price, high)
+    new_stop = highest_price - atr_mult * atr_val
+    trail_stop := math.max(trail_stop, new_stop)
+
+// ── Entry ───────────────────────────────────────────────────────
+buy_signal = close <= bb_lower and strategy.position_size == 0
+if buy_signal
+    strategy.entry("Long", strategy.long)
+    highest_price := close
+    trail_stop := close - atr_mult * atr_val
+
+// ── Exit ────────────────────────────────────────────────────────
+sell_signal = strategy.position_size > 0 and close < trail_stop
+if sell_signal
+    strategy.close("Long")
+    highest_price := 0.0
+    trail_stop := 0.0
+
+// ── Visuals ─────────────────────────────────────────────────────
+// Bollinger Bands
+p_bb_upper = plot(bb_upper, title="BB Upper", color=color.red, linewidth=1)
+p_bb_mid   = plot(bb_mid, title="BB Mid", color=color.gray, linewidth=1)
+p_bb_lower = plot(bb_lower, title="BB Lower", color=color.green, linewidth=1)
+fill(p_bb_upper, p_bb_lower, color=color.new(color.blue, 93), title="BB Fill")
+
+// Trailing stop line
+plot(strategy.position_size > 0 ? trail_stop : na, title="Trailing Stop", color=color.orange, linewidth=2, style=plot.style_stepline)
+
+// Buy/Sell signals
+plotshape(buy_signal, title="BUY", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape(sell_signal, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+
+// Position highlighting
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na, title="In Position")
+
+// ── Alerts ──────────────────────────────────────────────────────
+alertcondition(close <= bb_lower and strategy.position_size == 0, title="AU BB+ATR Buy", message="AU: Price at lower Bollinger Band — BUY signal")
+alertcondition(strategy.position_size > 0 and close < trail_stop, title="AU BB+ATR Sell", message="AU: ATR trailing stop hit — SELL signal")

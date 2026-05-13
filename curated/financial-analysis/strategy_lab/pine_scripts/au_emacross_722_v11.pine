@@ -1,0 +1,136 @@
+// EMACross 722 V11 — 722% | Sharpe 1.31
+//@version=5
+strategy("EMACross 722 V11 — AU", overlay=true, initial_capital=100000, commission_value=0.1,
+         default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ═══════════════════════════════════════════════════════════
+//  CHAMPION V11: EMACross 722 — AU Daily (2024-01+)
+//  722.0% | Sharpe 1.31 | Sortino ~5.1 | MaxDD -28.7% | 100% WR | 4 trades
+//  Entry: EMA(6) x EMA(20) + SMA(30) regime | Cooldown 2
+//  Exit: Ratcheting trail 34%→20% | Profit target +70% | Time stop off
+// ═══════════════════════════════════════════════════════════
+
+// ═══ INPUTS ═══
+emaFastLen   = input.int(6, "Fast EMA Length", minval=1)
+emaSlowLen   = input.int(20, "Slow EMA Length", minval=2)
+smaLen       = input.int(30, "Regime Filter SMA", minval=5,
+               tooltip="Bull regime = price above this SMA. No entries when below.")
+wideTrail    = input.float(34.0, "Wide Trail % (initial)", step=0.5)
+tightTrail   = input.float(20.0, "Tight Trail % (after ratchet)", step=0.5)
+ratchetAt    = input.float(100.0, "Ratchet At Gain %", step=5,
+               tooltip="Tighten trail from 34% to 20% when unrealized gain exceeds this.")
+profitTarget = input.float(70.0, "Profit Target %", step=5,
+               tooltip="Exit when unrealized gain reaches this level. 0 = disabled.")
+timeStop     = input.int(0, "Time Stop (bars)", minval=0,
+               tooltip="Exit after N bars in trade. 0 = disabled.")
+cooldownBars = input.int(2, "Cooldown Bars After Exit", minval=0,
+               tooltip="Wait this many bars after exit before re-entry.")
+
+// ═══ INDICATORS ═══
+emaFast = ta.ema(close, emaFastLen)
+emaSlow = ta.ema(close, emaSlowLen)
+smaVal  = ta.sma(close, smaLen)
+
+// ═══ STATE ═══
+var float highWater = 0.0
+var float entryPrice = 0.0
+var int barsSinceExit = 999
+var int barsInTrade = 0
+
+// ═══ REGIME ═══
+inBullRegime = close > smaVal
+
+// ═══ ENTRY ═══
+emaCross = ta.crossover(emaFast, emaSlow)
+
+if strategy.position_size == 0
+    barsSinceExit += 1
+    if emaCross and inBullRegime and barsSinceExit > cooldownBars
+        strategy.entry("Long", strategy.long)
+        highWater := close
+        entryPrice := close
+        barsSinceExit := 0
+        barsInTrade := 0
+
+// ═══ EXIT: THREE MECHANISMS ═══
+if strategy.position_size > 0
+    barsInTrade += 1
+    highWater := math.max(highWater, close)
+    gainPct = (close / entryPrice - 1.0) * 100.0
+
+    // Exit 1: Ratcheting trailing stop
+    trail = gainPct > ratchetAt ? tightTrail : wideTrail
+    trailLevel = highWater * (1.0 - trail / 100.0)
+
+    if close < trailLevel
+        strategy.close("Long", comment="Trail " + str.tostring(trail, "#.0") + "%")
+        barsSinceExit := 0
+
+    // Exit 2: Profit target
+    if profitTarget > 0 and gainPct >= profitTarget
+        strategy.close("Long", comment="PT +" + str.tostring(profitTarget, "#.0") + "%")
+        barsSinceExit := 0
+
+    // Exit 3: Time stop
+    if timeStop > 0 and barsInTrade >= timeStop
+        strategy.close("Long", comment="Time " + str.tostring(barsInTrade) + " bars")
+        barsSinceExit := 0
+
+// ═══ PLOTS ═══
+plot(smaVal, "SMA(30) Regime", color=color.new(color.yellow, 20), linewidth=2)
+plot(emaFast, "EMA(6) Fast", color=color.new(color.green, 30), linewidth=1)
+plot(emaSlow, "EMA(20) Slow", color=color.new(color.orange, 30), linewidth=1)
+
+// Regime background
+bgcolor(inBullRegime ? color.new(color.green, 95) : color.new(color.red, 95), title="Regime")
+
+// Trail stop line (red, step line when in position)
+trailActive = strategy.position_size > 0
+currentGain = trailActive ? (close / entryPrice - 1.0) * 100.0 : 0.0
+currentTrail = currentGain > ratchetAt ? tightTrail : wideTrail
+trailLine = trailActive ? highWater * (1.0 - currentTrail / 100.0) : na
+plot(trailLine, "Trail Stop", color=color.new(color.red, 30), linewidth=2, style=plot.style_stepline)
+
+// High water mark line (green, step line)
+hwmLine = trailActive ? highWater : na
+plot(hwmLine, "High Water", color=color.new(color.green, 60), linewidth=1, style=plot.style_stepline)
+
+// Profit target line (green dashed when in position)
+ptLine = trailActive ? entryPrice * (1.0 + profitTarget / 100.0) : na
+plot(ptLine, "Profit Target", color=color.new(color.green, 40), linewidth=1, style=plot.style_stepline)
+
+// Ratchet state bgcolor
+bgcolor(trailActive and currentGain > ratchetAt ? color.new(color.teal, 93) : na, title="Ratcheted (Tight Trail)")
+
+// ═══ INFO TABLE ═══
+var table t = table.new(position.top_right, 2, 6, bgcolor=color.new(color.black, 70),
+                        border_width=1, border_color=color.gray)
+if barstate.islast
+    table.cell(t, 0, 0, "EMACross 722 V11", text_color=color.white, text_size=size.small)
+    table.cell(t, 1, 0, "722% | Sharpe 1.31", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 0, 1, "Regime:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 1, inBullRegime ? "BULL" : "BEAR",
+               text_color=inBullRegime ? color.green : color.red, text_size=size.tiny)
+    table.cell(t, 0, 2, "Position:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 2, trailActive ? "LONG" : "FLAT",
+               text_color=trailActive ? color.green : color.gray, text_size=size.tiny)
+    table.cell(t, 0, 3, "Trail:", text_color=color.gray, text_size=size.tiny)
+    trailColor = currentGain > ratchetAt ? color.teal : color.orange
+    table.cell(t, 1, 3, trailActive ? str.tostring(currentTrail, "#.0") + "%" : "-",
+               text_color=trailColor, text_size=size.tiny)
+    table.cell(t, 0, 4, "Gain:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 4, trailActive ? str.tostring(currentGain, "#.1") + "%" : "-",
+               text_color=currentGain > 0 ? color.green : color.red, text_size=size.tiny)
+    table.cell(t, 0, 5, "HWM:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 5, trailActive ? "$" + str.tostring(highWater, "#.##") : "-",
+               text_color=color.white, text_size=size.tiny)
+
+// ═══ ALERTS ═══
+alertcondition(strategy.position_size > 0 and strategy.position_size[1] == 0,
+               "Entry", "EMACross 722 V11: BUY — EMA(6) x EMA(20) + SMA(30) bull regime")
+alertcondition(strategy.position_size == 0 and strategy.position_size[1] > 0,
+               "Trail Exit", "EMACross 722 V11: EXIT — ratcheting trail stop triggered")
+alertcondition(strategy.position_size > 0 and currentGain >= profitTarget and profitTarget > 0,
+               "Profit Target", "EMACross 722 V11: Profit target +" + str.tostring(profitTarget) + "% hit")
+alertcondition(inBullRegime != inBullRegime[1],
+               "Regime Change", "EMACross 722 V11: Regime changed — " + (inBullRegime ? "BULL" : "BEAR"))

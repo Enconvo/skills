@@ -1,0 +1,59 @@
+//@version=5
+strategy("RatchetRider AU", overlay=true, initial_capital=100000, commission_value=0.1,
+         default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ═══ INPUTS ═══
+emaLen     = input.int(2, "Entry EMA Length", minval=1)
+wideTrail  = input.float(20.0, "Wide Trail %", step=0.5)
+tightTrail = input.float(15.0, "Tight Trail %", step=0.5)
+ratchetAt  = input.float(60.0, "Ratchet At Gain %", step=5)
+cooldownBars = input.int(1, "Cooldown Bars After Exit", minval=0)
+
+// ═══ INDICATORS ═══
+emaVal = ta.ema(close, emaLen)
+
+// ═══ STATE ═══
+var float highWater = 0.0
+var float entryPrice = 0.0
+var int barsSinceExit = 999
+
+// ═══ ENTRY ═══
+if strategy.position_size == 0
+    barsSinceExit += 1
+    if close > emaVal and barsSinceExit > cooldownBars
+        strategy.entry("Long", strategy.long)
+        highWater := close
+        entryPrice := close
+        barsSinceExit := 0
+
+// ═══ EXIT: RATCHETING TRAIL ═══
+if strategy.position_size > 0
+    highWater := math.max(highWater, close)
+    gainPct = (close / entryPrice - 1.0) * 100.0
+    trail = gainPct > ratchetAt ? tightTrail : wideTrail
+    trailLevel = highWater * (1.0 - trail / 100.0)
+
+    if close < trailLevel
+        strategy.close("Long", comment="Trail " + str.tostring(trail, "#.0") + "%")
+        barsSinceExit := 0
+
+// ═══ PLOTS ═══
+plot(emaVal, "Entry EMA", color=color.new(color.blue, 50), linewidth=1)
+
+// Trail level visualization
+trailActive = strategy.position_size > 0
+currentGain = trailActive ? (close / entryPrice - 1.0) * 100.0 : 0.0
+currentTrail = currentGain > ratchetAt ? tightTrail : wideTrail
+trailLine = trailActive ? highWater * (1.0 - currentTrail / 100.0) : na
+plot(trailLine, "Trail Stop", color=color.new(color.red, 30), linewidth=2, style=plot.style_stepline)
+
+// High water mark
+hwmLine = trailActive ? highWater : na
+plot(hwmLine, "High Water", color=color.new(color.green, 60), linewidth=1, style=plot.style_stepline)
+
+// Ratchet indicator
+bgcolor(trailActive and currentGain > ratchetAt ? color.new(color.green, 95) : na, title="Ratcheted")
+
+// ═══ ALERTS ═══
+alertcondition(strategy.position_size > 0 and strategy.position_size[1] == 0, "Entry Signal", "RatchetRider: BUY")
+alertcondition(strategy.position_size == 0 and strategy.position_size[1] > 0, "Exit Signal", "RatchetRider: EXIT (Trail Stop)")

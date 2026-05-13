@@ -1,0 +1,52 @@
+// ═══════════════════════════════════════════════════════════════════
+// NVDA #2: Keltner Channel Mean Reversion
+// ═══════════════════════════════════════════════════════════════════
+// Evolved via /evolve-strategy NVDA (2026-02-11)
+// Backtest: 91.7% return | Sharpe 0.72 | Sortino 1.61 | MaxDD -29.7%
+// Win Rate: 66.7% | 30 trades | SQN 2.22
+//
+// LOGIC: Buy when price touches lower Keltner Channel (oversold dip).
+// Sell when price reaches upper Keltner Channel (overbought).
+// High SQN (2.22) means very consistent, reliable trade quality.
+// ═══════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy("NVDA Keltner Reversion", overlay=true, initial_capital=1000000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ── Inputs ──────────────────────────────────────────────────────
+kc_period = input.int(20, "Keltner Period", minval=5)
+kc_mult   = input.float(2.0, "Keltner ATR Multiplier", minval=0.5, step=0.5)
+
+// ── Indicators ──────────────────────────────────────────────────
+kc_mid   = ta.ema(close, kc_period)
+kc_atr   = ta.atr(kc_period)
+kc_upper = kc_mid + kc_mult * kc_atr
+kc_lower = kc_mid - kc_mult * kc_atr
+
+// ── Entry ───────────────────────────────────────────────────────
+buy_signal = close <= kc_lower and strategy.position_size == 0
+if buy_signal
+    strategy.entry("Long", strategy.long)
+
+// ── Exit ────────────────────────────────────────────────────────
+sell_signal = close >= kc_upper and strategy.position_size > 0
+if sell_signal
+    strategy.close("Long")
+
+// ── Visuals ─────────────────────────────────────────────────────
+// Keltner Channels
+p_upper = plot(kc_upper, title="KC Upper", color=color.red, linewidth=1)
+p_mid   = plot(kc_mid, title="KC Mid", color=color.gray, linewidth=1)
+p_lower = plot(kc_lower, title="KC Lower", color=color.green, linewidth=1)
+fill(p_upper, p_lower, color=color.new(color.blue, 93), title="KC Fill")
+
+// Buy/Sell signals
+plotshape(buy_signal, title="BUY", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape(sell_signal, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+
+// Trade highlighting
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na, title="In Position")
+
+// ── Alerts ──────────────────────────────────────────────────────
+alertcondition(close <= kc_lower and strategy.position_size == 0, title="NVDA Keltner Buy", message="NVDA: Price at lower Keltner Channel — BUY signal")
+alertcondition(close >= kc_upper and strategy.position_size > 0, title="NVDA Keltner Sell", message="NVDA: Price at upper Keltner Channel — SELL signal")

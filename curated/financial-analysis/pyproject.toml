@@ -1,0 +1,31 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+# Start lenient — strategy scripts have many acceptable style patterns
+select = ["E", "F", "W"]
+ignore = [
+    "E401",   # multiple imports on one line (common in strategy scripts)
+    "E402",   # module-level import not at top (sys.path.append pattern)
+    "E701",   # multiple statements on one line (compact strategy logic)
+    "E702",   # multiple statements on one line semicolon
+    "E712",   # comparison to True/False (pandas/numpy idiom)
+    "E741",   # ambiguous variable name (l, O, I — common in math/finance)
+    "F401",   # unused import (many scripts import for side effects)
+    "F541",   # f-string without placeholders (used as format strings)
+    "E501",   # line too long (strategy scripts have long lines)
+    "E722",   # bare except (used intentionally in walk-forward scripts)
+    "F821",   # undefined name (false positives in dynamic strategy code)
+    "F841",   # local variable assigned but never used
+]
+
+[tool.ruff.lint.per-file-ignores]
+"strategy_lab/*/run_all.py" = ["E", "F"]  # runner scripts
+"tests/*" = ["E501"]                       # long test lines OK
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

@@ -1,0 +1,24 @@
+Strategy,Python File,Return [%],Max. Drawdown [%],Sharpe Ratio,Sortino Ratio,# Trades,Win Rate [%],Profit Factor,Expectancy [%],Equity Final [$]
+r1_01_golden_cross,r1_01_golden_cross.py,94.38117,-35.40559,0.68784,1.49966,8.0,62.5,2.78124,6.65316,194381.17078
+r1_02_rsi_mean_reversion,r1_02_rsi_mean_reversion.py,207.99111,-29.71338,1.48188,4.46128,20.0,75.0,5.5268,5.26016,307991.10508
+r1_03_bollinger_breakout,r1_03_bollinger_breakout.py,41.35942,-22.29093,0.54083,1.046,66.0,39.39394,1.37569,0.60272,141359.41596
+r1_04_macd_trend,r1_04_macd_trend.py,38.03339,-42.76035,0.36799,0.68058,122.0,42.62295,1.19378,0.32016,138033.39486
+r1_05_donchian_breakout,r1_05_donchian_breakout.py,17.90227,-33.64143,0.21241,0.34344,57.0,33.33333,1.18872,0.50187,117902.27453
+r1_06_supertrend,r1_06_supertrend.py,167.80141,-22.15276,0.97687,2.54816,57.0,47.36842,2.00743,1.9961,267801.41436
+r1_07_ema_ribbon,r1_07_ema_ribbon.py,173.84262,-35.39419,1.08943,2.94204,51.0,43.13725,2.38132,2.23955,273842.61894
+r1_08_atr_volatility_breakout,r1_08_atr_volatility_breakout.py,34.13665,-26.0648,0.42294,0.76997,86.0,40.69767,1.27722,0.44731,134136.64513
+r1_09_stoch_rsi_oversold,r1_09_stoch_rsi_oversold.py,168.09714,-19.14888,1.08772,2.87621,70.0,70.0,2.03687,1.54288,268097.14102
+r1_10_adx_trend_strength,r1_10_adx_trend_strength.py,53.77553,-27.9981,0.68652,1.371,41.0,43.90244,1.75126,1.29223,153775.5289
+r1_11_keltner_mean_reversion,r1_11_keltner_mean_reversion.py,56.63894,-19.61032,1.05251,2.12407,42.0,71.42857,2.55204,1.11975,156638.94351
+r2_01_rsi_supertrend_hybrid,r2_01_rsi_supertrend_hybrid.py,0.0,-0.0,,,0.0,,,,100000.0
+r2_02_stochrsi_ema_filter,r2_02_stochrsi_ema_filter.py,42.71446,-13.70684,0.87886,1.77596,45.0,46.66667,1.82004,0.86319,142714.45768
+r2_03_keltner_rsi_confluence,r2_03_keltner_rsi_confluence.py,56.63894,-19.61032,1.05251,2.12407,42.0,71.42857,2.55204,1.11975,156638.94351
+r2_04_triple_mean_reversion,r2_04_triple_mean_reversion.py,44.98145,-16.77772,0.95753,1.92573,33.0,69.69697,2.74262,1.1714,144981.45354
+r2_05_rsi_atr_trailing,r2_05_rsi_atr_trailing.py,210.37299,-22.12674,1.45094,4.81578,48.0,45.83333,2.97175,2.35445,310372.98872
+r2_06_supertrend_adx_volume,r2_06_supertrend_adx_volume.py,151.21019,-19.86797,1.11437,2.92412,36.0,50.0,2.46916,2.97823,251210.19108
+r2_07_ema_pullback_rsi,r2_07_ema_pullback_rsi.py,-5.04152,-6.91438,-1.0695,-1.12086,6.0,16.66667,0.07082,-0.85528,94958.47716
+r2_08_mean_rev_trend_switch,r2_08_mean_rev_trend_switch.py,189.50294,-19.30309,1.18635,3.32417,28.0,60.71429,3.37832,4.2499,289502.93778
+r3_01_ultimate_au,r3_01_ultimate_au.py,0.0,-0.0,,,0.0,,,,100000.0
+r3_02_adaptive_rsi_atr,r3_02_adaptive_rsi_atr.py,152.98385,-26.89909,1.21182,3.35552,54.0,42.59259,2.0862,1.7005,252983.84593
+r3_03_safe_compounder,r3_03_safe_compounder.py,70.27814,-21.35731,1.15252,2.456,51.0,70.58824,2.46279,1.09484,170278.14458
+r3_04_momentum_rider,r3_04_momentum_rider.py,0.0,-0.0,,,0.0,,,,100000.0

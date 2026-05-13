@@ -1,0 +1,91 @@
+// ═══════════════════════════════════════════════════════════════════
+// AU Smart Pick #5: SuperTrend + Safety Filter
+// ═══════════════════════════════════════════════════════════════════
+// Walk-Forward Validated: 5/7 periods profitable
+// Avg return per 3yr period: 17.9% | Avg worst dip: -28%
+// Risk level: Medium | Confidence: Good
+// Full-history: 62.4% return | 113 trades | 39.8% win rate
+// Data: 28 years daily (1998-2026)
+//
+// HOW IT WORKS: SuperTrend creates a dynamic support/resistance line
+// based on ATR (volatility). When price breaks above it → BUY.
+// When price breaks below it → SELL.
+// SAFETY FILTER: Only trades when price is above the 200-day average.
+// Without this filter, SuperTrend gets whipsawed in bear markets.
+// With it, went from 2/7 FRAGILE → 5/7 ROBUST.
+//
+// BEST FOR: Trend followers who want many trades with automated
+// entries and exits. The SuperTrend line acts as a built-in stop loss.
+// ═══════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy("AU SuperTrend [Smart #5]", overlay=true, initial_capital=100000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ── Inputs ──────────────────────────────────────────────────────
+atr_period    = input.int(10, "ATR Period", minval=1)
+atr_mult      = input.float(3.0, "ATR Multiplier", minval=0.5, step=0.5)
+regime_period  = input.int(200, "Safety Filter (SMA)", minval=50)
+
+// ── SuperTrend Calculation ──────────────────────────────────────
+atr_val = ta.atr(atr_period)
+hl2_val = (high + low) / 2
+
+var float upper_band = 0.0
+var float lower_band = 0.0
+var int direction = 1  // 1 = bullish, -1 = bearish
+
+new_upper = hl2_val + atr_mult * atr_val
+new_lower = hl2_val - atr_mult * atr_val
+
+// Ratchet bands
+lower_band := lower_band > 0 and close[1] > lower_band ? math.max(new_lower, lower_band) : new_lower
+upper_band := upper_band > 0 and close[1] < upper_band ? math.min(new_upper, upper_band) : new_upper
+
+prev_dir = direction
+if close > upper_band
+    direction := 1
+if close < lower_band
+    direction := -1
+
+supertrend = direction == 1 ? lower_band : upper_band
+flip_bull = direction == 1 and prev_dir == -1
+flip_bear = direction == -1 and prev_dir == 1
+
+// ── Safety Filter ───────────────────────────────────────────────
+sma_regime = ta.sma(close, regime_period)
+bullish_regime = close > sma_regime
+
+// ── Entry: SuperTrend flips bullish + regime ────────────────────
+buy_signal = flip_bull and bullish_regime and strategy.position_size == 0
+if buy_signal
+    strategy.entry("Long", strategy.long)
+
+// ── Exit: SuperTrend flips bearish OR regime turns ──────────────
+exit_st = flip_bear and strategy.position_size > 0
+exit_regime = strategy.position_size > 0 and not bullish_regime
+sell_signal = exit_st or exit_regime
+
+if sell_signal
+    strategy.close("Long")
+
+// ── Visuals ─────────────────────────────────────────────────────
+// SuperTrend line
+st_color = direction == 1 ? color.green : color.red
+plot(supertrend, title="SuperTrend", color=st_color, linewidth=2, style=plot.style_stepline)
+
+// Safety filter
+plot(sma_regime, title="200 SMA (Safety)", color=color.new(color.blue, 40), linewidth=1)
+
+// Regime background
+bgcolor(bullish_regime ? color.new(color.green, 96) : color.new(color.red, 96), title="Regime BG")
+
+// Signals
+plotshape(buy_signal, title="BUY", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape(sell_signal, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+
+// Position
+bgcolor(strategy.position_size > 0 ? color.new(color.lime, 88) : na, title="In Position")
+
+// ── Alerts ──────────────────────────────────────────────────────
+alertcondition(buy_signal, title="Smart #5 Buy", message="AU: SuperTrend bullish flip in uptrend — BUY signal")
+alertcondition(sell_signal, title="Smart #5 Sell", message="AU: SuperTrend bearish or regime exit — SELL signal")

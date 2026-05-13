@@ -1,0 +1,65 @@
+// ═══════════════════════════════════════════════════════════════════
+// AU Daily #1: Bollinger + Keltner Squeeze Mean Reversion
+// ═══════════════════════════════════════════════════════════════════
+// Evolved via /evolve-strategy AU Daily (2026-02-11)
+// Backtest: 350.3% return | Sharpe 0.22 | Sortino 0.37 | MaxDD -67.4%
+// Win Rate: 66.7% | 84 trades | SQN 1.88
+// Data: 28 years daily (1998-2026) — validated on TradingView full history
+//
+// LOGIC: Buy when price drops below BOTH lower Bollinger Band AND lower
+// Keltner Channel (double oversold confirmation). Sell when price reaches
+// middle Bollinger Band (conservative target). High-quality entries only.
+// ═══════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy("AU BB+KC Squeeze [Daily Evolved #1]", overlay=true, initial_capital=100000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ── Inputs ──────────────────────────────────────────────────────
+bb_period    = input.int(20, "Bollinger Period", minval=5)
+bb_std       = input.float(2.0, "Bollinger StdDev", minval=0.5, step=0.5)
+kc_period    = input.int(20, "Keltner Period", minval=5)
+kc_mult      = input.float(2.0, "Keltner ATR Multiplier", minval=0.5, step=0.5)
+
+// ── Bollinger Bands ─────────────────────────────────────────────
+bb_mid   = ta.sma(close, bb_period)
+bb_dev   = bb_std * ta.stdev(close, bb_period)
+bb_upper = bb_mid + bb_dev
+bb_lower = bb_mid - bb_dev
+
+// ── Keltner Channels ────────────────────────────────────────────
+kc_mid   = ta.ema(close, kc_period)
+kc_atr   = ta.atr(kc_period)
+kc_upper = kc_mid + kc_mult * kc_atr
+kc_lower = kc_mid - kc_mult * kc_atr
+
+// ── Entry: Double oversold (below both bands) ───────────────────
+buy_signal = close <= bb_lower and close <= kc_lower and strategy.position_size == 0
+if buy_signal
+    strategy.entry("Long", strategy.long)
+
+// ── Exit: Conservative target at middle BB ──────────────────────
+sell_signal = close >= bb_mid and strategy.position_size > 0
+if sell_signal
+    strategy.close("Long")
+
+// ── Visuals ─────────────────────────────────────────────────────
+// Bollinger Bands
+p_bb_upper = plot(bb_upper, title="BB Upper", color=color.red, linewidth=1)
+p_bb_mid   = plot(bb_mid, title="BB Mid", color=color.gray, linewidth=1)
+p_bb_lower = plot(bb_lower, title="BB Lower", color=color.green, linewidth=1)
+fill(p_bb_upper, p_bb_lower, color=color.new(color.blue, 93), title="BB Fill")
+
+// Keltner Channels
+plot(kc_upper, title="KC Upper", color=color.new(color.orange, 50), linewidth=1, style=plot.style_circles)
+plot(kc_lower, title="KC Lower", color=color.new(color.orange, 50), linewidth=1, style=plot.style_circles)
+
+// Buy/Sell signals
+plotshape(buy_signal, title="BUY", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape(sell_signal, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+
+// Trade highlighting
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na, title="In Position")
+
+// ── Alerts ──────────────────────────────────────────────────────
+alertcondition(close <= bb_lower and close <= kc_lower and strategy.position_size == 0, title="AU BB+KC Buy", message="AU: Price below both BB & KC lower bands — BUY signal")
+alertcondition(close >= bb_mid and strategy.position_size > 0, title="AU BB+KC Sell", message="AU: Price reached middle BB — SELL signal")

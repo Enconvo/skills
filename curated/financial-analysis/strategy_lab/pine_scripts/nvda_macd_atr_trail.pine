@@ -1,0 +1,69 @@
+// ═══════════════════════════════════════════════════════════════════
+// NVDA #1: MACD Momentum + ATR Trailing Stop
+// ═══════════════════════════════════════════════════════════════════
+// Evolved via /evolve-strategy NVDA (2026-02-11)
+// Backtest: 101.0% return | Sharpe 0.86 | Sortino 2.18 | MaxDD -27.4%
+// Win Rate: 38.2% | 123 trades | SQN 1.29
+//
+// LOGIC: Enter long on MACD bullish crossover (MACD > Signal).
+// Exit on MACD bearish crossover OR trailing stop hit (3x ATR).
+// ATR trailing locks in profits during big momentum runs.
+// ═══════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy("NVDA MACD + ATR Trail", overlay=true, initial_capital=1000000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ── Inputs ──────────────────────────────────────────────────────
+macd_fast   = input.int(12, "MACD Fast Period", minval=2)
+macd_slow   = input.int(26, "MACD Slow Period", minval=2)
+macd_signal = input.int(9, "MACD Signal Period", minval=2)
+atr_period  = input.int(14, "ATR Period", minval=1)
+atr_mult    = input.float(3.0, "ATR Trailing Multiplier", minval=0.5, step=0.5)
+
+// ── Indicators ──────────────────────────────────────────────────
+[macdLine, signalLine, histLine] = ta.macd(close, macd_fast, macd_slow, macd_signal)
+atr_val = ta.atr(atr_period)
+
+macd_bull_cross = ta.crossover(macdLine, signalLine)
+macd_bear_cross = ta.crossunder(macdLine, signalLine)
+
+// ── Trailing Stop Logic ─────────────────────────────────────────
+var float highest_price = 0.0
+var float trail_stop = 0.0
+
+if strategy.position_size > 0
+    highest_price := math.max(highest_price, high)
+    new_stop = highest_price - atr_mult * atr_val
+    trail_stop := math.max(trail_stop, new_stop)
+
+// ── Entry ───────────────────────────────────────────────────────
+if macd_bull_cross and strategy.position_size == 0
+    strategy.entry("Long", strategy.long)
+    highest_price := close
+    trail_stop := close - atr_mult * atr_val
+
+// ── Exit ────────────────────────────────────────────────────────
+if strategy.position_size > 0
+    if macd_bear_cross or close < trail_stop
+        strategy.close("Long")
+        highest_price := 0.0
+        trail_stop := 0.0
+
+// ── Visuals ─────────────────────────────────────────────────────
+// Buy/Sell signals
+plotshape(macd_bull_cross and strategy.position_size == 0, title="BUY", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape((macd_bear_cross or close < trail_stop) and strategy.position_size > 0, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+
+// Trailing stop line (only when in position)
+plot(strategy.position_size > 0 ? trail_stop : na, title="Trailing Stop", color=color.orange, linewidth=2, style=plot.style_stepline)
+
+// Trade highlighting
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na, title="In Position")
+
+// MACD subplot
+plot(macdLine, title="MACD", color=color.blue, display=display.none)
+plot(signalLine, title="Signal", color=color.orange, display=display.none)
+
+// ── Alerts ──────────────────────────────────────────────────────
+alertcondition(macd_bull_cross and strategy.position_size == 0, title="NVDA MACD Buy", message="NVDA: MACD bullish crossover — BUY signal")
+alertcondition((macd_bear_cross or close < trail_stop) and strategy.position_size > 0, title="NVDA MACD Sell", message="NVDA: MACD bearish cross or trailing stop hit — SELL signal")

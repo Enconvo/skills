@@ -1,0 +1,50 @@
+// ═══════════════════════════════════════════════════════════════════
+// NVDA #3: RSI Mean Reversion
+// ═══════════════════════════════════════════════════════════════════
+// Evolved via /evolve-strategy NVDA (2026-02-11)
+// Backtest: 82.4% return | Sharpe 0.66 | Sortino 1.49 | MaxDD -31.8%
+// Win Rate: 78.9% | 19 trades | SQN 1.63
+//
+// LOGIC: Buy when RSI drops below 30 (oversold). Sell when RSI
+// rises above 70 (overbought). Highest win rate of all strategies.
+// Best for traders who want high-probability entries.
+// ═══════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy("NVDA RSI Reversion", overlay=true, initial_capital=1000000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ── Inputs ──────────────────────────────────────────────────────
+rsi_period     = input.int(14, "RSI Period", minval=2)
+rsi_oversold   = input.int(30, "RSI Oversold", minval=5, maxval=50)
+rsi_overbought = input.int(70, "RSI Overbought", minval=50, maxval=95)
+
+// ── Indicators ──────────────────────────────────────────────────
+rsi_val = ta.rsi(close, rsi_period)
+
+// ── Entry ───────────────────────────────────────────────────────
+buy_signal = rsi_val < rsi_oversold and strategy.position_size == 0
+if buy_signal
+    strategy.entry("Long", strategy.long)
+
+// ── Exit ────────────────────────────────────────────────────────
+sell_signal = rsi_val > rsi_overbought and strategy.position_size > 0
+if sell_signal
+    strategy.close("Long")
+
+// ── Visuals ─────────────────────────────────────────────────────
+// Buy/Sell signals
+plotshape(buy_signal, title="BUY", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape(sell_signal, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+
+// Trade highlighting
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na, title="In Position")
+
+// RSI reference lines (shown in separate pane)
+hline(rsi_oversold, "Oversold", color=color.green, linestyle=hline.style_dashed)
+hline(rsi_overbought, "Overbought", color=color.red, linestyle=hline.style_dashed)
+hline(50, "Mid", color=color.gray, linestyle=hline.style_dotted)
+plot(rsi_val, title="RSI", color=color.purple, display=display.none)
+
+// ── Alerts ──────────────────────────────────────────────────────
+alertcondition(rsi_val < rsi_oversold and strategy.position_size == 0, title="NVDA RSI Buy", message="NVDA: RSI oversold (< 30) — BUY signal")
+alertcondition(rsi_val > rsi_overbought and strategy.position_size > 0, title="NVDA RSI Sell", message="NVDA: RSI overbought (> 70) — SELL signal")

@@ -1,0 +1,87 @@
+//@version=5
+// META 趋势跟随策略 - EMA(8/21) + ATR追踪止损
+//
+// 回测结果 (1h, 2024-2026):
+// - 收益率: -11.98% (买入持有: +35.23%)
+// - 夏普比率: -0.27
+// - 最大回撤: -27.19%
+// - 胜率: 31.2%
+// - 交易次数: 80
+//
+// 注意：此策略在回测期间表现不佳，买入持有表现更优。
+// 仅供学习和研究使用。
+
+strategy("META EMA Trend", overlay=true,
+         initial_capital=100000,
+         commission_value=0.2,
+         commission_type=strategy.commission.percent)
+
+// === 参数设置 ===
+emaFastLen = input.int(8, "EMA快线周期", minval=1)
+emaSlowLen = input.int(21, "EMA慢线周期", minval=1)
+atrLen = input.int(14, "ATR周期", minval=1)
+atrMult = input.float(2.0, "ATR倍数", minval=0.1, step=0.1)
+
+// === 指标计算 ===
+emaFast = ta.ema(close, emaFastLen)
+emaSlow = ta.ema(close, emaSlowLen)
+atr = ta.atr(atrLen)
+
+// === 追踪止损 ===
+var float trailStop = na
+var float entryPrice = na
+
+// 买入信号：EMA金叉
+longCondition = ta.crossover(emaFast, emaSlow)
+
+// 卖出信号：EMA死叉
+shortCondition = ta.crossunder(emaFast, emaSlow)
+
+// === 交易逻辑 ===
+if (longCondition and strategy.position_size == 0)
+    strategy.entry("Long", strategy.long)
+    entryPrice := close
+    trailStop := close - (atr * atrMult)
+    trailStop
+
+if (strategy.position_size > 0)
+    // 更新追踪止损（只向上移动）
+    newStop = close - (atr * atrMult)
+    if (na(trailStop) or newStop > trailStop)
+        trailStop := newStop
+        trailStop
+
+    // 死叉退出
+    if (shortCondition)
+        strategy.close("Long", comment="死叉")
+        trailStop := na
+        entryPrice := na
+
+    // 止损退出
+    if (close < trailStop)
+        strategy.close("Long", comment="止损")
+        trailStop := na
+        entryPrice := na
+
+// === 图表显示 ===
+// 绘制EMA线
+plot(emaFast, "EMA8", color=color.new(color.blue, 0), linewidth=2)
+plot(emaSlow, "EMA21", color=color.new(color.orange, 0), linewidth=2)
+
+// 绘制追踪止损线
+plot(strategy.position_size > 0 ? trailStop : na, "追踪止损",
+     color=color.new(color.red, 0), style=plot.style_linebr, linewidth=1)
+
+// 买卖信号标记
+plotshape(longCondition, "买入", shape.triangleup, location.belowbar,
+          color.new(color.green, 0), size=size.small)
+plotshape(shortCondition and strategy.position_size > 0, "卖出", shape.triangledown,
+          location.abovebar, color.new(color.red, 0), size=size.small)
+
+// 背景颜色（持仓期间）
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na)
+
+// === 告警设置 ===
+alertcondition(longCondition, "买入信号", "META EMA金叉 - 买入信号")
+alertcondition(shortCondition, "卖出信号", "META EMA死叉 - 卖出信号")
+alertcondition(close < trailStop and strategy.position_size > 0, "止损", "META 触发追踪止损")

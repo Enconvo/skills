@@ -1,0 +1,103 @@
+{
+  "AU": {
+    "ticker": "AU",
+    "name": "AngloGold Ashanti",
+    "timeframe": "daily",
+    "data_file": "au_daily.csv",
+    "strategies_dir": "au_daily_strategies",
+    "results_file": "au_daily_results.csv",
+    "strategies": {
+      "ride_rally": {
+        "pick": "R1-01 Golden Cross + Regime",
+        "file": "r1_01_golden_cross.py",
+        "pine": "au_daily_golden_cross_regime.pine",
+        "type": "TREND-FOLLOWING",
+        "entry": "SMA 50 crosses above SMA 200, price above 200 SMA",
+        "exit": "SMA 50 crosses below SMA 200",
+        "best_when": "Strong or emerging uptrend",
+        "walk_forward": "5/7 (with regime filter)",
+        "walk_forward_status": "ROBUST",
+        "stats": {
+          "return": 252.1,
+          "sharpe": 0.13,
+          "win_rate": 33.3,
+          "trades": 21,
+          "max_dd": -65.0,
+          "sqn": 0.03
+        },
+        "regime_filtered": true,
+        "alt": "R1-06 SuperTrend + Regime (5/7 WF, more trades, tighter stops)"
+      },
+      "catch_dips": {
+        "pick": "R2-06 BB+KC Squeeze",
+        "file": "r2_06_bb_keltner_squeeze.py",
+        "pine": "au_daily_bb_kc_squeeze.pine",
+        "type": "MEAN-REVERSION",
+        "entry": "Price below both lower BB(20,2) and lower Keltner(20,1.5)",
+        "exit": "ATR trailing stop (2.0x ATR)",
+        "best_when": "Volatile market with regular pullbacks",
+        "walk_forward": "5/7",
+        "walk_forward_status": "ROBUST",
+        "stats": {
+          "return": 350.3,
+          "sharpe": 0.22,
+          "win_rate": 66.7,
+          "trades": 84,
+          "max_dd": -67.4,
+          "sqn": 1.88
+        },
+        "regime_filtered": false,
+        "alt": "R1-04 Bollinger Bounce (simpler, 322% return, 5/7 WF with regime)"
+      },
+      "play_safe": {
+        "pick": "R2-03 RSI Wide+ATR + Regime",
+        "file": "r2_03_rsi_wider_bands.py",
+        "pine": "au_daily_rsi_wider_atr_regime.pine",
+        "type": "MEAN-REVERSION + REGIME FILTER",
+        "entry": "RSI(14) < 35, price above 200 SMA",
+        "exit": "ATR trailing stop or RSI > 70",
+        "best_when": "Any market — sits out bear markets automatically",
+        "walk_forward": "6/7 (BEST walk-forward score)",
+        "walk_forward_status": "ROBUST",
+        "stats": {
+          "return": 129.8,
+          "sharpe": 0.09,
+          "win_rate": 40.3,
+          "trades": 139,
+          "max_dd": -83.7,
+          "sqn": 0.61
+        },
+        "regime_filtered": true,
+        "alt": "R2-07 EMA+BB Trend Rev (best Sharpe 0.28, lowest DD -26.6%)"
+      },
+      "balanced": {
+        "pick": "R2-07 EMA+BB Trend Reversion",
+        "file": "r2_07_ema_bb_trend_reversion.py",
+        "pine": "au_daily_ema_bb_trend.pine",
+        "type": "HYBRID (trend + mean-reversion)",
+        "entry": "Price touches lower BB(20,2) while EMA 8>21>55 (uptrend intact)",
+        "exit": "ATR trailing stop (2.0x ATR)",
+        "best_when": "Mild uptrend with regular pullbacks to lower BB",
+        "walk_forward": "4/7",
+        "walk_forward_status": "MARGINAL",
+        "stats": {
+          "return": 114.1,
+          "sharpe": 0.28,
+          "win_rate": 72.7,
+          "trades": 11,
+          "max_dd": -26.6,
+          "sqn": 2.03
+        },
+        "regime_filtered": false,
+        "note": "Best risk-adjusted (Sharpe 0.28, SQN 2.03, lowest MaxDD). DO NOT add regime filter — it hurts mean-reversion component.",
+        "alt": "R1-04 Bollinger Bounce + Regime (more trades, 5/7 WF)"
+      }
+    },
+    "regime_mapping": {
+      "STRONG_UPTREND": "ride_rally",
+      "MILD_UPTREND": "balanced",
+      "SIDEWAYS": "catch_dips",
+      "DOWNTREND": "play_safe"
+    }
+  }
+}

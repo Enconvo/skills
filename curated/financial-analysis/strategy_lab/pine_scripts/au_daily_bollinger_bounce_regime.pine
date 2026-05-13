@@ -1,0 +1,73 @@
+// ═══════════════════════════════════════════════════════════════════
+// AU Smart Pick #6: Bollinger Band Bounce + Safety Filter
+// ═══════════════════════════════════════════════════════════════════
+// Walk-Forward Validated: 5/7 periods profitable
+// Avg return per 3yr period: 17.8% | Avg worst dip: -21%
+// Risk level: Medium | Confidence: Good
+// Full-history: 322.2% return | 77 trades | 66.2% win rate
+// Data: 28 years daily (1998-2026)
+//
+// HOW IT WORKS: Buys when price touches the lower Bollinger Band
+// (2 standard deviations below average — a statistical "oversold").
+// Sells when price reaches the upper Bollinger Band (overbought).
+// SAFETY FILTER: Only trades when price is above 200-day average.
+// This avoids buying "dips" during bear markets that keep falling.
+//
+// BEST FOR: Moderate risk investors. Good win rate (66%), lots of
+// trades (77), and the safety filter cuts the worst dip from -90% to -21%.
+// ═══════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy("AU BB Bounce [Smart #6]", overlay=true, initial_capital=100000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ── Inputs ──────────────────────────────────────────────────────
+bb_period     = input.int(20, "Bollinger Period", minval=5)
+bb_std        = input.float(2.0, "Bollinger StdDev", minval=0.5, step=0.5)
+regime_period  = input.int(200, "Safety Filter (SMA)", minval=50)
+
+// ── Bollinger Bands ─────────────────────────────────────────────
+bb_mid   = ta.sma(close, bb_period)
+bb_dev   = bb_std * ta.stdev(close, bb_period)
+bb_upper = bb_mid + bb_dev
+bb_lower = bb_mid - bb_dev
+
+// ── Safety Filter ───────────────────────────────────────────────
+sma_regime = ta.sma(close, regime_period)
+bullish_regime = close > sma_regime
+
+// ── Entry: Lower BB touch + bullish regime ──────────────────────
+buy_signal = close <= bb_lower and bullish_regime and strategy.position_size == 0
+if buy_signal
+    strategy.entry("Long", strategy.long)
+
+// ── Exit: Upper BB OR regime turns bearish ──────────────────────
+exit_bb = close >= bb_upper and strategy.position_size > 0
+exit_regime = strategy.position_size > 0 and not bullish_regime
+sell_signal = exit_bb or exit_regime
+
+if sell_signal
+    strategy.close("Long")
+
+// ── Visuals ─────────────────────────────────────────────────────
+// Bollinger Bands
+p_upper = plot(bb_upper, title="BB Upper", color=color.red, linewidth=1)
+p_mid   = plot(bb_mid, title="BB Mid", color=color.gray, linewidth=1)
+p_lower = plot(bb_lower, title="BB Lower", color=color.green, linewidth=1)
+fill(p_upper, p_lower, color=color.new(color.blue, 93), title="BB Fill")
+
+// Safety filter
+plot(sma_regime, title="200 SMA (Safety)", color=color.new(color.blue, 30), linewidth=2)
+
+// Regime background
+bgcolor(bullish_regime ? color.new(color.green, 96) : color.new(color.red, 96), title="Regime BG")
+
+// Signals
+plotshape(buy_signal, title="BUY", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape(sell_signal, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+
+// Position
+bgcolor(strategy.position_size > 0 ? color.new(color.lime, 88) : na, title="In Position")
+
+// ── Alerts ──────────────────────────────────────────────────────
+alertcondition(buy_signal, title="Smart #6 Buy", message="AU: Price at lower Bollinger in uptrend — BUY signal")
+alertcondition(sell_signal, title="Smart #6 Sell", message="AU: Upper Bollinger or regime exit — SELL signal")

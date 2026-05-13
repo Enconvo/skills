@@ -1,0 +1,71 @@
+//@version=5
+// ============================================================================
+//  NVDA — Gap Expectancy Maximizer (R3-06)
+//  Backtest: Return 337.8% | Sharpe 0.86 | Sortino 2.00 | MaxDD -39.7%
+//           Win Rate 55% | 20 trades | SQN 1.34 | Expectancy 9.13%
+// ============================================================================
+//  Entry: Gap up >1.5% + Open > prev high + MACD hist > 0 + price > SMA(50)
+//         Triple confirmation: big gap + breakout + momentum
+//  Exit:  ATR(14) trailing stop at 2.0x ATR below price
+// ============================================================================
+strategy("NVDA Gap Expectancy Max", overlay=true, initial_capital=1000000,
+     commission_value=0.1, default_qty_type=strategy.percent_of_equity,
+     default_qty_value=100)
+
+// === Inputs ===
+gapMin       = input.float(1.5, "Min Gap %", minval=0.5, step=0.1)
+atrPeriod    = input.int(14, "ATR Period", minval=1)
+atrMult      = input.float(2.0, "ATR Trail Multiplier", minval=0.5, step=0.1)
+smaPeriod    = input.int(50, "SMA Trend Period", minval=5)
+
+// === Indicators ===
+gapPct       = (open - close[1]) / close[1] * 100
+smaVal       = ta.sma(close, smaPeriod)
+atrVal       = ta.atr(atrPeriod)
+[macdLine, signalLine, macdHist] = ta.macd(close, 12, 26, 9)
+
+// === Entry Logic — Triple Confirmation ===
+bigGap       = gapPct > gapMin                    // gap up > 1.5%
+breakout     = open > high[1]                      // open > yesterday's high
+macdPositive = macdHist > 0                        // MACD momentum
+uptrend      = close > smaVal                      // above SMA trend
+atrValid     = not na(atrVal)
+
+longEntry    = bigGap and breakout and macdPositive and uptrend and atrValid
+
+// === Trailing Stop ===
+var float trailStop = 0.0
+
+if strategy.position_size == 0
+    if longEntry
+        strategy.entry("Long", strategy.long)
+        trailStop := close - atrVal * atrMult
+else
+    newTrail = close - atrVal * atrMult
+    if newTrail > trailStop
+        trailStop := newTrail
+    if close < trailStop
+        strategy.close("Long")
+
+// === Visuals ===
+plot(smaVal, "SMA 50", color=color.blue, linewidth=1)
+plot(strategy.position_size > 0 ? trailStop : na, "Trail Stop",
+     color=color.red, style=plot.style_stepline, linewidth=2)
+
+// Gap % label on bars with big gaps
+plotshape(gapPct > gapMin, "Gap Signal",
+          shape.diamond, location.abovebar, color.new(color.orange, 0), size=size.tiny)
+
+// Entry/Exit markers
+plotshape(longEntry and strategy.position_size == 0, "BUY",
+          shape.triangleup, location.belowbar, color.new(color.green, 0), size=size.small)
+plotshape(strategy.position_size > 0 and close < trailStop, "SELL",
+          shape.triangledown, location.abovebar, color.new(color.red, 0), size=size.small)
+
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na)
+
+// === Alerts ===
+alertcondition(longEntry and strategy.position_size == 0,
+     "NVDA Gap ExpMax BUY", "NVDA Gap Expectancy Max — BUY signal (triple confirmation)")
+alertcondition(strategy.position_size > 0 and close < trailStop,
+     "NVDA Gap ExpMax SELL", "NVDA Gap Expectancy Max — SELL signal (trail stop hit)")

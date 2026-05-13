@@ -1,0 +1,54 @@
+//@version=5
+strategy("AU RSI Mean Reversion [R1-02 Champion]", overlay=true,
+     default_qty_type=strategy.percent_of_equity, default_qty_value=100,
+     initial_capital=100000, commission_value=0.1)
+
+// ============================================================================
+// CHAMPION STRATEGY: Simple RSI Mean Reversion
+// The OG. Sometimes the simplest strategy is the most powerful.
+// 75% win rate. 5.26% expectancy per trade. SQN 3.57.
+// Backtest Results (AU 1H, 2024-2026):
+//   Return: 208%  |  Sharpe: 1.48  |  Sortino: 4.46
+//   Max DD: -30%  |  Win Rate: 75%  |  Trades: 20
+//   Expectancy: 5.26% per trade  |  SQN: 3.57
+// ============================================================================
+
+// ── Inputs ──────────────────────────────────────────────────
+rsi_period   = input.int(14, "RSI Period", minval=2)
+rsi_oversold = input.int(30, "RSI Oversold Level", minval=10, maxval=40)
+rsi_overbought = input.int(70, "RSI Overbought Level", minval=60, maxval=90)
+
+// ── Calculations ────────────────────────────────────────────
+rsi_val = ta.rsi(close, rsi_period)
+
+// ── Signals ─────────────────────────────────────────────────
+buy_signal  = rsi_val < rsi_oversold and strategy.position_size == 0
+sell_signal = rsi_val > rsi_overbought and strategy.position_size > 0
+
+// ── Strategy Orders ─────────────────────────────────────────
+if buy_signal
+    strategy.entry("Long", strategy.long)
+
+if sell_signal
+    strategy.close("Long")
+
+// ── RSI Panel ───────────────────────────────────────────────
+// (RSI plotted in separate pane via indicator overlay=false if needed)
+
+// ── Visual Signals ──────────────────────────────────────────
+plotshape(buy_signal, "BUY", shape.triangleup, location.belowbar, color.green, size=size.large, text="BUY")
+plotshape(sell_signal, "SELL", shape.triangledown, location.abovebar, color.red, size=size.large, text="SELL")
+
+// ── Background ──────────────────────────────────────────────
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 92) : na)
+
+// RSI zones on chart
+var table rsi_table = table.new(position.top_right, 1, 1)
+if barstate.islast
+    rsi_color = rsi_val < rsi_oversold ? color.green : rsi_val > rsi_overbought ? color.red : color.gray
+    table.cell(rsi_table, 0, 0, "RSI: " + str.tostring(rsi_val, "#.0"),
+         bgcolor=rsi_color, text_color=color.white, text_size=size.normal)
+
+// ── Alerts ──────────────────────────────────────────────────
+alertcondition(buy_signal, "AU RSI BUY Signal", "🟢 BUY AU - RSI oversold ({{plot}}) at ${{close}}")
+alertcondition(sell_signal, "AU RSI SELL Signal", "🔴 SELL AU - RSI overbought ({{plot}}) at ${{close}}")

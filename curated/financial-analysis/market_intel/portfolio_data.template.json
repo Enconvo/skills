@@ -1,0 +1,24 @@
+{
+  "FCN_PORTFOLIO": [
+    {
+      "isin": "XSXXXXXXXXXX",
+      "account": "X",
+      "product": "BANK X% Rev Con on TICKER",
+      "amount": 0,
+      "coupon": 0.0,
+      "issue_date": "2025-01-01",
+      "expiry": "2026-01-01",
+      "underlyings": [
+        {
+          "ticker": "AAPL",
+          "strike": 100.0,
+          "call_price": 150.0,
+          "initial": 155.0
+        }
+      ]
+    }
+  ],
+  "FX_OPTIONS": [],
+  "SELL_PUTS": [],
+  "ACCUMULATORS": []
+}

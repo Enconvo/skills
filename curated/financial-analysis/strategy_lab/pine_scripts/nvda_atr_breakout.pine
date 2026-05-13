@@ -1,0 +1,57 @@
+//@version=5
+// ============================================================================
+//  NVDA — ATR Volatility Breakout (R1-08)
+//  Backtest: Return 66.9% | Sharpe 0.86 | Sortino 1.81 | MaxDD -15.5%
+//           Win Rate 52.6% | 57 trades | SQN 1.40 | Expectancy 1.00%
+// ============================================================================
+//  Entry: Price > SMA(20) + 2x ATR (volatility expansion breakout)
+//  Exit:  Price drops back below SMA(20)
+//  Conservative strategy — low drawdown, high trade count, steady returns
+// ============================================================================
+strategy("NVDA ATR Breakout", overlay=true, initial_capital=1000000,
+     commission_value=0.1, default_qty_type=strategy.percent_of_equity,
+     default_qty_value=100)
+
+// === Inputs ===
+smaPeriod    = input.int(20, "SMA Period", minval=5)
+atrPeriod    = input.int(14, "ATR Period", minval=1)
+atrMult      = input.float(2.0, "ATR Breakout Multiplier", minval=0.5, step=0.1)
+
+// === Indicators ===
+smaVal       = ta.sma(close, smaPeriod)
+atrVal       = ta.atr(atrPeriod)
+breakoutLevel = smaVal + atrMult * atrVal
+
+// === Entry/Exit Logic ===
+atrValid     = not na(atrVal)
+longEntry    = close > breakoutLevel and atrValid
+longExit     = close < smaVal
+
+if strategy.position_size == 0
+    if longEntry
+        strategy.entry("Long", strategy.long)
+else
+    if longExit
+        strategy.close("Long")
+
+// === Visuals ===
+plot(smaVal, "SMA 20", color=color.blue, linewidth=1)
+plot(breakoutLevel, "Breakout Level", color=color.orange, linewidth=1, style=plot.style_stepline)
+
+// Fill between SMA and breakout level
+fillColor = close > breakoutLevel ? color.new(color.green, 85) : color.new(color.gray, 95)
+fill(plot(smaVal), plot(breakoutLevel), color=fillColor)
+
+// Entry/Exit markers
+plotshape(longEntry and strategy.position_size == 0, "BUY",
+          shape.triangleup, location.belowbar, color.new(color.green, 0), size=size.small)
+plotshape(longExit and strategy.position_size > 0, "SELL",
+          shape.triangledown, location.abovebar, color.new(color.red, 0), size=size.small)
+
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na)
+
+// === Alerts ===
+alertcondition(longEntry and strategy.position_size == 0,
+     "NVDA ATR Breakout BUY", "NVDA ATR Breakout — BUY signal (volatility expansion)")
+alertcondition(longExit and strategy.position_size > 0,
+     "NVDA ATR Breakout SELL", "NVDA ATR Breakout — SELL signal (price below SMA)")

@@ -1,0 +1,59 @@
+# ── Python ──────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.eggs/
+
+# ── Environment & secrets ───────────────────────────────────────────────
+.env
+.env.local
+*.env
+.envrc
+
+# ── IDE / editor ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+
+# ── OS ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Testing / linting ───────────────────────────────────────────────────
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# ── Tool state / agent artifacts ────────────────────────────────────────
+.claude/
+.openclaw/
+.self-evolve/
+.playwright-mcp/
+.vercel/
+
+# ── Generated outputs ───────────────────────────────────────────────────
+reports/
+*.png
+*.html
+*_chart.html
+
+# ── Private portfolio data ─ NEVER COMMIT ──
+market_intel/portfolio_data.json
+market_intel/portfolio_data.*.json
+!market_intel/portfolio_data.template.json
+*.xlsx
+!market_intel/templates/*.xlsx
+~$*
+
+# ── Strategy research dumps (regenerable, large) ───────────────────────
+strategy_lab/au_autoresearch_v*.json
+strategy_lab/au_autoresearch_results.json
+strategy_lab/*_data_verified.json

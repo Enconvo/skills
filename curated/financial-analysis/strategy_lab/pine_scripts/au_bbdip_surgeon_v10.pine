@@ -1,0 +1,108 @@
+// BBDip Surgeon V10 — Sharpe 1.55 | DD -13.4%
+//@version=5
+strategy("BBDip Surgeon V10 — AU", overlay=true, initial_capital=100000, commission_value=0.1,
+         default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// ═══════════════════════════════════════════════════════════
+//  CHAMPION V10: BBDip Surgeon — BB Lower Dip + SMA(60) Regime
+//  2024-01 onward | 404.7% | Sharpe 1.55 | Sortino 5.87
+//  Mean-reversion entry on BB dips within healthy uptrend
+// ═══════════════════════════════════════════════════════════
+
+// ═══ INPUTS ═══
+bbLen        = input.int(11, "BB Period", minval=2,
+               tooltip="Bollinger Band period — tight (11) catches shallow dips quickly.")
+bbStd        = input.float(2.0, "BB Std Dev", step=0.1)
+smaLen       = input.int(60, "Regime Filter SMA", minval=10,
+               tooltip="Bull regime = close above this SMA. Only enter dips in uptrend.")
+wideTrail    = input.float(20.0, "Wide Trail % (initial)", step=0.5)
+tightTrail   = input.float(5.0, "Tight Trail % (after ratchet)", step=0.5)
+ratchetAt    = input.float(35.0, "Ratchet At Gain %", step=5,
+               tooltip="Tighten trail from 20% to 5% when trade gain exceeds this.")
+cooldownBars = input.int(3, "Cooldown Bars After Exit", minval=0)
+
+// ═══ INDICATORS ═══
+smaVal = ta.sma(close, smaLen)
+[bbMid, bbUpper, bbLower] = ta.bb(close, bbLen, bbStd)
+
+// ═══ STATE ═══
+var float highWater = 0.0
+var float entryPrice = 0.0
+var int barsSinceExit = 999
+
+// ═══ REGIME ═══
+inBullRegime = close > smaVal
+
+// ═══ ENTRY ═══
+if strategy.position_size == 0
+    barsSinceExit += 1
+    if close <= bbLower and inBullRegime and barsSinceExit > cooldownBars
+        strategy.entry("Long", strategy.long)
+        highWater := close
+        entryPrice := close
+        barsSinceExit := 0
+
+// ═══ EXIT: RATCHETING TRAIL ═══
+if strategy.position_size > 0
+    highWater := math.max(highWater, close)
+    gainPct = (close / entryPrice - 1.0) * 100.0
+    trail = gainPct > ratchetAt ? tightTrail : wideTrail
+    trailLevel = highWater * (1.0 - trail / 100.0)
+
+    if close < trailLevel
+        strategy.close("Long", comment="Trail " + str.tostring(trail, "#.0") + "%")
+        barsSinceExit := 0
+
+// ═══ PLOTS ═══
+plot(smaVal, "SMA(60) Regime", color=color.new(color.yellow, 20), linewidth=2)
+plot(bbLower, "BB Lower", color=color.new(color.blue, 40), linewidth=1)
+
+// Regime background
+bgcolor(inBullRegime ? color.new(color.green, 95) : color.new(color.red, 95), title="Regime")
+
+// Trail stop
+trailActive = strategy.position_size > 0
+currentGain = trailActive ? (close / entryPrice - 1.0) * 100.0 : 0.0
+currentTrail = currentGain > ratchetAt ? tightTrail : wideTrail
+trailLine = trailActive ? highWater * (1.0 - currentTrail / 100.0) : na
+plot(trailLine, "Trail Stop", color=color.new(color.red, 30), linewidth=2, style=plot.style_stepline)
+
+// High water mark
+hwmLine = trailActive ? highWater : na
+plot(hwmLine, "High Water", color=color.new(color.green, 60), linewidth=1, style=plot.style_stepline)
+
+// Ratchet state
+bgcolor(trailActive and currentGain > ratchetAt ? color.new(color.teal, 93) : na, title="Ratcheted")
+
+// ═══ INFO TABLE ═══
+var table t = table.new(position.top_right, 2, 6, bgcolor=color.new(color.black, 70),
+                        border_width=1, border_color=color.gray)
+if barstate.islast
+    table.cell(t, 0, 0, "BBDip Surgeon V10", text_color=color.white, text_size=size.small)
+    table.cell(t, 1, 0, "Sharpe 1.55", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 0, 1, "Regime:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 1, inBullRegime ? "BULL ✓" : "BEAR ✗",
+               text_color=inBullRegime ? color.green : color.red, text_size=size.tiny)
+    table.cell(t, 0, 2, "Position:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 2, trailActive ? "LONG" : "FLAT",
+               text_color=trailActive ? color.green : color.gray, text_size=size.tiny)
+    table.cell(t, 0, 3, "Trail:", text_color=color.gray, text_size=size.tiny)
+    trailColor = currentGain > ratchetAt ? color.teal : color.orange
+    table.cell(t, 1, 3, trailActive ? str.tostring(currentTrail, "#.0") + "%" : "-",
+               text_color=trailColor, text_size=size.tiny)
+    table.cell(t, 0, 4, "Gain:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 4, trailActive ? str.tostring(currentGain, "#.1") + "%" : "-",
+               text_color=currentGain > 0 ? color.green : color.red, text_size=size.tiny)
+    table.cell(t, 0, 5, "HWM:", text_color=color.gray, text_size=size.tiny)
+    table.cell(t, 1, 5, trailActive ? "$" + str.tostring(highWater, "#.##") : "-",
+               text_color=color.white, text_size=size.tiny)
+
+// ═══ ALERTS ═══
+alertcondition(strategy.position_size > 0 and strategy.position_size[1] == 0,
+               "Entry", "BBDip Surgeon V10: BUY — BB dip in bull regime")
+alertcondition(strategy.position_size == 0 and strategy.position_size[1] > 0,
+               "Exit", "BBDip Surgeon V10: EXIT — trail stop triggered")
+alertcondition(not inBullRegime and inBullRegime[1],
+               "Bear Regime", "BBDip Surgeon V10: Below SMA(60) — bear regime, no entries")
+alertcondition(inBullRegime and not inBullRegime[1],
+               "Bull Regime", "BBDip Surgeon V10: Reclaimed SMA(60) — bull regime, entries enabled")

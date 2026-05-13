@@ -1,0 +1,64 @@
+//@version=5
+// ============================================================================
+//  NVDA — Pre-Market MACD Hybrid (R2-12)
+//  Backtest: Return 445.8% | Sharpe 0.90 | Sortino 2.16 | MaxDD -42.2%
+//           Win Rate 50% | 26 trades | SQN 1.24 | Expectancy 8.36%
+// ============================================================================
+//  Entry: Open > yesterday's high (breakout) + MACD histogram > 0 + price > SMA(50)
+//  Exit:  ATR(14) trailing stop at 2.0x ATR below price
+// ============================================================================
+strategy("NVDA PreMarket MACD Hybrid", overlay=true, initial_capital=1000000,
+     commission_value=0.1, default_qty_type=strategy.percent_of_equity,
+     default_qty_value=100)
+
+// === Inputs ===
+atrPeriod    = input.int(14, "ATR Period", minval=1)
+atrMult      = input.float(2.0, "ATR Trail Multiplier", minval=0.5, step=0.1)
+smaPeriod    = input.int(50, "SMA Trend Period", minval=5)
+
+// === Indicators ===
+smaVal       = ta.sma(close, smaPeriod)
+atrVal       = ta.atr(atrPeriod)
+[macdLine, signalLine, macdHist] = ta.macd(close, 12, 26, 9)
+
+// === Entry Logic ===
+breakout     = open > ta.highest(high, 1)[1]  // open > yesterday's high
+macdPositive = macdHist > 0
+uptrend      = close > smaVal
+atrValid     = not na(atrVal)
+
+longEntry    = breakout and macdPositive and uptrend and atrValid
+
+// === Trailing Stop ===
+var float trailStop = 0.0
+
+if strategy.position_size == 0
+    if longEntry
+        strategy.entry("Long", strategy.long)
+        trailStop := close - atrVal * atrMult
+else
+    newTrail = close - atrVal * atrMult
+    if newTrail > trailStop
+        trailStop := newTrail
+    if close < trailStop
+        strategy.close("Long")
+
+// === Visuals ===
+plot(smaVal, "SMA 50", color=color.blue, linewidth=1)
+plot(strategy.position_size > 0 ? trailStop : na, "Trail Stop",
+     color=color.red, style=plot.style_stepline, linewidth=2)
+
+// Entry/Exit markers
+plotshape(longEntry and strategy.position_size == 0, "BUY",
+          shape.triangleup, location.belowbar, color.new(color.green, 0), size=size.small)
+plotshape(strategy.position_size > 0 and close < trailStop, "SELL",
+          shape.triangledown, location.abovebar, color.new(color.red, 0), size=size.small)
+
+// Background highlight when in trade
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na)
+
+// === Alerts ===
+alertcondition(longEntry and strategy.position_size == 0,
+     "NVDA MACD Hybrid BUY", "NVDA PreMarket MACD Hybrid — BUY signal")
+alertcondition(strategy.position_size > 0 and close < trailStop,
+     "NVDA MACD Hybrid SELL", "NVDA PreMarket MACD Hybrid — SELL signal (trail stop hit)")

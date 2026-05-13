@@ -1,0 +1,60 @@
+//@version=5
+strategy("AU BBDip V16 YTD Mirror", overlay=true, initial_capital=100000, currency=currency.USD, commission_type=strategy.commission.percent, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100, pyramiding=0)
+
+// Local Pine-compatible backtest on yfinance daily data:
+// 2026-01-01 -> 2026-04-30, net profit +35.42%, $100,000 -> $135,421.
+startDate = timestamp(2026, 01, 01, 00, 00)
+endDate = timestamp(2099, 12, 31, 23, 59)
+bbLen = input.int(11, "BB Period", minval=2)
+bbStd = input.float(1.7, "BB Std Dev", step=0.1)
+smaLen = input.int(54, "Regime Filter SMA", minval=10)
+wideTrail = input.float(34.5, "Wide Trail % Cap", step=0.1)
+tightTrail = input.float(11.9, "Tight Trail % Cap", step=0.1)
+ratchetAt = input.float(62.0, "Ratchet At Gain %", step=1.0)
+profitTarget = input.float(32.0, "Profit Target %", step=1.0)
+cooldownBars = input.int(3, "Cooldown Bars After Exit", minval=0)
+useAtrTrail = input.bool(true, "Use ATR Trail")
+atrMult = input.float(3.8, "ATR Multiplier", step=0.1)
+atrLen = input.int(14, "ATR Period", minval=1)
+
+smaVal = ta.sma(close, smaLen)
+[bbMid, bbUpper, bbLower] = ta.bb(close, bbLen, bbStd)
+atrVal = ta.atr(atrLen)
+inWindow = time >= startDate and time <= endDate
+inBullRegime = close > smaVal
+
+var float highWater = 0.0
+var float entryPrice = 0.0
+var int barsSinceExit = 999
+var int barsInTrade = 0
+
+isFlat = strategy.position_size == 0
+isLong = strategy.position_size > 0
+entryCond = isFlat and inWindow and close <= bbLower and inBullRegime and barsSinceExit > cooldownBars
+
+effectiveEntry = entryCond ? close : entryPrice
+effectiveHigh = entryCond ? close : isLong ? math.max(highWater, close) : highWater
+gainPct = (isLong or entryCond) and effectiveEntry > 0 ? (close / effectiveEntry - 1.0) * 100.0 : 0.0
+atrPct = not na(atrVal) and atrVal > 0 ? (atrMult * atrVal / close) * 100.0 : na
+atrTrail = gainPct <= ratchetAt ? math.min(atrPct, wideTrail) : math.min(atrPct * 0.5, tightTrail)
+trail = useAtrTrail and not na(atrPct) ? math.max(atrTrail, 3.0) : gainPct > ratchetAt ? tightTrail : wideTrail
+trailLevel = effectiveHigh * (1.0 - trail / 100.0)
+
+trailExit = isLong and close < trailLevel
+targetExit = isLong and gainPct >= profitTarget
+endExit = isLong and time > endDate
+exitCond = trailExit or targetExit or endExit
+
+strategy.entry("Long", strategy.long, when=entryCond)
+strategy.close("Long", comment="Trail", when=trailExit)
+strategy.close("Long", comment="Target", when=targetExit)
+strategy.close("Long", comment="End", when=endExit)
+
+barsSinceExit := entryCond or exitCond ? 0 : isFlat ? barsSinceExit + 1 : barsSinceExit
+barsInTrade := entryCond ? 0 : isLong ? barsInTrade + 1 : barsInTrade
+entryPrice := entryCond ? close : entryPrice
+highWater := effectiveHigh
+
+plot(smaVal, "SMA54", color=color.yellow)
+plot(bbLower, "BB Lower", color=color.blue)
+plot(isLong ? highWater : na, "High Water", color=color.green, style=plot.style_stepline)
