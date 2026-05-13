@@ -1,0 +1,4 @@
+interface:
+  display_name: "Investment Analysis Tutor"
+  short_description: "Technical, macro, and narrative stock tutoring"
+  default_prompt: "Use $investment-analysis-tutor to teach me whether NVDA is technically and macro-wise a buy, hold, or sell."
