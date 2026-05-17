@@ -1,12 +1,11 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# AGENTS.md
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## What This Repo Is
 
 This is the **Enconvo skills store** (`github.com/Enconvo/skills`) — a content repository of model-invocable Skills (Anthropic-style `SKILL.md` directories), not an application. There is no build, no test runner, no lint. Each skill is a self-contained folder of Markdown + bundled scripts/assets that ships to end-user agent runtimes.
 
-The parent path `/Users/ysnows/Documents/Enconvo-AI/` is a multi-repo workspace; **this skills repo is independent** and its parent `CLAUDE.md` is for the broader Enconvo product, not for skills authoring.
+The parent path `/Users/ysnows/Documents/Enconvo-AI/` is a multi-repo workspace; **this skills repo is independent** and its parent `AGENTS.md` is for the broader Enconvo product, not for skills authoring.
 
 ## Repository Layout
 
