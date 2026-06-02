@@ -167,6 +167,15 @@ Condescension to viewer: never. "miscalculation" / 「算错了」 is fine; "sma
   - 10s segment → 50 字 ± 3
   - 12s segment → 60 字 ± 3
 - Count CJK characters as 1 each, half-width digits/Latin/punctuation as 0.5 each. "$1.75T" ≈ 3 chars.
+
+### English-cut pacing (when the VO is authored in English)
+- **~150 wpm (~2.5 words/second)** is the anchor sweet spot — calm, authoritative, not rushed.
+- **Segment lengths and word budgets:**
+  - 6s clip → ~15 words
+  - 10s clip → ~25 words (cap ~28)
+  - 14s clip → ~33–35 words
+- **Slow-poem defect:** if a line under-fills its clip (e.g. ~18 words over a 14s clip ≈ 95–110 wpm), Grok stretches delivery with long gaps and a sing-song cadence — it reads as a slow poem, not a news read. Fix = shorten the clip to 10s OR add words to hit ~150 wpm. (RTX Spark EN build: Act 1's dense lines were fine at 14s; Acts 2–4's thin lines dragged until re-rendered at 10s with ~25-word lines.)
+- **EN↔CN timing is NOT 1:1.** 25 English words ≈ 45–55 字. Never translate word-for-word and expect the cadence to match — write each language to its OWN rate budget (EN to wpm, CN to 字/s). This is the parallel-authoring rule applied to timing.
 - Re-pace by trimming filler words (那么, 其实, 所以说) before cutting meaning.
 
 ## ACT Structure Templates

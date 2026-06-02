@@ -13,7 +13,8 @@ This is the locked playbook for shipping Vivieen-style anchor-led Mandarin finan
 - **Length:** 30s–12min, organized into ACTs of ~40–120s.
 - **Style:** Female Mandarin anchor (Vivieen DNA, red blazer, news desk) on left 60% + dark editorial overlay panel on right 40%. Persistent lower-left chyron. Optional BGM bed.
 - **Voice:** Calm institutional broadcast Mandarin, baked into the video via xAI i2v prompt — NO separate TTS layer.
-- **Pacing:** 5 字/s = 300 字/min monologue. 10s clip = 50 字. 6s clip = 30 字.
+- **Pacing (CN):** 5 字/s = 300 字/min monologue. 10s clip = 50 字. 6s clip = 30 字.
+- **Pacing (EN):** ~150 wpm (~2.5 words/s) for an authoritative anchor read. 10s clip = ~25 words (cap ~28). 14s clip = ~33–35 words. Under-filling a clip (e.g. ~18 words over 14s ≈ 95–110 wpm) makes Grok pad the delivery into a slow-"poem" drag — match word count to clip length. NEVER word-for-word translate EN↔CN and expect matching timing: 25 EN words ≈ 45–55 字. Write each language to its OWN rate budget.
 
 ## Locked Architecture (do not deviate)
 
