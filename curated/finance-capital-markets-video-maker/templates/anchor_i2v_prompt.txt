@@ -1,0 +1,33 @@
+# Replace {{VO_LINE}} with the verbatim Mandarin monologue for this clip.
+# Keep every other line as-is. Always include all EIGHT blocks.
+# The last three (SCALE LOCK, BURN-IN LOCK, SUBJECT FRAMING) are NON-NEGOTIABLE —
+# omit SCALE/BURN-IN and the i2v model slow-zooms and hallucinates broadcaster
+# text overlays; omit SUBJECT FRAMING and the body drifts / gets clipped at edges.
+# Identity below is the CANONICAL Vivieen anchor. If the user supplies a different
+# reference image, describe THAT subject here instead — but never revert to the
+# old Dior/Bloomberg wording.
+
+[VO LINE]
+{{VO_LINE}}
+Delivered as the spoken audio, calm institutional broadcast Mandarin, 5 字 per second cadence, no emotion swings, slight authority. Natural lipsync. Crisp through the full 10 seconds with NO gibberish, NO mumbling, NO trailing-off.
+
+[IDENTITY LOCK]
+Same female news anchor as the reference image: Eurasian, early-30s, heart-shaped face, almond hazel eyes, sleek dark blowout with a slight side part. Wardrobe: scarlet Saint Laurent Le Smoking peak-lapel blazer, ivory silk shell beneath, pearl-drop gold earrings, slim gold Cartier Tank watch. Natural editorial makeup, defined dark brow, mascara only, neutral satin lip. Skin reads real: visible pores, faint freckles, no airbrush gloss. Sharp features, calm authority. NO new person, NO second person, NO over-the-shoulder cutaway, NO B-roll.
+
+[SET LOCK]
+Contemporary premium studio behind her: an out-of-focus night-city skyline seen through angled glass, deep and softly bokeh'd. The background is COMPLETELY FROZEN — no pan, no drift, no zoom, no parallax. Warm amber key light from camera left, cool blue rim light from the right. Dark news desk in foreground, anchor's forearms resting on the desk surface.
+
+[CAMERA LOCK]
+Locked-off medium close-up. Chest-up framing. Eyeline slightly camera-right, toward the off-screen overlay zone. 35mm equivalent, f/2.8 depth of field, gentle background blur. No camera movement whatsoever — no pan, no tilt, no dolly, no zoom, no handheld jitter.
+
+[MOTION LOCK]
+Only the anchor moves: natural lipsync to the VO, periodic blinks, slow eye shifts, subtle micro-nods that match speech rhythm. Hands stay FIRMLY locked on the desk surface — no gestures, no hand lift, no pointing, no touching face or hair, never raised above shoulder line. Right 45% of frame remains COMPLETELY clean negative space — no objects, no body parts, nothing enters that zone. Return to neutral resting pose by second 10 so the endframe is a clean handoff for the next clip.
+
+[SCALE LOCK]
+Fixed 35mm equivalent throughout the full 10 seconds. NO zoom, NO dolly, NO pan, NO parallax, NO scale-to-frame. Anchor's head occupies the SAME frame fraction at second 0 and second 10. Background fully static.
+
+[BURN-IN LOCK — ABSOLUTELY CRITICAL]
+Render a clean unadorned video plate. ZERO text of any kind anywhere in the frame. NO captions. NO subtitles. NO chyrons. NO lower-thirds. NO breaking-news banners. NO tickers. NO logos. NO watermarks. NO station IDs. NO show titles. NO speech bubbles, NO timecodes, NO frame counters. NO words such as 'CAPTAIN', 'BREAKING', 'LIVE', 'CNBC', 'BLOOMBERG', or any English or Chinese characters as on-air graphics. The studio set behind her has NO visible text on any monitor, NO scrolling text, NO labeled banners. All graphics added in post — render must be 100% text-free.
+
+[SUBJECT FRAMING]
+Anchor fills the LEFT ~55% of the frame, head near the top edge, whole body comfortably INSIDE the frame — crown, shoulders, elbows, and hands are NEVER cropped or touching an edge. The RIGHT ~45% stays clean, empty negative space reserved for the post overlay panel. Do NOT zoom or scale the subject to reach the edges; if the body looks too small or too large, that is fixed by regenerating, not by cropping.
