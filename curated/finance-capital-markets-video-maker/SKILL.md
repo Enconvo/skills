@@ -88,6 +88,29 @@ Do NOT proceed past this check if HyperFrames is missing. Phases 1–3 could run
 - **Native-Speaker Gate (HARD):** the VO is AUTHORED in the target language, never translated into it. Run the read-aloud test on every line — if a clause maps word-for-word onto English syntax or uses dictionary-literal verbs (读到, 冲向, 跑赢了你), it is a defect; rewrite it the way a native finance commentator actually speaks (一看出, 赶到, 布好局, 说白了…反手赚了你的钱). When adapting an approved EN script to CN, the versions are PARALLEL AUTHORED, not mirror-translated. Full gate + worked example in `references/script-writing.md`.
 - Save to session workspace as `{slug}_script_v1.md`.
 
+#### Phase 1.5 — Cadence timing audit gate (MANDATORY — do not render before this passes)
+
+Under-filled VO makes Grok stretch the read into slow poem cadence. Treat timing as a hard render gate, not a suggestion.
+
+1. Create `{slug}_script_timing_audit.md` before any i2v call. Include one row per clip:
+   - `act`, `clip`, `duration_s`, `vo_line`, `cjk_chars`, `english_tokens`, `numbers_symbols`, `effective_cjk_equiv`, `target_range`, `status`.
+2. Count cadence with CJK-equivalent timing, not raw visible characters:
+   - CJK character = 1 unit.
+   - Short English acronym/token such as `AI`, `GW`, `IPO`, `ETF` = 2–3 units depending on spoken syllables.
+   - English word/proper noun such as `capex`, `OpenAI`, `RBC` = 2–4 units depending on natural spoken length.
+   - Compact numbers and money figures such as `$60–80B`, `5–7年`, `1–2T` = count by how they are spoken, not by glyph count.
+3. Required target ranges:
+   - 10s Mandarin clip: **50–58 effective CJK-equivalent units**. Below 48 = FAIL unless the clip duration is shortened.
+   - 6s Mandarin clip: **30–35 effective CJK-equivalent units**. Below 28 = FAIL unless the clip duration is shortened.
+   - English-only clip: ~2.5 words/s; 10s = 25 words, cap ~28. Below 22 words in 10s = FAIL unless deliberately slow and approved.
+4. If any clip is under-filled, do ONE of these before rendering:
+   - rewrite the VO line to hit the target range;
+   - shorten that clip duration to match the actual count;
+   - split/rebalance adjacent clips.
+5. Add this exact delivery instruction to every i2v prompt's VO block: **"Fast institutional Mandarin business-news read, continuous cadence, no poetic pauses, no dramatic spacing, no slow inspirational delivery."** Keep the 5 字/s line too.
+6. Render only the first clip, listen/check cadence, and stop for correction if it sounds padded or poem-slow. Do not batch-render the rest until the first clip cadence is acceptable.
+7. Only proceed to Phase 2 when every audit row is `PASS` and the first rendered clip cadence is acceptable.
+
 Detail + voice DNA + structural patterns in `references/script-writing.md`.
 
 ### Phase 2 — Render anchor clips sequentially (i2v)
