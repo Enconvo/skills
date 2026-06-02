@@ -45,6 +45,28 @@ Full architecture detail in `references/architecture.md`.
 
 Run these phases in order. Do not skip phase 0 or phase 6.
 
+### Preflight — Verify HyperFrames is installed (run before Phase 0)
+
+HyperFrames is required for Phase 4 overlay composition. Check it immediately so the user knows before any rendering work begins — not mid-pipeline.
+
+```bash
+hyperframes --version
+```
+
+**If the command succeeds:** proceed normally.
+
+**If the command is not found:** stop and tell the user:
+
+> HyperFrames is not installed — this skill needs it to build the overlay panels (Phase 4).
+>
+> To install it, open EnConvo and add these two skills:
+> - **`hyperframes`** — the composition authoring skill (HTML + GSAP patterns)
+> - **`hyperframes-cli`** — the CLI dev loop (`lint`, `validate`, `render`)
+>
+> Both are available in the EnConvo skill library. Once installed, restart this session and try again.
+
+Do NOT proceed past this check if HyperFrames is missing. Phases 1–3 could run, but Phase 4 would hard-fail and waste the user's time and rendering credits.
+
 ### Phase 0 — Source intake & angle lock
 
 1. Read every source the user provided (URL, file, screenshot, tweet, dataset).
@@ -181,7 +203,7 @@ Full war stories + symptoms + fixes in `references/troubleshooting.md`.
 
 ## Tool & Environment Requirements
 
-- `hyperframes` CLI at `/opt/homebrew/bin/hyperframes` (v0.6.61+). Verify with `hyperframes --version`.
+- `hyperframes` CLI at `/opt/homebrew/bin/hyperframes` (v0.6.61+). Verify with `hyperframes --version`. **If missing, see the Preflight section above** — the user must install the `hyperframes` and `hyperframes-cli` skills from the EnConvo skill library before this pipeline can run.
 - `ffmpeg` 6+ for endframe extraction and concat.
 - xAI credentials configured for `video_create/features/x_ai/create` (Grok Imagine Video).
 - `enconvo/upload_file` available for hosting endframes.
