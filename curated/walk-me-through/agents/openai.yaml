@@ -1,0 +1,4 @@
+interface:
+  display_name: "Walk Me Through"
+  short_description: "Visible step-by-step mentor for OptionCharts, TradingView, and EnConvo Settings"
+  default_prompt: "Use $walk-me-through to guide me through a chart, page, or setup flow with visible navigation and concise tutoring."
