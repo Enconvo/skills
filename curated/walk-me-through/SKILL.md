@@ -111,6 +111,8 @@ This rule applies in **analysis mode and tutoring mode**. The browser is not a p
 
 For every analysis step, data extraction step, or teaching beat:
 
+0. **Bring the target surface to the foreground first.** Do this before the first beat and after navigation, tab/app switches, file pickers, or native Settings actions. Do not assume a successful navigation means the user can see the page. Use `scripts/foreground_browser.sh` for browsers, `Cmd+Shift+D` then `Cmd+,` for EnConvo Settings, and verify the frontmost state before teaching. For exact steps, read `references/visible-surface-control.md`.
+
 1. **Scroll/zoom first, then reason** — before extracting, interpreting, or citing any chart/table/value, move the live browser to the exact relevant viewport and set the filters/zoom needed to make the value visible.
 2. **Keep the viewport matched to the current step** — do not leave the browser sitting on an unrelated section while analyzing hidden DOM/table output, screenshots, CSVs, or tool text. If the working evidence is not on screen, scroll to it before discussing it.
 3. **One visible evidence unit at a time** — chart, stats block, table row group, chain slice, or header. Analysis mode may be terser than tutoring mode, but it must still stay visually synchronized. For charts, one evidence unit still contains multiple teachable parts: title, filters, axes, legend, bars/curves, spot marker, walls, flip lines, and visible clusters. Point out the relevant parts one by one before giving the takeaway.
@@ -194,6 +196,7 @@ For every concept anchored to a chart/table:
 6. **Share the resulting URL as a deep link when the active site supports it.** Paste it per M6 so the apprentice's tab can match yours as closely as possible. If layout state is account-local or not fully encoded in the URL, say that plainly and use a screenshot plus visible setup steps.
 7. **Point to what is now on screen** — name the line, bar, table row, or label the apprentice is looking at ("the gold gamma-profile curve crosses zero right at the flip line"), so the abstract concept attaches to a concrete, visible mark. Do not say "call wall," "put wall," "gamma flip," "support," "resistance," or "cluster" as a conclusion until you have pointed to the actual visible marker/bar/row and explained how to read it.
 8. If a figure benefits from a clean recreation as well (per M6), pair the live zoomed chart with the inline visual — the live chart proves it is real, the recreation keeps it legible in chat.
+9. **Point with the real cursor in live tutoring.** When naming a chart mark, setting, row, button, or axis, move the cursor there before giving the takeaway. Use page-coordinate mouse movement for web charts when available; use `scripts/point_cursor.sh` for native apps. Keep gestures short. See `references/visible-surface-control.md`.
 
 A pinned, zoomed-out chart is a missed teaching moment. A fast full-page lecture is also a missed teaching moment. Tangibility comes from the apprentice seeing one exact indicator, table, or row group at a time, then choosing to continue to the next viewport.
 
@@ -248,6 +251,8 @@ Open the active site visibly:
 - Search shortcut when available: `Cmd+K` on macOS or `Ctrl+K` elsewhere
 
 Use the visible browser/app to open the relevant view. Let the user see searches, tab changes, dropdown choices, filters, zooming, point clicks, drawings, alerts, screener filters, settings panes, credential sheets, and safe read-only setup steps when they are part of the user-facing workflow.
+
+**Immediately after opening/navigating, run the foreground step from `references/visible-surface-control.md` and verify the page is visible.** Never deliver the first beat before this check passes.
 
 When using the Chrome plug-in/extension:
 
@@ -401,6 +406,7 @@ Short version: positive GEX cushions. Detail version: market makers rebalance de
 
 - `references/options-concept-primers.md`: the mentor teaching library — plain-language primers, analogies, "read it on the site" pointers, common misreads, and check-for-understanding prompts for every metric (OI, volume, put/call, max pain, expected move, probability, IV/rank/percentile, skew, HV, the Greeks, dealer hedging, GEX, DEX, walls, gamma flip, P&L). Site-agnostic: the options theory is the same everywhere; only the on-screen location changes per site module. Open this whenever teaching a concept.
 - `references/analysis-playbook.md`: repeatable analysis templates for ticker reads, position reviews, alerts, strategy comparisons, plus mentor teaching beats and the learning-recap template.
+- `references/visible-surface-control.md`: foregrounding and cursor-pointing rules plus usage for `scripts/foreground_browser.sh` and `scripts/point_cursor.sh`. Read this before live browser/app tutoring where the user must watch the surface.
 - **Site modules** (one per supported site; load the active one — see Site Modules above):
   - `references/optioncharts-docs-map.md`: OptionCharts.io documentation map, data-source notes, feature locations, deep-link mechanics, and chart interpretation reminders.
   - `references/tradingview-docs-map.md`: TradingView Help Center map, Supercharts walkthrough paths, indicator/drawing/alert/watchlist/screener guidance, access boundaries, and vocabulary bridge to the shared market-analysis workflow.

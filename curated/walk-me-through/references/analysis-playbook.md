@@ -1,6 +1,6 @@
 # Walk Me Through Analysis Playbook
 
-Use these templates while operating the visible browser. When Mentorship Mode is on (see `SKILL.md`), pair every analytical step with the matching teaching beat in **Mentor Teaching Beats** below and close the session with the **Learning Recap Template**.
+Use these templates while operating the visible browser. `SKILL.md` language/concision rules override every template here. Use long templates only when the user asks for a full memo, full recap, detail, or breakdown.
 
 For user requests such as "help me understand GEX" or "what do these numbers mean", use Live Tutoring rather than Standard Analysis. Teach one viewport at a time: page/filter state, stats cards, main chart, lower table/details, then recap. Do not collapse those beats into one summary. After each viewport, wait for explicit confirmation such as `next`, `go ahead`, `move forward`, `continue`, or `yes` before scrolling, clicking, changing filters, or inspecting the next section.
 
@@ -116,7 +116,7 @@ Teaching beat micro-loop (rule M2): frame the question -> prime the concept (fir
 
 ## Learning Recap Template
 
-Deliver after the decision memo when Mentorship Mode is on. Keep it warm and concrete, tied to what was actually on screen.
+Default recap is only 2-3 short lines. Use the full template below only when the user explicitly asks for a full recap.
 
 ```text
 What you learned today
@@ -137,4 +137,4 @@ Your glossary (optional):
 Where to go next: drill one chart deeper, model a position on the P&L chart, or pick the next concept to learn.
 ```
 
-Scale it down to two lines for a quick read; use the full template for a learning walkthrough.
+Do not use this full template during viewport-by-viewport tutoring unless the user asks to wrap up in detail.
