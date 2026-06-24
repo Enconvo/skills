@@ -1,2 +1,0 @@
-Date,Candles_Added_1H,Candles_Added_Daily,Strategies_Run,Improving,Stable,Decaying,Failing,Top_Strategy,Top_Return_Pct,Top_Sharpe,Notes
-2026-02-12,7,5551,23,0,23,0,0,r3_01_macd_atr_trail,101.0,0.86,First refresh. All stable. Daily data expanded to 27yr (1999-2026). 1H data +7 candles only.

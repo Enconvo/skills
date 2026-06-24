@@ -57,3 +57,5 @@ market_intel/portfolio_data.*.json
 strategy_lab/au_autoresearch_v*.json
 strategy_lab/au_autoresearch_results.json
 strategy_lab/*_data_verified.json
+# Generated/raw market data + backtest result CSVs (regenerable via fetch_data)
+strategy_lab/*.csv
