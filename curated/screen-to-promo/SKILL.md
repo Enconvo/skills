@@ -165,7 +165,7 @@ Going with this — let me know if you want to adjust anything.
 ### Phase 1: Analysis & Planning
 5. **Source Analysis** — probe resolution/duration/fps/audio, extract key frames every 10s, identify UI regions (app windows, sidebars, chat areas), detect artifacts (recording bars, idle cursor, blank screens, notification popups)
 6. **Context & Audience** — research product/brand, community terminology, target platform constraints, language/localization needs (CJK font requirements, caption style choice)
-7. **Storyboard & Planning** — map VO lines to source timestamps, pre-calculate zoom targets from actual key frame pixel coordinates (never guess cx/cy), build zoom table, flag problems (time jumps needing smooth_jumps, missing fonts, duration vs platform limits)
+7. **Storyboard & Planning** — map VO lines to source timestamps, pre-calculate zoom targets from actual key frame pixel coordinates (never guess cx/cy), build zoom table, flag problems (time jumps needing smooth_jumps, missing fonts, duration vs platform limits). For each beat, pick a source window whose HEAD and TAIL are both clean (no idle cursor, no pull-back, no artifacts) — verify both end frames before committing, and add a small safety trim so held/payoff beats end on the intentional frame, not trailing operator motion.
 
 ### Phase 2: Production
 8. **Prep sources** → `scripts/prep_source.sh` (any resolution → 1920×1080 @ 30fps)
@@ -176,6 +176,7 @@ Going with this — let me know if you want to adjust anything.
 13. **Compose frames** → `python3 scripts/compose.py --config config.json --output final.mp4`
 14. **Mix audio** → `scripts/audio_mix.sh output.m4a -25 audio1.wav gap audio2.wav ...`
 15. **Encode** → ffmpeg h264 with `setsar=1` (or use `--output final.mp4` in compose.py)
+16. **Pre-delivery commercial audit (MANDATORY gate)** — before presenting anything, scrub the assembled cut and confirm it is clean enough to publish publicly for a paying audience. Extract a filmstrip across the WHOLE timeline (~every 2s) PLUS the last frame of every beat, and eyeball it against this checklist: (a) every beat starts AND ends on intentional content — no trailing cursor drift, dead air, or zoom pull-back; (b) no recording bars, debug banners, notification popups, or personal tabs/bookmarks visible in any frame; (c) VO and captions finish before each cut; (d) audio balanced (~‒16 LUFS), no clipping, SFX not louder than VO; (e) no AR squish, no black flash between segments; (f) hook/CTA text matches VO exactly. Fix and re-audit until clean — only then deliver.
 
 ## Quick Start
 
@@ -257,6 +258,9 @@ Both `zoom` (single dict) and `zooms` (array) are supported.
 - **Script writing**: style matches strategy — dramatic for marketing, instructional for guides.
 - **UI jumps**: add source timestamps to `smooth_jumps` list — compositor auto cross-fades 0.5s.
 - **Frame numbering**: all frames are 1-indexed (`f_0001.jpg`, `f_0002.jpg`, ...).
+- **Clean beat boundaries (commercial-grade)**: every beat must START and END on intentional, on-message content. Before extracting a beat's frame window, view BOTH its first and last frames — not just the middle. Trim the window so it excludes trailing dead motion: idle cursor drift, a pull-back to the desktop/browser chrome, a click that lands on nothing, a half-loaded state, or "whatever the recording happened to do next after the point was made." This is the single difference between a raw screen capture and a commercial.
+- **No zoom pull-back on a payoff**: hold the hero reveal at constant scale into the cut. A late zoom-out re-exposes tabs, chrome, and cursor — kill it. A payoff freezes on the finished result, then hard-cuts; it never lingers while the operator's cursor wanders.
+- **Artifact exclusion is mandatory, not optional**: recording bars, "started debugging this browser" banners, notification popups, idle cursors, blurred/loading frames, and personal tabs/bookmarks must be cropped out, zoomed past, or cut — never left in a delivered frame. If a required beat can't avoid an artifact, reframe tighter or pick a cleaner moment.
 - **Zoom easing**: cosine ease-in-out on both zoom in and zoom out.
 - **Zoom accuracy**: never guess cx/cy — extract actual frames and measure pixel coordinates.
 - **ALWAYS use HyperFrames for hook/CTA**: never fall back to plain ffmpeg drawtext for title cards. HyperFrames gives spring animations, light leaks, and proper motion design. ffmpeg drawtext produces static, lifeless cards.
@@ -452,6 +456,12 @@ Capture discoveries that cost hours the first time. Check this list BEFORE start
 - **Survey the WHOLE recording before scripting — distinctive features hide in short moments**: On a Coupa-Cafe app-design promo, the first cut missed the single coolest beat — the user opened Enconvo's **Doodle** tool and hand-drew red swap arrows directly on the design ("move avatar and greeting to opposite sides"), and Enconvo read the sketch and applied it. It flashed by in ~10s of a 23-min recording, so a happy-path skim treated the final screen as just "the finished app" instead of "the result of a hand-drawn instruction." Cost: a full re-render (new beat frames + 2 new VO lines + re-timed audio). Lesson: sample frames across the ENTIRE timeline and explicitly ask "what unusual/branded interactions happen here?" — a unique gesture or custom tool is usually the most sellable shot, not the polished end state.
 - **Turn a feature beat into a before→after pair when possible**: the Doodle beat became far stronger by showing the doodle (avatar on the right + red swap arrows) immediately followed by the payoff (avatar swapped to the left), with VO "It reads your sketch, and ships it — exactly as drawn." A feature shown *causing a visible change* beats a feature shown in isolation.
 - **Present your beat-by-beat understanding and get confirmation BEFORE the real render** (see Phase 0 gate). The Doodle miss would have been caught in one sentence of user feedback if the read had been shown first. The confirm gate is cheap; a wrong 40s render is not.
+
+### Clean Cuts & Commercial Polish (audit-ready)
+
+- **Trailing cursor / idle-motion tail on payoff beats — cut it**: A delivered promo held the finished-app payoff for a full 6s; the last ~1.6s re-exposed the browser chrome and the operator's cursor drifting after the point was already made ("cursor moved after all done — totally unnecessary"). It read as a raw screen capture, not a commercial. Fix pattern: end the beat on its intentional held frame and hard-cut to the next beat. Concretely — shorten the beat so it ends just after its VO line (VO end + ~0.3–0.5s breath), re-extract that beat's frames from a window that STOPS before the dead motion, and remove any zoom pull-back (keep the reveal held to the cut). Then re-time everything downstream (CTA + audio cues shift earlier by the trimmed amount) and rebuild every version (captioned + no-caption). Lesson: a payoff freezes on the result; it never lingers while the cursor wanders.
+- **Always inspect the LAST frame of every beat, not just the middle**: dead motion, artifacts, and pull-backs hide at beat boundaries. A mid-beat frame can look perfect while the tail is unpublishable. Pull head + tail frames for each beat during planning AND again in the pre-delivery audit.
+- **Deliverables are public + commercial by default**: assume every export will be posted publicly and scrutinized frame-by-frame by a paying audience. Nothing ships with a recording bar, debug banner, notification popup, idle cursor, personal tab/bookmark, half-loaded UI, or AR squish. When unsure whether a frame is clean enough to publish, it isn't — reframe or cut.
 
 ### Script Authoring & Timing
 
