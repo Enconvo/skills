@@ -49,7 +49,7 @@ Detect intent from the user's words + source material:
 | **Narrative** | Pain → Solution → Magic → Payoff | Step 1 → Step 2 → ... → Done | Problem → Feature → Benefit |
 | **Zoom strategy** | 3-4 dramatic reveals, quick peek + payoff | Many — every step gets a zoom, stay zoomed | Feature-focused, moderate frequency |
 | **Zoom frequency** | Few, each earns its moment | High, readability-driven | Medium, one per feature |
-| **Captions** | Bold pop/karaoke, word-by-word | Step labels, numbered, persistent | Clean, informative |
+| **Captions** *(opt-in — OFF by default)* | Bold pop/karaoke, word-by-word | Step labels, numbered, persistent | Clean, informative |
 | **Trimming** | Ruthless — only "wow" moments | Keep everything, skip only dead time | Cut transitions, keep features |
 | **VO style** | Dramatic, emotional, multi-voice | Calm, instructional, single narrator | Confident, persuasive |
 | **CTA** | "Link in bio" / hard CTA | "Now try it yourself" | "Get started at..." |
@@ -96,6 +96,7 @@ Default aesthetic for all promo videos. Do NOT deviate without explicit user req
 - Text glow: Pure white only, very subtle (opacity 0.15 max)
 
 ### Captions (over screen recordings)
+- **DEFAULT = OFF.** Promo videos ship WITHOUT burned-in captions unless the user explicitly asks ("add captions", "subtitles", "karaoke", "word-by-word"). The VO carries the message; the hook/CTA title cards carry the on-screen text; the demo footage stays clean and unobstructed. Build the caption layer ONLY on explicit request — then apply the style rules below.
 - NO backdrop box/pill — text floats freely with multi-layer drop shadow
 - Shadow: `0 2px 4px rgba(0,0,0,0.7), 0 4px 20px rgba(0,0,0,0.5), 0 8px 40px rgba(0,0,0,0.3)`
 - Active word: pure white, bold (800), scale 1.15
@@ -124,7 +125,7 @@ The skill uses a **survey → understanding → plan → implement** flow with T
 
 **Gate 1 — Confirm the understanding.** Ask for comments and iterate on the beat-by-beat read until the user explicitly confirms your understanding is correct. Do NOT move on to planning until the read is confirmed.
 
-**Step C — Present the production plan.** Once the understanding is locked, lay out the concrete plan so the user can see exactly what will be built: mode + duration, the narrative arc, the per-beat script / VO lines, which source moments become which shots, zoom targets, caption style, hook + CTA, and music/SFX. Keep it scannable.
+**Step C — Present the production plan.** Once the understanding is locked, lay out the concrete plan so the user can see exactly what will be built: mode + duration, the narrative arc, the per-beat script / VO lines, which source moments become which shots, zoom targets, captions (OFF by default — opt-in), hook + CTA, and music/SFX. Keep it scannable.
 
 **Gate 2 — Confirm the plan, then implement.** Iterate on the plan until the user explicitly approves it. Only AFTER plan approval do you run the real generation job (extract frames, generate VO, render, mix). Do NOT render the full promo before the plan is approved.
 
@@ -147,7 +148,7 @@ Based on your 5-minute screen recording of [product], I recommend:
 - Strategy: Pain → Solution → Magic → Payoff arc
 - Hook: "[pain point opening line]"
 - Zooms: 3 focused moments — [setup], [creation], [result]
-- Captions: Bold pop, word-by-word
+- Captions: none (default) — VO + hook/CTA cards carry the message
 - CTA: Product name + tagline end card
 
 Going with this — let me know if you want to adjust anything.
@@ -159,7 +160,7 @@ Going with this — let me know if you want to adjust anything.
 1. **Detect intent** from user's words + source material
 2. **Full-timeline survey** — sample frames across the ENTIRE recording; identify every beat AND every distinctive product feature (unique tools, gestures, "aha" interactions), not just the main task
 3. **Present understanding + Gate 1** — report the beat-by-beat read (features named); iterate until the user confirms the understanding is correct. Do not plan until confirmed.
-4. **Select strategy + present production plan** (viral_marketing | user_guide | product_demo | changelog | custom) — mode, duration, narrative, per-beat script/VO, zoom targets, caption style, hook/CTA, music/SFX
+4. **Select strategy + present production plan** (viral_marketing | user_guide | product_demo | changelog | custom) — mode, duration, narrative, per-beat script/VO, zoom targets, captions (OFF by default — include only if the user asks), hook/CTA, music/SFX
 5. **Gate 2 (mandatory)** — iterate on the plan until the user approves it, then start the real generation job. Never extract frames, generate VO, or render the full promo before plan approval.
 
 ### Phase 1: Analysis & Planning
@@ -254,6 +255,7 @@ Both `zoom` (single dict) and `zooms` (array) are supported.
 - **Letterboxed sources**: crop content FIRST, re-center, then zoom.
 - **Audio**: never loudnorm original Veo audio (`SKIP_FIRST_NORM=1`). Use concat not amix. 0.5s gaps.
 - **Transitions**: overlay_dissolve with rembg cutout for presenter→screenrec.
+- **Captions OFF by default**: promos ship with NO burned-in captions/subtitles unless the user explicitly requests them — the VO plus the hook/CTA title cards carry all on-screen text, and the demo footage stays unobstructed. Skip the entire ASR / word-timestamp / caption-render path unless asked. When the user DOES ask for captions, follow the caption rules here.
 - **Captions / SRT timestamps**: word-level timestamps come from Groq Whisper (Large V3 or Turbo). **The Enconvo `transcribe/transcribe_audio_video` wrapper returns plain text only** — even when the active provider is Groq Whisper via the Enconvo Cloud relay, timestamps are stripped. To get real SRT/word timestamps you MUST call Groq's API directly with `response_format=verbose_json` + `timestamp_granularities[]=word,segment`, which requires a real `gsk_...` key in Enconvo's credential manager. See **ASR & Timestamps Setup** section below for the exact steps to walk a user through getting a free Groq key and validating it. Choose caption style based on language and strategy.
 - **Script writing**: style matches strategy — dramatic for marketing, instructional for guides.
 - **UI jumps**: add source timestamps to `smooth_jumps` list — compositor auto cross-fades 0.5s.
@@ -413,13 +415,16 @@ If the user reports "the sound is 1s early/late," you have two options:
 
 Before offering option 2, check whether the keypress animation is baked into the source you have (it usually is, by the time you're mixing audio). If so, tell the user that shifting the SFX is equivalent and ship that.
 
+**Cue LEVEL discipline (the loudnorm trap):** correct timing is only half the job — the SFX also has to be *audible*. Two failure modes, both reported as "there's no keystroke sound": (1) the chord is mixed UNDER the CTA voiceover, which masks it — fix by moving the VO to AFTER the chord so tick/tock live in a VO-free pocket; (2) the final `loudnorm` pass pulls short transients down ~13 dB, so a tick that peaked hot in the raw mix ends up near −15 dB and vanishes. Boost tick/tock in the raw mix until the post-loudnorm cue window peaks −6…−10 dB (raw volumes ~2.0–2.6 are normal — a 0.08s transient barely moves integrated loudness, so the boost shifts the cue level roughly linearly). Always confirm with `ffmpeg -ss <cue> -t <win> -i final.mp4 -af volumedetect -f null -` — never trust "I set the volume to 0.85."
+
 ### Animation overlay patterns
 
 For the visual side of the keypress, use HyperFrames composited as an overlay layer onto the screen recording:
 
 - **Floating key caps** — render `⌘`, `⇧`, `D` as styled `<kbd>` divs on a transparent canvas, animate them with GSAP (scale 0.9 → 1.0, opacity 0 → 1, ~150ms each, staggered), hold for ~600ms, fade out 300ms.
 - **Position**: bottom-center or bottom-right, 80–120px from the edge. Never cover the active UI.
-- **Style**: dark-glass key caps (`background: rgba(20,20,20,0.9)`, `border: 1px solid rgba(255,255,255,0.15)`, `border-radius: 10px`, `box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)`). White glyphs, SF Pro Display 600.
+- **Style — premium keycaps, not flat rects**: the keycap is the hero of the outro, so it must read like a real Mac key, never a gray box. HyperFrames/CSS: a *top-lit gradient* body (`linear-gradient(180deg,#4a4b52,#1c1c21)`), soft outer border (`1px solid rgba(255,255,255,0.25)`), inner rim (`inset 0 1px 0 rgba(255,255,255,0.12)`), a real drop shadow (`0 10px 26px rgba(0,0,0,0.55)`), and a feathered gloss in the upper third. White glyphs (SF Pro Display 600) with a 1px dark text-shadow. If you render caps in Python instead (proven path — see `scripts/keycap.py`), **supersample 4× and Lanczos-downscale** — a 1× `rounded_rectangle` with a thin outline aliases into a hard, cheap edge a paying viewer WILL call out. NEVER ship flat single-scale rects.
+- **Fire-flash = illuminate, not wash**: when the chord fires, brighten the caps *through their own alpha* (≤40% white) so they GLOW; a flat white fill over the whole cap blows them out to a gray smear. `scripts/keycap.py:illuminate()` is the reference.
 - **Sync rule**: the modifier keys appear FIRST (ticks fire), then the letter highlights/animates (final tick), then the action fires on screen (tock fires). This mirrors the natural rhythm of a chord.
 
 Render as a separate transparent-background MP4 with alpha (`-c:v prores_ks -profile:v 4444 -pix_fmt yuva444p10le`), then overlay onto the screen recording with ffmpeg `-filter_complex "[0:v][1:v]overlay=..."`.
@@ -459,12 +464,14 @@ Capture discoveries that cost hours the first time. Check this list BEFORE start
 
 ### Clean Cuts & Commercial Polish (audit-ready)
 
-- **Trailing cursor / idle-motion tail on payoff beats — cut it**: A delivered promo held the finished-app payoff for a full 6s; the last ~1.6s re-exposed the browser chrome and the operator's cursor drifting after the point was already made ("cursor moved after all done — totally unnecessary"). It read as a raw screen capture, not a commercial. Fix pattern: end the beat on its intentional held frame and hard-cut to the next beat. Concretely — shorten the beat so it ends just after its VO line (VO end + ~0.3–0.5s breath), re-extract that beat's frames from a window that STOPS before the dead motion, and remove any zoom pull-back (keep the reveal held to the cut). Then re-time everything downstream (CTA + audio cues shift earlier by the trimmed amount) and rebuild every version (captioned + no-caption). Lesson: a payoff freezes on the result; it never lingers while the cursor wanders.
+- **Trailing cursor / idle-motion tail on payoff beats — cut it**: A delivered promo held the finished-app payoff for a full 6s; the last ~1.6s re-exposed the browser chrome and the operator's cursor drifting after the point was already made ("cursor moved after all done — totally unnecessary"). It read as a raw screen capture, not a commercial. Fix pattern: end the beat on its intentional held frame and hard-cut to the next beat. Concretely — shorten the beat so it ends just after its VO line (VO end + ~0.3–0.5s breath), re-extract that beat's frames from a window that STOPS before the dead motion, and remove any zoom pull-back (keep the reveal held to the cut). Then re-time everything downstream (CTA + audio cues shift earlier by the trimmed amount) and rebuild the default no-caption cut (add a captioned version only if the user asked). Lesson: a payoff freezes on the result; it never lingers while the cursor wanders.
 - **Always inspect the LAST frame of every beat, not just the middle**: dead motion, artifacts, and pull-backs hide at beat boundaries. A mid-beat frame can look perfect while the tail is unpublishable. Pull head + tail frames for each beat during planning AND again in the pre-delivery audit.
 - **Deliverables are public + commercial by default**: assume every export will be posted publicly and scrutinized frame-by-frame by a paying audience. Nothing ships with a recording bar, debug banner, notification popup, idle cursor, personal tab/bookmark, half-loaded UI, or AR squish. When unsure whether a frame is clean enough to publish, it isn't — reframe or cut.
+- **Don't trust a pre-cropped "master" intermediate for framing (user catch, 2026-07-14)**: when a Retina screen recording is downconverted to a 16:9 "master" before cutting beats, that master can silently shave critical top/bottom UI — the app title bar (file name) and a right-hand sidebar's top toolbar (model / mode selector) sit in the top ~5–10% and are the first thing an aspect crop eats. Symptom: "you zoomed in too much, the top is cut off, I can't see the filename / which model." Fix: source the demo beats from the ORIGINAL recording (probe its true W×H first) with a full-width, TOP-ANCHORED 16:9 crop — `crop=W:round(W*9/16):0:0,scale=1920:1080` — so the tops survive and only a thin bottom strip drops. Verify by extracting a beat frame and reading the very top row before rebuilding. (Note: macOS screen-recording filenames use a narrow no-break space U+202F before "AM/PM" — match them with a glob like `Screen*1.54.20*.mov`, not a typed literal.)
 
 ### Script Authoring & Timing
 
+- **Captions are opt-in, not default (user directive, 2026-07-14)**: promo videos ship WITHOUT burned-in captions by default — VO + hook/CTA title cards carry the message and the demo footage stays clean. Add a caption layer only on explicit request. Default output is a single no-caption cut, not a captioned+no-caption pair.
 - **Writers block gate**: do NOT start TTS generation until the full script, zoom plan, and segment durations are approved by the user. TTS burns time + credits. User-visible feedback loops (show the plan, get "go") are cheaper than regenerating audio.
 - **Reuse VO across iterations**: if only zoom timing / frames / cuts change, keep old VO WAVs — don't regenerate. Only regenerate the specific segment whose TEXT changed.
 - **Delay pattern for late-landing words**: when a specific word (e.g. "Approve", "ALIVE") must sync to a specific video frame, compute delay = `target_seg_time - raw_word_start_in_wav`, then apply via `ffmpeg -af "adelay=Nms|Nms,apad=pad_dur=D,atrim=0:D,asetpts=PTS-STARTPTS"`. Also shift the word-timings JSON by the same delay so captions stay synced.
@@ -501,6 +508,12 @@ Capture discoveries that cost hours the first time. Check this list BEFORE start
 - **amix filter preserves both tracks**: `[voice]volume=1.0;[music]volume=0.18;[voice][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0` — the `normalize=0` is critical; without it, adding the BGM will attenuate the voice.
 - **ACE-Step for instrumental BGM**: use `~/.claude/skills/acestep` for cinematic/tech promo tracks. Good caption pattern: genre + instruments + mood + structural cues ("building tension with rising filter sweeps, triumphant major-key drop at the end"). Request `instrumental`, explicit `no vocals` if Gemini/Puck VO is on top. BPM 85–100 for narrator-driven videos. ALWAYS stop the server after generation (`pkill -f acestep-api`) — it holds ~27GB RAM.
 
+### Encoding, Sharpness & Audio Seams (hard-won 2026-07-14)
+
+- **Double-encode softness — encode the picture ONCE, at crf 15**: `compose.py` encodes the middle at crf 23 / preset fast; if you then re-encode the concatenated video, that soft crf-23 pass is baked in and can't be recovered. On a no-zoom Enconvo cut the whole video read "low-res / not HD" for exactly this reason (earlier "HD-feeling" versions only looked sharp because zoom magnified the UI and hid the compression). Fix: extract source/segment frames at HIGH JPEG quality (`ffmpeg ... -q:v 2`), bypass compose.py's internal encode (`--output-frames`), and do a SINGLE `libx264 -preset slow -crf 15 -pix_fmt yuv420p` pass over the final frame set. Verify with a magnified 1:1 detail crop of small UI text (before/after) — the difference is night-and-day. **Do NOT judge quality by average bitrate**: static screen content compresses to ~600 kbps at crf 15 because 95%+ of blocks are skipped; check the x264 log's I/P/B QP instead (QP 3–13 = near-lossless).
+- **Split-seam clicks — never split a continuous VO line mid-phrase**: to spread one VO line across two visual beats it's tempting to cut the WAV in half. That cut clips the trailing consonant and injects an audible broadband click right on a word (reported as "Discord is still broken" — it was the edit seam, not the pronunciation). Whisper transcribes the word perfectly (so it's a seam artifact, not a garble), and `ffmpeg -lavfi showspectrumpic` shows the click as a bright vertical broadband streak at the cut. Fix: play the FULL continuous line and let it span both beats — a ~12s line comfortably covers a 7s + 6s beat pair. No cut, no click.
+- **Reuse the audio when only the picture changes**: if an iteration only re-renders frames (e.g. a card redesign) and leaves every VO/SFX offset untouched, the mixed `master.m4a` is unchanged — re-mux it onto the new silent video instead of rebuilding the whole audio graph. Saves a full audio pass and guarantees the sync you already approved.
+
 ### Brand Assets
 
 The skill ships with Enconvo brand material at `assets/brand/` and a production-tested SFX library at `assets/sfx/`:
@@ -519,23 +532,39 @@ Do NOT tint the icon, do NOT place it on a light background, do NOT use it on th
 
 ### Hook & CTA Design (HyperFrames)
 
-#### CTA card with keypress animation (the v6 pattern)
+#### CTA card with keypress animation (the ⌘⇧D hero pattern)
 
-The CTA outro that landed for Enconvo and is now the canonical pattern:
+The CTA outro that landed for Enconvo and is the canonical pattern. Two things make it read commercial: **premium keycaps** (see `scripts/keycap.py` + "Premium keycap rendering" below) and a **one-key-at-a-time rhythm** where each cap lands on its own tick.
 
-**8.5 second timeline:**
+**~7.5 second timeline** (times are card-local):
 
 | Time | Visual | Audio |
 |------|--------|-------|
 | 0.00s | Card fades up on black | — |
-| 0.10s | `⌘` key cap pops in (scale 0.9→1.0) | tick (vol 0.85) |
-| 0.28s | `⇧` key cap pops in | tick |
-| 0.46s | `D` key cap pops in | tick |
-| 1.45s | All three keys flash white briefly | tock ("action fires") |
-| 2.10s | Keys + subline fade out | whoosh |
-| 2.50s | Logo + wordmark fade in | whoosh (softer) |
-| 3.10s | VO begins (`"Enconvo. Smarter macOS, one shortcut away."`) | VO + sustained ambient |
-| 7.80s | Fade to black | VO tails out |
+| 0.60s | `⌘` cap presses in alone (scale 0.86→1.0, ease-out-back) | tick |
+| 0.78s | `⇧` cap presses in | tick |
+| 0.96s | `D` cap presses in — chord complete, held | tick |
+| 1.90s | All three caps *illuminate* (≤40% white glow), shortcut fires | tock ("action fires") |
+| 1.98s | Caps fade out (~0.36s) | — |
+| 2.10s | Logo mark blooms in | whoosh (soft) |
+| 2.50s | `ENCONVO` wordmark fades in | — |
+| 2.72s | Tagline fades in (`"Smarter macOS, one shortcut away."`) | — |
+| ~3.0s | VO: `"Enconvo. Smarter macOS, one shortcut away."` | VO |
+| end | Fade to black | VO tails out |
+
+**Rhythm rule**: caps appear ONE AT A TIME (~180ms apart), each frame-locked to its tick, then the chord holds ~1s before the tock/illuminate fires. That is the natural cadence of a real chord — modifiers first, letter last, then the action. Popping all three in together (the old v6 pattern) feels mechanical; the staggered press feels human.
+
+**Premium keycap rendering** (the 2026-07 upgrade — flat gray boxes → real Mac keys):
+1. **Supersample 4× + Lanczos downscale** — glass-smooth corners/borders. The single biggest quality jump; a 1× rounded-rect with a thin outline aliases into a hard, cheap edge.
+2. **Top-lit vertical gradient body** (`#4a4b52`→`#1c1c21`) masked to the rounded rect — real depth, not a flat fill.
+3. **Soft drop shadow** under each cap — grounds it on the black canvas instead of floating.
+4. **Feathered gloss** highlight in the upper face + a faint inner rim light.
+5. **Crisp glyph** with a subtle 1px dark shadow for legibility.
+6. **Illuminate on fire** — brighten through the cap's own alpha (≤40% white) so it GLOWS; never a flat white wash.
+
+`scripts/keycap.py` ships the proven Pillow implementation (`keycap()`, `illuminate()`, `cmd_shift_d()`) — reuse it verbatim. Run `python3 scripts/keycap.py <outdir>` to eyeball a held row + a fire row.
+
+**Cue level**: put the tick/tock in a VO-free pocket (move the CTA VO to AFTER the chord) and boost them so the post-loudnorm cue window peaks **−6…−10 dB** — loudnorm pulls short transients down ~13 dB, so raw tick/tock volumes of ~2.0–2.6 land in target. Under the VO they get masked and read as "no SFX." Verify with `volumedetect` over the cue window, not by ear alone.
 
 **Wordmark proportions** (learned the hard way through v4→v6):
 
