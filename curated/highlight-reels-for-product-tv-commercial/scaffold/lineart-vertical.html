@@ -1,0 +1,205 @@
+<!doctype html>
+<!-- ENCONVO LAUNCH FILM — MINIMAL VERTICAL (Notion-white)  |  1080x1920 @ 30fps  |  50.5s -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>EnConvo — Line Art Vertical</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #F4F3EF; }
+      body { font-family: "Inter", -apple-system, system-ui, sans-serif; color: #23221F; -webkit-font-smoothing: antialiased; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+      #stage { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 28%, #FAF9F6 0%, #F4F3EF 48%, #EEEDE8 100%); }
+      #glowsoft { position: absolute; width: 1400px; height: 1400px; left: 50%; top: 32%; margin-left: -700px; margin-top: -700px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(92,112,210,0.06), rgba(92,112,210,0) 62%); filter: blur(28px); pointer-events: none; will-change: transform; }
+      #vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 95% at 50% 40%, transparent 60%, rgba(22,22,30,0.055) 100%); }
+      .scene { position: absolute; inset: 0; }
+      .stack { position: absolute; left: 0; right: 0; text-align: center; padding: 0 70px; }
+      .eyebrow { font-size: 25px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: #6B6862; display: inline-flex; align-items: center; gap: 14px; }
+      .eyebrow::before { content: ""; width: 28px; height: 3px; border-radius: 3px; background: #3B5BDB; }
+      .title { font-size: 68px; font-weight: 800; line-height: 1.04; letter-spacing: -0.035em; color: #1A1915; }
+      .title .line, .mega .line { display: block; }
+      .title .w, .head .w, .mega .w { display: inline-block; will-change: transform, filter, opacity; }
+      .ticks { font-size: 29px; font-weight: 500; color: #6B6862; }
+      .ticks b { color: #1A1915; font-weight: 700; }
+      .chip { display: inline-block; padding: 7px 17px; border-radius: 999px; font-size: 27px; font-weight: 700; color: #157F4C; background: rgba(21,127,76,0.10); border: 1px solid rgba(21,127,76,0.34); }
+      .head { font-size: 52px; font-weight: 500; line-height: 1.08; letter-spacing: -0.015em; color: #524F49; }
+      .mega { font-size: 104px; font-weight: 820; line-height: 0.98; letter-spacing: -0.04em; color: #131210; }
+      .logomark { position: absolute; left: 50%; will-change: transform; height: auto;
+        filter: drop-shadow(0 26px 42px rgba(150,116,24,0.30)) drop-shadow(0 6px 13px rgba(30,26,16,0.16)); }
+      .wordmark { position: absolute; left: 0; right: 0; text-align: center; font-size: 60px; font-weight: 700; letter-spacing: 0.4em; color: #1A1915; }
+      .kicker { position: absolute; left: 0; right: 0; text-align: center; font-size: 25px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: #8A867E; }
+      .tagline { position: absolute; left: 0; right: 0; text-align: center; font-size: 42px; font-weight: 500; color: #3A3833; }
+      .urltiny { position: absolute; left: 0; right: 0; text-align: center; font-size: 24px; font-weight: 600; letter-spacing: 0.16em; color: #6B6862; }
+      .urltiny .d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #3B5BDB; margin-right: 12px; vertical-align: middle; }
+      .keys { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 24px; }
+      .key { width: 168px; height: 168px; will-change: transform, opacity; }
+      .keyglow { position: absolute; left: 50%; margin-left: -320px; width: 640px; height: 260px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(59,91,219,0.30), rgba(59,91,219,0) 68%); filter: blur(16px); opacity: 0; pointer-events: none; }
+      .smartbar { position: absolute; left: 50%; top: 62%; margin-left: -430px; margin-top: -52px; width: 860px; height: 104px; border-radius: 52px; display: flex; align-items: center; gap: 22px; padding: 0 36px; background: #FFFFFF; border: 1px solid rgba(22,22,28,0.09); box-shadow: 0 28px 66px -28px rgba(22,24,44,0.30), inset 0 1px 0 rgba(255,255,255,0.7); }
+      .smartbar .dot { width: 20px; height: 20px; border-radius: 50%; flex: none; background: radial-gradient(circle at 35% 30%, #7b8cff, #3B5BDB 70%); }
+      .smartbar .ph { font-size: 31px; color: #6B6862; font-weight: 500; }
+      .smartbar .caret { width: 2px; height: 40px; background: #3B5BDB; margin-left: -12px; }
+      .smartbar .tag { margin-left: auto; font-size: 22px; font-weight: 600; color: #6B6862; padding: 9px 17px; border-radius: 13px; background: rgba(22,22,28,0.05); border: 1px solid rgba(22,22,28,0.08); }
+      .screen { position: absolute; width: 1040px; height: 585px; object-fit: cover; border-radius: 20px; background: #fff; will-change: transform, filter, opacity; box-shadow: 0 56px 120px -40px rgba(20,22,44,0.34), 0 8px 24px -12px rgba(20,22,44,0.18), 0 0 0 1px rgba(22,22,28,0.08); }
+      #wallwrap { position: absolute; left: 0; right: 0; top: 40%; height: 84px; overflow: hidden; opacity: 0.05; }
+      .wallrow { position: absolute; white-space: nowrap; font-size: 58px; font-weight: 800; color: #17171B; will-change: transform; }
+      .wallrow .sep { color: #3B5BDB; }
+    </style>
+  <style id="lineart-vertical-skin">
+/* ===== LINE ART SKIN (overrides Minimal base) =====
+   paper #F2EEE1 · navy ink #1E2C62 / #15224E · gold accent #E7B62C
+   signature move: flat-offset (blur-0) navy shadows = editorial line-art frames */
+html, body { background: #F2EEE1; }
+body { color: #1E2C62; }
+#stage { background: radial-gradient(130% 100% at 50% 26%, #F8F4E9 0%, #F2EEE1 46%, #EBE6D6 100%); }
+#glowsoft { background: radial-gradient(circle at 50% 50%, rgba(231,182,44,0.08), rgba(231,182,44,0) 62%); }
+#vignette { background: radial-gradient(125% 105% at 50% 40%, transparent 58%, rgba(20,26,60,0.07) 100%); }
+.eyebrow { color: #5A6488; }
+.eyebrow::before { background: #E7B62C; }
+.title { color: #1E2C62; font-weight: 800; }
+.ticks { color: #5A6488; }
+.ticks b { color: #1E2C62; }
+.chip { color: #7A5B10; background: rgba(231,182,44,0.20); border-color: rgba(231,182,44,0.62); }
+.head { color: #49517A; }
+.mega { color: #15224E; }
+.logomark { filter: drop-shadow(7px 9px 0 rgba(27,42,99,0.14)); }
+.wordmark { color: #1E2C62; }
+.kicker { color: #6A7099; }
+.tagline { color: #38406B; }
+.urltiny { color: #5A6488; }
+.urltiny .d { background: #E7B62C; }
+.keyglow { background: radial-gradient(circle at 50% 50%, rgba(231,182,44,0.36), rgba(231,182,44,0) 68%); }
+.smartbar { background: #FBF7EC; border: 2.5px solid #1E2C62; box-shadow: 7px 7px 0 rgba(27,42,99,0.13); }
+.smartbar .dot { background: radial-gradient(circle at 35% 30%, #F2D26A, #E7B62C 70%); }
+.smartbar .ph { color: #5A6488; }
+.smartbar .caret { background: #E7B62C; }
+.smartbar .tag { color: #5A6488; background: rgba(27,42,99,0.06); border-color: rgba(27,42,99,0.14); }
+.screen { border: 4px solid #1E2C62; border-radius: 12px;
+  box-shadow: 16px 16px 0 rgba(27,42,99,0.15); }
+.wallrow { color: #1E2C62; }
+.wallrow .sep { color: #E7B62C; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="lineart-vertical" data-start="0" data-width="1080" data-height="1920" data-fps="30" data-duration="50.5">
+      <div id="stage" class="clip" data-start="0" data-duration="50.5" data-track-index="0"><div id="glowsoft"></div><div id="vignette"></div></div>
+
+      <video id="vSmart" class="clip screen" src="assets/clips/smartbar.mp4" data-start="9.6"   data-duration="7.7" data-track-index="5" muted playsinline></video>
+      <video id="vPop"   class="clip screen" src="assets/clips/popbar_full.mp4"   data-start="17.3"  data-duration="7.4" data-track-index="6" muted playsinline></video>
+      <video id="vAgent" class="clip screen" src="assets/clips/agent.mp4"    data-start="24.7"  data-duration="7.4" data-track-index="5" muted playsinline></video>
+      <video id="vQuant" class="clip screen" src="assets/clips/quant.mp4"    data-start="32.1"  data-duration="6.5" data-track-index="6" muted playsinline></video>
+      <video id="vExcel" class="clip screen" src="assets/clips/m_excel.mp4"  data-start="38.9"  data-duration="1.2" data-track-index="5" muted playsinline></video>
+      <video id="vTools" class="clip screen" src="assets/clips/m_tools.mp4"  data-start="40.0" data-duration="1.3" data-track-index="6" muted playsinline></video>
+      <video id="vWalk"  class="clip screen" src="assets/clips/vivwalk.mp4" data-start="41.0" data-duration="3.0" data-track-index="7" muted playsinline></video>
+
+      <div id="s1" class="scene clip" data-start="0" data-duration="4.6" data-track-index="12">
+        <img id="logoOpen" class="logomark" src="assets/brand/enconvo-logo-gold.png" style="width:250px; margin-left:-125px; top:25%;" />
+        <div id="wordOpen" class="wordmark" style="top:42%;">ENCONVO</div>
+        <div id="kickerOpen" class="kicker" style="top:49%;">AI Agent Launcher for macOS</div>
+      </div>
+
+      <div id="s2" class="scene clip" data-start="4.4" data-duration="5.2" data-track-index="13">
+        <div class="stack" style="top:28%;">
+          <div class="eyebrow" id="eyb2">Meet EnConvo</div>
+          <h2 class="head" id="head2" style="margin-top:26px;"><span class="w">Your</span> <span class="w">Mac</span> <span class="w">just</span> <span class="w">got</span></h2>
+          <h1 class="mega" id="mega2" style="margin-top:14px;"><span class="line"><span class="w">a</span> <span class="w">command</span></span><span class="line"><span class="w">center.</span></span></h1>
+        </div>
+        <div class="smartbar" id="bar2"><span class="dot"></span><span class="ph">Ask anything, do anything</span><span class="caret"></span><span class="tag">150+ tools</span></div>
+      </div>
+
+      <div id="s3" class="scene clip" data-start="9.4" data-duration="7.9" data-track-index="12">
+        <div class="stack" style="top:61%;"><div class="eyebrow">SmartBar</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">One</span> <span class="w">launcher.</span></span><span class="line"><span class="w">Every</span> <span class="w">AI</span> <span class="w">tool.</span></span></h1><div class="ticks" style="margin-top:24px;"><b>150+ tools</b> &middot; <b>MCP</b> &middot; <b>Any model</b></div></div>
+      </div>
+
+      <div id="s4" class="scene clip" data-start="17.1" data-duration="7.6" data-track-index="13">
+        <div class="stack" style="top:61%;"><div class="eyebrow">PopBar</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">Select</span> <span class="w">text.</span></span><span class="line"><span class="w">Get</span> <span class="w">answers.</span></span></h1><div class="ticks" style="margin-top:24px;"><b>Summarize</b> &middot; <b>Translate</b> &middot; <b>Explain</b></div></div>
+      </div>
+
+      <div id="s5" class="scene clip" data-start="24.5" data-duration="7.6" data-track-index="12">
+        <div class="stack" style="top:60%;"><div class="eyebrow">Agents</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">Design</span> <span class="w">a</span> <span class="w">real</span> <span class="w">app.</span></span><span class="line"><span class="w">Just</span> <span class="w">by</span> <span class="w">asking.</span></span></h1><div class="ticks" style="margin-top:24px;">Browser-use agents that actually <b>ship</b>.</div></div>
+      </div>
+
+      <div id="s6" class="scene clip" data-start="31.9" data-duration="6.8" data-track-index="13">
+        <div class="stack" style="top:60%;"><div class="eyebrow">Automate anything</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">One</span> <span class="w">line</span> <span class="w">in.</span></span><span class="line"><span class="w">A</span> <span class="w">backtested</span> <span class="w">strategy</span> <span class="w">out.</span></span></h1><div class="ticks" style="margin-top:24px;"><span class="chip" id="chip6">+723% backtest</span> &nbsp; Code &middot; Run &middot; Verify</div></div>
+      </div>
+
+      <div id="s7" class="scene clip" data-start="38.5" data-duration="5.5" data-track-index="11">
+        <div id="wallwrap"><div class="wallrow" id="wallrow1">OCR <span class="sep">/</span> Translate <span class="sep">/</span> Dictation <span class="sep">/</span> Live Caption <span class="sep">/</span> Memory <span class="sep">/</span> Knowledgebase <span class="sep">/</span> Vision <span class="sep">/</span> Search <span class="sep">/</span> Office <span class="sep">/</span> Workflows</div></div>
+        <div class="stack" style="top:70%;"><h1 class="mega" id="mega7" style="font-size:74px; display:none;"><span class="line"><span class="w">&hellip;and</span> <span class="w">everything</span></span><span class="line"><span class="w">between.</span></span></h1></div>
+      </div>
+
+      <div id="s8" class="scene clip" data-start="43.8" data-duration="6.7" data-track-index="13">
+        <div class="keyglow" id="keyGlow" style="top:53%;"></div>
+        <img id="logoClose" class="logomark" src="assets/brand/enconvo-logo-gold.png" style="width:220px; margin-left:-110px; top:22%;" />
+        <div class="wordmark" id="wordClose" style="top:36%;">ENCONVO</div>
+        <div class="tagline" id="tagClose" style="top:43%;">Your Mac&rsquo;s command center.</div>
+        <div class="keys" id="keysClose" style="top:54%;">
+          <img id="kCmd" class="key" src="assets/brand/keys/key_cmd.png" />
+          <img id="kShift" class="key" src="assets/brand/keys/key_shift.png" />
+          <img id="kD" class="key" src="assets/brand/keys/key_d.png" />
+        </div>
+        <div class="urltiny" id="urlClose" style="top:66%;"><span class="d"></span>enconvo.com</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.to("#glowsoft", { x: 110, scale: 1.10, duration: 25, ease: "sine.inOut", repeat: 1, yoyo: true }, 0);
+      tl.to("#glowsoft", { y: 50, duration: 15, ease: "sine.inOut", repeat: 2, yoyo: true }, 0);
+
+      function tiltIn(sel, t, dir, dur) { dur = dur || 7.0; const ry = dir<0?-8:8; const rz = dir<0?-0.6:0.6;
+        tl.set(sel, { xPercent:-50, yPercent:-50, left:"50%", top:"33%", transformPerspective:1900, transformOrigin:"50% 50%", rotateY:ry, rotateX:4, rotateZ:rz }, t);
+        tl.from(sel, { opacity:0, scale:0.93, filter:"blur(22px)", duration:0.9, ease:"power3.out" }, t);
+        tl.to(sel, { rotateY:ry*0.55, y:"-=12", duration:dur, ease:"sine.inOut" }, t); }
+      function tiltOut(sel, t) { tl.to(sel, { opacity:0, scale:1.05, filter:"blur(16px)", duration:0.5, ease:"power2.in" }, t); }
+      function montageBig(sel, t, dir) { tl.set(sel, { xPercent:-50, yPercent:-50, left:"50%", top:"34%", transformPerspective:1900, transformOrigin:"50% 50%", rotateY:dir*7, rotateX:4, rotateZ:dir*0.5 }, t);
+        tl.from(sel, { opacity:0, scale:0.9, filter:"blur(18px)", duration:0.55, ease:"power3.out" }, t);
+        tl.to(sel, { rotateY:dir*4, y:"-=8", duration:1.7, ease:"sine.inOut" }, t); }
+      function wordsIn(sel, t, stag) { tl.from(sel, { yPercent:46, opacity:0, filter:"blur(16px)", skewX:6, duration:0.72, ease:"power3.out", stagger:(stag||0.075) }, t); }
+      function groupOut(sel, t) { tl.to(sel, { opacity:0, filter:"blur(10px)", duration:0.5, ease:"power2.in" }, t); }
+
+      tl.set("#logoOpen", { transformOrigin:"50% 50%" }, 0);
+      tl.from("#logoOpen", { opacity:0, scale:0.56, rotationZ:-10, filter:"blur(22px)", duration:1.15, ease:"power3.out" }, 0.3);
+      tl.from("#wordOpen", { opacity:0, yPercent:40, filter:"blur(14px)", duration:0.9, ease:"power3.out" }, 1.5);
+      tl.from("#kickerOpen", { opacity:0, y:14, duration:0.7, ease:"power2.out" }, 2.15);
+      groupOut("#s1", 4.1);
+
+      tl.from("#eyb2", { opacity:0, y:14, duration:0.6, ease:"power2.out" }, 4.6);
+      wordsIn("#head2 .w", 4.8, 0.06); wordsIn("#mega2 .w", 5.1, 0.08);
+      tl.from("#bar2", { opacity:0, y:40, scale:0.92, filter:"blur(14px)", duration:0.8, ease:"power3.out" }, 6.2);
+      tl.from("#bar2 .caret", { opacity:0, duration:0.2, repeat:5, yoyo:true, ease:"none" }, 7.0);
+      groupOut("#s2", 9.0);
+
+      tiltIn("#vSmart", 9.6, -1, 7.4); tl.from("#s3 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 10.0); wordsIn("#s3 .title .w", 10.15, 0.06); tl.from("#s3 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 10.9); tiltOut("#vSmart", 16.7); groupOut("#s3 .stack", 16.75);
+      tiltIn("#vPop", 17.3, 1, 7.0); tl.from("#s4 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 17.7); wordsIn("#s4 .title .w", 17.85, 0.06); tl.from("#s4 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 18.6); tiltOut("#vPop", 24.1); groupOut("#s4 .stack", 24.15);
+      tiltIn("#vAgent", 24.7, -1, 7.0); tl.from("#s5 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 25.1); wordsIn("#s5 .title .w", 25.25, 0.055); tl.from("#s5 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 26.0); tiltOut("#vAgent", 31.5); groupOut("#s5 .stack", 31.55);
+      tiltIn("#vQuant", 32.1, 1, 6.3); tl.from("#s6 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 32.5); wordsIn("#s6 .title .w", 32.65, 0.05); tl.from("#chip6", { opacity:0, scale:0.7, duration:0.5, ease:"back.out(2)" }, 33.5); tl.from("#s6 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 33.55); tiltOut("#vQuant", 38.1); groupOut("#s6 .stack", 38.15);
+
+      tl.from("#wallwrap", { opacity:0, duration:0.6, ease:"power1.out" }, 38.5);
+      tl.fromTo("#wallrow1", { x:80 }, { x:-360, duration:5.5, ease:"none" }, 38.5);
+      montageBig("#vExcel", 38.9, 1); tl.to("#vExcel", { opacity:0, scale:1.05, filter:"blur(14px)", duration:0.4, ease:"power2.in" }, 40.0);
+      montageBig("#vTools", 40.0, -1); tl.to("#vTools", { opacity:0, scale:1.05, filter:"blur(14px)", duration:0.4, ease:"power2.in" }, 41.1);
+      montageBig("#vWalk", 41.0, 1); tl.to("#vWalk", { opacity:0, scale:1.05, filter:"blur(14px)", duration:0.4, ease:"power2.in" }, 43.6);
+      wordsIn("#mega7 .w", 41.3, 0.06); groupOut("#s7 .stack", 43.7); tl.to("#wallwrap", { opacity:0, duration:0.5, ease:"power1.in" }, 43.6);
+
+      tl.set("#logoClose", { transformOrigin:"50% 50%" }, 43.8);
+      tl.from("#logoClose", { opacity:0, scale:0.6, rotationZ:-8, filter:"blur(22px)", duration:1.1, ease:"power3.out" }, 44.1);
+      tl.from("#wordClose", { opacity:0, yPercent:40, filter:"blur(14px)", duration:0.9, ease:"power3.out" }, 44.9);
+      tl.from("#tagClose", { opacity:0, y:16, duration:0.7, ease:"power2.out" }, 45.5);
+      tl.from("#keysClose", { opacity:0, duration:0.4, ease:"power1.out" }, 46.2);
+      tl.from(".key", { opacity:0, scale:0.5, y:-16, duration:0.5, ease:"back.out(1.8)", stagger:0.12 }, 46.35);
+      tl.from("#urlClose", { opacity:0, y:12, duration:0.7, ease:"power2.out" }, 46.9);
+      tl.to("#kCmd", { y:8, duration:0.09, yoyo:true, repeat:1, ease:"power2.in" }, 47.5);
+      tl.to("#kShift", { y:8, duration:0.09, yoyo:true, repeat:1, ease:"power2.in" }, 47.78);
+      tl.to("#kD", { y:8, duration:0.09, yoyo:true, repeat:1, ease:"power2.in" }, 48.06);
+      tl.to("#kD", { scale:1.12, duration:0.16, yoyo:true, repeat:1, ease:"power2.out" }, 48.06);
+      tl.fromTo("#keyGlow", { opacity:0, scale:0.6 }, { opacity:0.85, scale:1.1, duration:0.2, ease:"power2.out" }, 48.05);
+      tl.to("#keyGlow", { opacity:0, duration:0.55, ease:"power2.in" }, 48.25);
+      tl.to("#s8", { scale:1.012, transformOrigin:"50% 36%", duration:4.8, ease:"sine.inOut" }, 44.4);
+      tl.to(["#logoClose","#wordClose","#tagClose","#urlClose","#keysClose"], { opacity:0, filter:"blur(6px)", duration:0.5, ease:"power1.in" }, 49.95);
+      window.__timelines["lineart-vertical"] = tl;
+    </script>
+  </body>
+</html>

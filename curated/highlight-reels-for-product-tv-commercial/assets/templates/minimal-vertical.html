@@ -1,0 +1,156 @@
+<!doctype html>
+<!-- ENCONVO LAUNCH FILM — MINIMAL VERTICAL (Notion-white)  |  1080x1920 @ 30fps  |  42s -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>EnConvo — Minimal Vertical</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #F4F3EF; }
+      body { font-family: "Inter", -apple-system, system-ui, sans-serif; color: #23221F; -webkit-font-smoothing: antialiased; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+      #stage { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 28%, #FAF9F6 0%, #F4F3EF 48%, #EEEDE8 100%); }
+      #glowsoft { position: absolute; width: 1400px; height: 1400px; left: 50%; top: 32%; margin-left: -700px; margin-top: -700px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(92,112,210,0.06), rgba(92,112,210,0) 62%); filter: blur(28px); pointer-events: none; will-change: transform; }
+      #vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 95% at 50% 40%, transparent 60%, rgba(22,22,30,0.055) 100%); }
+      .scene { position: absolute; inset: 0; }
+      .stack { position: absolute; left: 0; right: 0; text-align: center; padding: 0 70px; }
+      .eyebrow { font-size: 25px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: #6B6862; display: inline-flex; align-items: center; gap: 14px; }
+      .eyebrow::before { content: ""; width: 28px; height: 3px; border-radius: 3px; background: #3B5BDB; }
+      .title { font-size: 68px; font-weight: 800; line-height: 1.04; letter-spacing: -0.035em; color: #1A1915; }
+      .title .line, .mega .line { display: block; }
+      .title .w, .head .w, .mega .w { display: inline-block; will-change: transform, filter, opacity; }
+      .ticks { font-size: 29px; font-weight: 500; color: #6B6862; }
+      .ticks b { color: #1A1915; font-weight: 700; }
+      .chip { display: inline-block; padding: 7px 17px; border-radius: 999px; font-size: 27px; font-weight: 700; color: #157F4C; background: rgba(21,127,76,0.10); border: 1px solid rgba(21,127,76,0.34); }
+      .head { font-size: 52px; font-weight: 500; line-height: 1.08; letter-spacing: -0.015em; color: #524F49; }
+      .mega { font-size: 104px; font-weight: 820; line-height: 0.98; letter-spacing: -0.04em; color: #131210; }
+      .appicon { position: absolute; left: 50%; top: 31%; width: 200px; height: 200px; margin-left: -100px; margin-top: -100px; border-radius: 46px; background: linear-gradient(158deg, #2B2B34 0%, #17171B 100%); will-change: transform; box-shadow: 0 34px 80px -26px rgba(22,22,34,0.5), 0 2px 6px rgba(22,22,34,0.18), inset 0 1px 0 rgba(255,255,255,0.09); display: flex; align-items: center; justify-content: center; }
+      .appicon img { width: 58%; height: auto; }
+      .wordmark { position: absolute; left: 0; right: 0; top: 43%; text-align: center; font-size: 60px; font-weight: 700; letter-spacing: 0.4em; color: #1A1915; }
+      .kicker { position: absolute; left: 0; right: 0; top: 49%; text-align: center; font-size: 25px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: #8A867E; }
+      .tagline { position: absolute; left: 0; right: 0; top: 47%; text-align: center; font-size: 42px; font-weight: 500; color: #3A3833; }
+      .cta { position: absolute; left: 0; right: 0; top: 55%; text-align: center; }
+      .cta .url { font-size: 60px; font-weight: 800; display: inline-block; color: #3B5BDB; letter-spacing: -0.01em; }
+      .cta .sub { margin-top: 16px; font-size: 25px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #8A867E; }
+      .smartbar { position: absolute; left: 50%; top: 62%; margin-left: -430px; margin-top: -52px; width: 860px; height: 104px; border-radius: 52px; display: flex; align-items: center; gap: 22px; padding: 0 36px; background: #FFFFFF; border: 1px solid rgba(22,22,28,0.09); box-shadow: 0 28px 66px -28px rgba(22,24,44,0.30), inset 0 1px 0 rgba(255,255,255,0.7); }
+      .smartbar .dot { width: 20px; height: 20px; border-radius: 50%; flex: none; background: radial-gradient(circle at 35% 30%, #7b8cff, #3B5BDB 70%); }
+      .smartbar .ph { font-size: 31px; color: #6B6862; font-weight: 500; }
+      .smartbar .caret { width: 2px; height: 40px; background: #3B5BDB; margin-left: -12px; }
+      .smartbar .tag { margin-left: auto; font-size: 22px; font-weight: 600; color: #6B6862; padding: 9px 17px; border-radius: 13px; background: rgba(22,22,28,0.05); border: 1px solid rgba(22,22,28,0.08); }
+      .screen { position: absolute; width: 1000px; height: 563px; object-fit: cover; border-radius: 20px; background: #fff; will-change: transform, filter, opacity; box-shadow: 0 56px 120px -40px rgba(20,22,44,0.34), 0 8px 24px -12px rgba(20,22,44,0.18), 0 0 0 1px rgba(22,22,28,0.08); }
+      #wallwrap { position: absolute; left: 0; right: 0; top: 40%; height: 84px; overflow: hidden; opacity: 0.055; }
+      .wallrow { position: absolute; white-space: nowrap; font-size: 58px; font-weight: 800; color: #17171B; will-change: transform; }
+      .wallrow .sep { color: #3B5BDB; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="minimal-vertical" data-start="0" data-width="1080" data-height="1920" data-fps="30" data-duration="42">
+      <div id="stage" class="clip" data-start="0" data-duration="42" data-track-index="0"><div id="glowsoft"></div><div id="vignette"></div></div>
+
+      <video id="vQuick" class="clip screen" src="assets/clips/quickstart.mp4" data-start="9.9"  data-duration="5.6" data-track-index="5" muted playsinline></video>
+      <video id="vPop"   class="clip screen" src="assets/clips/popbar.mp4"     data-start="15.4" data-duration="5.2" data-track-index="6" muted playsinline></video>
+      <video id="vAgent" class="clip screen" src="assets/clips/agent.mp4"      data-start="20.4" data-duration="5.7" data-track-index="5" muted playsinline></video>
+      <video id="vQuant" class="clip screen" src="assets/clips/quant.mp4"      data-start="25.9" data-duration="5.1" data-track-index="6" muted playsinline></video>
+      <video id="vExcel" class="clip screen" src="assets/clips/excel.mp4"      data-start="30.9" data-duration="1.9" data-track-index="5" muted playsinline></video>
+      <video id="vDi"    class="clip screen" src="assets/clips/di.mp4"         data-start="32.4" data-duration="1.9" data-track-index="6" muted playsinline></video>
+      <video id="vCap"   class="clip screen" src="assets/clips/caption.mp4"    data-start="33.9" data-duration="2.0" data-track-index="7" muted playsinline></video>
+
+      <div id="s1" class="scene clip" data-start="0" data-duration="5.2" data-track-index="12">
+        <div class="appicon" id="logoOpen"><img src="assets/enconvo-logo.png" /></div>
+        <div id="wordOpen" class="wordmark">ENCONVO</div>
+        <div id="kickerOpen" class="kicker">AI Agent Launcher for macOS</div>
+      </div>
+
+      <div id="s2" class="scene clip" data-start="4.8" data-duration="5.4" data-track-index="13">
+        <div class="stack" style="top:28%;">
+          <div class="eyebrow" id="eyb2">Meet EnConvo</div>
+          <h2 class="head" id="head2" style="margin-top:26px;"><span class="w">Your</span> <span class="w">Mac</span> <span class="w">just</span> <span class="w">got</span></h2>
+          <h1 class="mega" id="mega2" style="margin-top:14px;"><span class="line"><span class="w">a</span> <span class="w">command</span></span><span class="line"><span class="w">center.</span></span></h1>
+        </div>
+        <div class="smartbar" id="bar2"><span class="dot"></span><span class="ph">Ask anything, do anything</span><span class="caret"></span><span class="tag">150+ tools</span></div>
+      </div>
+
+      <div id="s3" class="scene clip" data-start="9.8" data-duration="5.9" data-track-index="12">
+        <div class="stack" style="top:60%;"><div class="eyebrow">SmartBar</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">One</span> <span class="w">launcher.</span></span><span class="line"><span class="w">Every</span> <span class="w">AI</span> <span class="w">tool.</span></span></h1><div class="ticks" style="margin-top:24px;"><b>150+ tools</b> &middot; <b>MCP</b> &middot; <b>Any model</b></div></div>
+      </div>
+
+      <div id="s4" class="scene clip" data-start="15.3" data-duration="5.4" data-track-index="13">
+        <div class="stack" style="top:60%;"><div class="eyebrow">PopBar</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">Select</span> <span class="w">text.</span></span><span class="line"><span class="w">Get</span> <span class="w">answers.</span></span></h1><div class="ticks" style="margin-top:24px;"><b>Summarize</b> &middot; <b>Translate</b> &middot; <b>Explain</b></div></div>
+      </div>
+
+      <div id="s5" class="scene clip" data-start="20.3" data-duration="6.0" data-track-index="12">
+        <div class="stack" style="top:58%;"><div class="eyebrow">Agents</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">Design</span> <span class="w">a</span> <span class="w">real</span> <span class="w">app.</span></span><span class="line"><span class="w">Just</span> <span class="w">by</span> <span class="w">asking.</span></span></h1><div class="ticks" style="margin-top:24px;">Browser-use agents that actually <b>ship</b>.</div></div>
+      </div>
+
+      <div id="s6" class="scene clip" data-start="25.8" data-duration="5.5" data-track-index="13">
+        <div class="stack" style="top:58%;"><div class="eyebrow">Automate anything</div><h1 class="title" style="margin-top:20px;"><span class="line"><span class="w">One</span> <span class="w">line</span> <span class="w">in.</span></span><span class="line"><span class="w">A</span> <span class="w">backtested</span> <span class="w">strategy</span> <span class="w">out.</span></span></h1><div class="ticks" style="margin-top:24px;"><span class="chip" id="chip6">+723% backtest</span> &nbsp; Code &middot; Run &middot; Verify</div></div>
+      </div>
+
+      <div id="s7" class="scene clip" data-start="30.8" data-duration="5.2" data-track-index="11">
+        <div id="wallwrap"><div class="wallrow" id="wallrow1">OCR <span class="sep">/</span> Translate <span class="sep">/</span> Dictation <span class="sep">/</span> Live Caption <span class="sep">/</span> Memory <span class="sep">/</span> Knowledgebase <span class="sep">/</span> Vision <span class="sep">/</span> Search <span class="sep">/</span> Office <span class="sep">/</span> Workflows</div></div>
+        <div class="stack" style="top:70%;"><h1 class="mega" id="mega7" style="font-size:74px;"><span class="line"><span class="w">&hellip;and</span> <span class="w">everything</span></span><span class="line"><span class="w">between.</span></span></h1></div>
+      </div>
+
+      <div id="s8" class="scene clip" data-start="35.6" data-duration="6.4" data-track-index="13">
+        <div class="appicon" id="logoClose" style="top:30%;"><img src="assets/enconvo-logo.png" /></div>
+        <div class="wordmark" id="wordClose" style="top:41%;">ENCONVO</div>
+        <div class="tagline" id="tagClose" style="top:48%;">Your Mac&rsquo;s command center.</div>
+        <div class="cta" id="ctaClose" style="top:55%;"><div class="url">enconvo.com</div><div class="sub">AI Agent Launcher for macOS &middot; Free to try</div></div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.to("#glowsoft", { x: 110, scale: 1.10, duration: 21, ease: "sine.inOut", repeat: 1, yoyo: true }, 0);
+      tl.to("#glowsoft", { y: 50, duration: 13, ease: "sine.inOut", repeat: 2, yoyo: true }, 0);
+
+      function tiltIn(sel, t, dir, dur) { dur = dur || 5.4; const ry = dir<0?-10:10; const rz = dir<0?-0.9:0.9;
+        tl.set(sel, { xPercent:-50, yPercent:-50, left:"50%", top:"33%", transformPerspective:1700, transformOrigin:"50% 50%", rotateY:ry, rotateX:5, rotateZ:rz }, t);
+        tl.from(sel, { opacity:0, scale:0.92, filter:"blur(24px)", duration:0.9, ease:"power3.out" }, t);
+        tl.to(sel, { rotateY:ry*0.6, y:"-=12", duration:dur, ease:"sine.inOut" }, t); }
+      function tiltOut(sel, t) { tl.to(sel, { opacity:0, scale:1.05, filter:"blur(16px)", duration:0.5, ease:"power2.in" }, t); }
+      function montageBig(sel, t, dir) { tl.set(sel, { xPercent:-50, yPercent:-50, left:"50%", top:"34%", transformPerspective:1700, transformOrigin:"50% 50%", rotateY:dir*8, rotateX:5, rotateZ:dir*0.6 }, t);
+        tl.from(sel, { opacity:0, scale:0.9, filter:"blur(20px)", duration:0.55, ease:"power3.out" }, t);
+        tl.to(sel, { rotateY:dir*5, y:"-=8", duration:1.9, ease:"sine.inOut" }, t); }
+      function wordsIn(sel, t, stag) { tl.from(sel, { yPercent:46, opacity:0, filter:"blur(16px)", skewX:6, duration:0.72, ease:"power3.out", stagger:(stag||0.075) }, t); }
+      function groupOut(sel, t) { tl.to(sel, { opacity:0, filter:"blur(10px)", duration:0.5, ease:"power2.in" }, t); }
+
+      tl.set("#logoOpen", { transformOrigin:"50% 50%" }, 0);
+      tl.from("#logoOpen", { opacity:0, scale:0.56, rotationZ:-10, filter:"blur(22px)", duration:1.15, ease:"power3.out" }, 0.35);
+      tl.from("#wordOpen", { opacity:0, yPercent:40, filter:"blur(14px)", duration:0.95, ease:"power3.out" }, 1.55);
+      tl.from("#kickerOpen", { opacity:0, y:14, duration:0.7, ease:"power2.out" }, 2.2);
+      groupOut("#s1", 4.7);
+
+      tl.from("#eyb2", { opacity:0, y:14, duration:0.6, ease:"power2.out" }, 5.0);
+      wordsIn("#head2 .w", 5.15, 0.06); wordsIn("#mega2 .w", 5.45, 0.08);
+      tl.from("#bar2", { opacity:0, y:40, scale:0.92, filter:"blur(14px)", duration:0.8, ease:"power3.out" }, 6.4);
+      tl.from("#bar2 .caret", { opacity:0, duration:0.2, repeat:5, yoyo:true, ease:"none" }, 7.2);
+      groupOut("#s2", 9.5);
+
+      tiltIn("#vQuick", 9.9, -1, 5.4); tl.from("#s3 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 10.25); wordsIn("#s3 .title .w", 10.4, 0.06); tl.from("#s3 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 11.1); tiltOut("#vQuick", 15.05); groupOut("#s3 .stack", 15.1);
+      tiltIn("#vPop", 15.4, 1, 5.0); tl.from("#s4 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 15.75); wordsIn("#s4 .title .w", 15.9, 0.06); tl.from("#s4 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 16.6); tiltOut("#vPop", 20.05); groupOut("#s4 .stack", 20.1);
+      tiltIn("#vAgent", 20.4, -1, 5.5); tl.from("#s5 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 20.75); wordsIn("#s5 .title .w", 20.9, 0.055); tl.from("#s5 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 21.7); tiltOut("#vAgent", 25.6); groupOut("#s5 .stack", 25.65);
+      tiltIn("#vQuant", 25.9, 1, 5.0); tl.from("#s6 .eyebrow", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 26.25); wordsIn("#s6 .title .w", 26.4, 0.05); tl.from("#chip6", { opacity:0, scale:0.7, duration:0.5, ease:"back.out(2)" }, 27.2); tl.from("#s6 .ticks", { opacity:0, y:16, duration:0.6, ease:"power2.out" }, 27.25); tiltOut("#vQuant", 30.55); groupOut("#s6 .stack", 30.6);
+
+      tl.from("#wallwrap", { opacity:0, duration:0.6, ease:"power1.out" }, 30.8);
+      tl.fromTo("#wallrow1", { x:80 }, { x:-360, duration:5.2, ease:"none" }, 30.8);
+      montageBig("#vExcel", 30.9, 1); tl.to("#vExcel", { opacity:0, scale:1.05, filter:"blur(14px)", duration:0.4, ease:"power2.in" }, 32.4);
+      montageBig("#vDi", 32.4, -1); tl.to("#vDi", { opacity:0, scale:1.05, filter:"blur(14px)", duration:0.4, ease:"power2.in" }, 33.9);
+      montageBig("#vCap", 33.9, 1); tl.to("#vCap", { opacity:0, scale:1.05, filter:"blur(14px)", duration:0.4, ease:"power2.in" }, 35.5);
+      wordsIn("#mega7 .w", 32.6, 0.06); groupOut("#s7 .stack", 35.5); tl.to("#wallwrap", { opacity:0, duration:0.5, ease:"power1.in" }, 35.4);
+
+      tl.set("#logoClose", { transformOrigin:"50% 50%" }, 35.6);
+      tl.from("#logoClose", { opacity:0, scale:0.6, rotationZ:-8, filter:"blur(22px)", duration:1.1, ease:"power3.out" }, 35.9);
+      tl.from("#wordClose", { opacity:0, yPercent:40, filter:"blur(14px)", duration:0.9, ease:"power3.out" }, 36.7);
+      tl.from("#tagClose", { opacity:0, y:16, duration:0.7, ease:"power2.out" }, 37.3);
+      tl.from("#ctaClose", { opacity:0, y:18, duration:0.7, ease:"power2.out" }, 37.9);
+      tl.from("#ctaClose .url", { scale:0.92, duration:0.6, ease:"back.out(1.6)" }, 37.95);
+      tl.to("#s8", { scale:1.015, transformOrigin:"50% 38%", duration:3.6, ease:"sine.inOut" }, 38.2);
+      tl.to(["#logoClose","#wordClose","#tagClose","#ctaClose"], { opacity:0, filter:"blur(6px)", duration:0.5, ease:"power1.in" }, 41.5);
+      window.__timelines["minimal-vertical"] = tl;
+    </script>
+  </body>
+</html>
