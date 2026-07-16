@@ -99,7 +99,7 @@ Templates: `scaffold/lineart-landscape.html`, `scaffold/lineart-vertical.html` (
 The default reel is music-only. For a narrated cut (like the shipped **EnConvo launch film**) the composition runs **longer — 50.5s**, with one clean single-voice narration over a **ducked** music bed plus a keypress-SFX outro. Same layout / themes; only the timeline lengthens and a voice track is added. Both 16:9 and 9:16 share the identical timeline, so build **one** audio mix and mux it onto **both** silent renders.
 
 - **Scene starts (VO cut):** S1 0 · S2 4.4 · S3 9.4 · S4 17.1 · S5 24.5 · S6 31.9 · S7 38.5 · S8 43.8. VO lands ~0.5s after each start.
-- **Mix:** per-scene VO (`adelay` at each marker) + `ambient.wav` bed (vol ~0.42, `sidechaincompress`-ducked under the VO) + tick·tick·tock keypress SFX → `alimiter` → mux `-c:v copy -c:a aac`. Keep `ambient.wav` (music-only) separate from any VO+music mix, or you double-track the voice.
+- **Mix:** per-scene VO (`adelay` at each marker) + `ambient.wav` bed (vol ~0.42, `sidechaincompress`-double-ducked under the VO **and** the keypress SFX) + tick·tick·tock keypress SFX → `alimiter` → mux `-c:v copy -c:a aac`. Keep `ambient.wav` (music-only) separate from any VO+music mix, or you double-track the voice.
 - **Outro SFX:** ⌘⇧D = **tick (⌘) · tick (⇧) · tock (D)** at the keycap press times, tock loudest (the shortcut firing). Full recipe, levels, and measurement-based verification (you can't audition) in **`reference/AUDIO_VO.md`**.
 
 ---
