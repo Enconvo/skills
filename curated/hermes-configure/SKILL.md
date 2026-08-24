@@ -1,9 +1,9 @@
 ---
 name: hermes-configure
 description: "Configure any aspect of Hermes Agent (Nous Research) via CLI. Channels, models, plugins, gateway, skills, cron, hooks, memory, MCP, and the ACP bridge. Mirrors the openclaw-configure skill structure."
-version: 0.12.0
-hermes_version: 0.12.0
-last_verified: 2026-05-06
+version: 0.20.5
+hermes_version: 0.20.5
+last_verified: 2026-08-24
 ---
 
 # Hermes-Configure Skill
@@ -13,8 +13,8 @@ Configure any aspect of **Hermes Agent** (by Nous Research) via CLI. This skill 
 **Trigger on:** "hermes", "hermes setup", "add channel to hermes", "hermes gateway", "hermes model", "switch hermes provider", "hermes skill", "hermes plugin", "hermes cron", "hermes hooks", "hermes doctor", "hermes mcp", "hermes acp", or any Hermes Agent configuration task.
 
 **Reference files** (same directory as this skill):
-- `commands.md` — condensed CLI reference, all 39 top-level subcommands
-- `cli-reference.md` — full `--help` for the CLI and every nested subcommand
+- `commands.md` — condensed CLI reference for the current top-level command surface
+- `cli-reference.md` — full `--help` for the CLI and every nested subcommand (depth-limited recursive capture)
 
 **IMPORTANT — Auto-Update Check:** Before answering any Hermes question, Claude MUST run the **Version Check & Auto-Update Protocol** (see bottom of this file). It compares installed vs latest vs skill versions, asks the user about an update if a newer version exists, and auto-syncs the skill files to match the installed version.
 
@@ -492,6 +492,7 @@ uninstall             Remove Hermes
 | Command | Purpose |
 |---|---|
 | `chat` | Interactive chat (default if you just type `hermes`) |
+| `console` *(new by v0.18)* | Console management surface. Verify current flags with `hermes console --help`. |
 | `setup` | First-run wizard (combo of `model` + `tools` + channel setup) |
 | `whatsapp` | WhatsApp-specific helpers (QR pairing, etc.) |
 | `slack` | Slack manifest generator + Slack helpers |
@@ -506,6 +507,138 @@ uninstall             Remove Hermes
 | `dashboard` | Open the web dashboard / Control UI |
 | `acp` | ACP harness bridge |
 | `profile` | Manage Hermes profile / personality |
+| `proxy` | Local HTTP server forwarding OpenAI-compatible requests to an OAuth provider (e.g. Nous Portal). External apps point at the proxy with any bearer token; proxy attaches real creds. Subs: `start`, `status`, `providers`. |
+| `lsp` | LSP layer that powers post-write semantic diagnostics in `write_file`/`patch`. Subs: `status`, `list`, `install`, `install-all`, `restart`, `which`. |
+| `send` | Pipe text from any shell script to any messaging platform Hermes is configured for. No LLM, no agent loop, no running gateway required for bot-token platforms. `hermes send -t telegram:<chat_id> "msg"` or pipe via stdin. |
+| `checkpoints` | Manage the filesystem checkpoint store — shadow git repo snapshotting working dirs before `write_file`/`patch`/`terminal` calls. Subs: `status`, `prune`, `clear`, `clear-legacy`. |
+| `bundles` | Skill bundles — load several skills under one slash command. `/<bundle>` from CLI or gateway loads every referenced skill. Subs: `list`, `show`, `create`, `delete`, `reload`. |
+| `computer-use` | Install/check the `cua-driver` binary used by the `computer_use` toolset. macOS-only. Subs: `install`, `status`. |
+| `postinstall` | One-shot post-install for pip users — installs system deps pip can't provide, then runs setup if needed. |
+| `moa` *(new by v0.17)* | Mixture-of-agents orchestration surface. Verify current flags with `hermes moa --help`. |
+| `secrets` *(new by v0.17)* | Secret/config key management surface. Verify current flags with `hermes secrets --help`. |
+| `migrate` *(new by v0.17)* | Migration helpers distinct from `import`. Verify current flags with `hermes migrate --help`. |
+| `whatsapp-cloud` *(new by v0.17)* | WhatsApp Cloud API helpers, separate from the WhatsApp Web helper. |
+| `portal` *(new by v0.17)* | Nous Portal auth/status helpers replacing older top-level login assumptions. |
+| `project` *(new by v0.17)* | Project/workspace helpers exposed as a top-level CLI domain. |
+| `pets` *(new by v0.17)* | Desktop pet/companion control surface. |
+| `serve` *(new by v0.17)* | Headless backend server entrypoint; desktop no longer has to launch the dashboard. |
+| `desktop` / `gui` *(new by v0.17)* | Desktop app control surfaces. |
+| `prompt-size` *(new by v0.17)* | Prompt/context sizing diagnostics. |
+| `journey` *(new by v0.18)* | Cross-session journey/history surface. `learning` and `memory-graph` are aliases on the same timeline surface by v0.20.5. |
+| `worktree` *(new by v0.20)* | Audit and reclaim accumulated git worktrees and merged branches. |
+| `egress` *(new by v0.20)* | Manage the iron-proxy credential-injection firewall. |
+| `pause` / `resume` *(new by v0.20)* | Emergency-stop or resume cron/kanban dispatch and new gateway turns. |
+| `sync` *(new by v0.20)* | Sync skills across devices and teams. |
+| `peer` *(new by v0.20)* | Bot-to-bot DMs across Hermes gateways. |
+| `verify` *(new by v0.20)* | Detect a project's run recipe and execute a smoke test. |
+| `approvals` *(new by v0.20)* | Mine approval history into allowlist proposals. |
+| `import-agent` *(new by v0.20)* | Import Claude Code or Codex CLI setup; `import` now restores Hermes backups. |
+| `skin` *(new by v0.20)* | List, switch, and tweak UI skins. |
+| `monitoring` *(new by v0.20)* | Inspect gateway health and export diagnostics. |
+
+---
+
+## What's new in v0.20.5 (vs v0.18.2)
+
+_Maintenance/update verified locally on 2026-08-22. Local install upgraded from `Hermes Agent v0.18.2 (2026.7.7.2) · upstream b8880f12` to `Hermes Agent v0.20.5 (2026.8.19) · upstream 14c59f0b`._
+
+### Local Upgrade Results
+- **Core upgraded:** `hermes update --yes --backup` applied 9411 upstream commits and saved `~/.hermes/backups/pre-update-2026-08-22-163507.zip`.
+- **Runtime repaired:** updater replaced the SQLite 3.50.4 environment with private Python 3.11.15 + SQLite 3.53.1 and upgraded `cua-driver` from 0.7.1 to 0.21.0.
+- **Config migrated:** `hermes config migrate` moved config version `33 → 38`; `hermes config check` passed with only an existing optional Teams toolset warning.
+- **Web UI rebuilt:** global `NODE_ENV=production` / npm `omit=dev` caused missing `vitest`, Node types, and Vite plugin errors. Root-level `env NODE_ENV=development npm install --include=dev` followed by `npm --workspace web run build` produced a clean build.
+- **Gateway restored:** `hermes gateway start` refreshed the launchd service definition and returned it to supervised operation.
+- **Codex OAuth repaired:** a stored credential reported logged-in state but live calls returned HTTP 401 malformed-token errors. A fresh `hermes auth add openai-codex --type oauth` device flow passed live one-shot tests; the exhausted old credential was removed.
+- **Registry skills refreshed:** all six hub-installed skills are current. The Minecraft server skill remains security-blocked because its instructions include `sudo`, firewall, and cron commands; do not bypass that audit casually.
+- **CLI reference regenerated:** `cli-reference.md` now targets v0.20.5 and is 849,838 bytes, covering the expanded command surface without recursive runaway.
+- **New top-level surfaces:** `worktree`, `egress`, `pause`, `resume`, `sync`, `peer`, `verify`, `approvals`, `import-agent`, `skin`, and `monitoring`; new global flags include `--reasoning`, `--no-restore-cwd`, `--in`, `--safe-mode`, and `--cli`.
+
+### New Troubleshooting Entries (v0.20 local)
+| Symptom | Cause | Fix |
+|---|---|---|
+| Web build fails on missing `vitest`, `@vitejs/plugin-react`, Node types, or other dev-only packages | Shell exports `NODE_ENV=production`, making npm omit development dependencies even during updater builds | From `~/.hermes/hermes-agent`, run `env NODE_ENV=development npm install --include=dev`, then `env NODE_ENV=development npm --workspace web run build` |
+| `hermes auth status openai-codex` says logged in but a live turn returns HTTP 401 `Could not parse your authentication token` | A legacy/exhausted pooled credential survived the upgrade and no longer satisfies the current runtime | Add a fresh device credential with `hermes auth add openai-codex --type oauth`, verify with a real `hermes -z` turn, then remove the stale entry with `hermes auth remove openai-codex <index>` |
+| `hermes doctor` reports high-severity npm findings only in `web` or `ui-tui` build tooling | Upstream transitive build dependencies remain in the lockfile; runtime bundles are not affected | Do not use `npm audit fix --force` blindly. Track the upstream lockfile bump and re-run `hermes doctor` after updates |
+| `hermes skills audit` blocks an official skill after update because it contains `sudo`, firewall, or cron examples | Re-audited hub skills are treated as community content and CAUTION findings are blocked by default | Leave it blocked unless that exact skill is needed and its instructions have been manually reviewed; only then consider the explicit force override |
+
+---
+
+## What's new in v0.18.2 (vs v0.17.0)
+
+_Maintenance/update verified locally on 2026-07-10. Local install upgraded from `Hermes Agent v0.17.0 (2026.6.19) · upstream f3d2dfbe` to `Hermes Agent v0.18.2 (2026.7.7.2) · upstream b8880f12`._
+
+### Local Upgrade Results
+- **Core upgraded:** `hermes update --yes --backup` applied 1550 commits and saved `~/.hermes/backups/pre-update-2026-07-10-111707.zip`.
+- **Config migrated:** `hermes config migrate` moved config version `32 → 33`; `hermes config check` reports only an existing optional Teams toolset warning.
+- **Gateway restored:** `hermes gateway start` reloaded the current launchd service definition and returned to supervised operation.
+- **CLI reference regenerated:** `cli-reference.md` regenerated for v0.18.2 at 557.3 KB, covering 626 command nodes to depth 4.
+- **New top-level surfaces:** `console`, `journey`, `learning`, and `memory-graph`; top-level `--usage-file PATH` is also present.
+- **GPT-5.6 catalog support:** Hermes registers `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, and their `-pro` variants for OpenAI/Codex routing.
+- **Codex OAuth entitlement is account-specific:** One ChatGPT Pro account returned HTTP 400 for `gpt-5.6-sol` and later exhausted quota, but switching Hermes to another eligible ChatGPT Pro account resolved both issues.
+- **GPT-5.6 Sol smoke test passed:** After fresh device OAuth, explicit `model.default: gpt-5.6-sol` plus `model.provider: openai-codex`, and a gateway restart, `hermes -z "Reply with exactly: HERMES_GPT56_SOL_OK"` returned `HERMES_GPT56_SOL_OK`.
+- **Account switching workflow:** Back up `~/.hermes/auth.json`, run `hermes auth logout openai-codex`, then `hermes auth add openai-codex --type oauth`; complete the device flow in a browser using the intended ChatGPT account, verify the email/plan from token metadata if necessary, remove duplicate credentials, restart the gateway, and run a real one-shot test.
+
+### New Troubleshooting Entries (v0.18 local)
+| Symptom | Cause | Fix |
+|---|---|---|
+| `gpt-5.6-sol` appears in Hermes but Codex OAuth returns `The 'gpt-5.6-sol' model is not supported when using Codex with a ChatGPT account` | The signed-in ChatGPT account lacks Sol entitlement even though Hermes supports the model | Switch Hermes OAuth to an eligible ChatGPT account, set `model.default: gpt-5.6-sol` and `model.provider: openai-codex`, restart, then verify with a real one-shot test |
+| `hermes gateway start` initially says it cannot find `ai.hermes.gateway` after an update | The plist exists but launchd unloaded the job during the upgrade | Let `hermes gateway start` reload it, then verify `hermes gateway status` shows a supervised PID |
+| A known-working Codex model returns HTTP 429 `The usage limit has been reached` after valid OAuth | The ChatGPT/Codex account quota is exhausted; this is upstream account state, not a Hermes config failure | Wait for the quota window to reset or use another authorized account/provider, then rerun a one-shot smoke test |
+
+---
+
+## What's new in v0.17.0 (vs v0.14.0)
+
+_Maintenance/update verified locally on 2026-06-30. Local install upgraded from `Hermes Agent v0.14.0 (2026.5.16)` to `Hermes Agent v0.17.0 (2026.6.19) · upstream f3d2dfbe`._
+
+### Local Upgrade Results
+- **Core upgraded:** `hermes update --yes --backup` installed `hermes-agent==0.17.0`, updated Python deps, synced bundled skills, upgraded `cua-driver` from `0.2.0` to `0.6.8`, and saved backup `~/.hermes/backups/pre-update-2026-06-30-082220.zip`.
+- **Config migrated:** `hermes config migrate` moved config version `23 → 32`, lowered `model_catalog.ttl_hours` to `1`, seeded `curator.consolidate: false`, and set `agent.verify_on_stop: false`.
+- **Gateway repaired:** After update, `hermes gateway status` reported the launchd service definition stale/not loaded. Running `hermes gateway install` then `hermes gateway start` repaired the plist and started launchd supervision.
+- **Web UI build repaired:** Update initially failed web build with `sh: tsc: command not found` because `NODE_ENV=production` caused `npm` to omit dev dependencies. Fix: `npm --prefix ~/.hermes/hermes-agent/web install --include=dev`, then `npm --prefix ~/.hermes/hermes-agent/web run build`.
+- **CLI reference regenerated:** `cli-reference.md` regenerated for v0.17.0; size around `541 KB`, which is within the expected safe range and indicates no recursive help-walker runaway.
+- **Smoke test passed:** `hermes -z "Reply with exactly: HERMES_OK"` returned `HERMES_OK` using the configured `openai-codex/gpt-5.5` route.
+
+### Notable v0.17 CLI Additions Observed
+- **New/expanded top-level domains:** `moa`, `secrets`, `migrate`, `whatsapp-cloud`, `portal`, `project`, `pets`, `serve`, `desktop`, `gui`, and `prompt-size` now appear in top-level help.
+- **Gateway/event-loop hardening:** Recent commits offload blocking gateway/session DB paths via `AsyncSessionDB`, skip confirmed-dead delivery targets, and suppress shutdown home-channel broadcasts on flagged drains.
+- **Desktop improvements:** Desktop gained read-replies-aloud / auto-speak controls, roaming pet behavior, read-only subagent watch windows, persisted terminal tabs/scrollback, live gateway popout, and a headless `hermes serve` backend.
+- **Security/config hardening:** Recent changes sanitize session IDs and artifact paths, cap WeCom callback body size pre-auth, redact browser CDP endpoint logs, tighten skill path containment, and migrate config to v32.
+- **Tool/provider updates:** Camofox/browser fixes, NVIDIA auxiliary max-token preservation, lazy install for supermemory/mem0 SDKs, Ollama vision detection via `/api/show`, and custom-provider `key_env` propagation.
+
+### New Troubleshooting Entries (v0.17 local)
+| Symptom | Cause | Fix |
+|---|---|---|
+| `hermes update` says Web UI build failed with `sh: tsc: command not found` | `NODE_ENV=production` or npm config `omit=dev` skipped web workspace dev dependencies, including TypeScript | Run `npm --prefix ~/.hermes/hermes-agent/web install --include=dev`, then `npm --prefix ~/.hermes/hermes-agent/web run build` |
+| `hermes gateway status` says service definition is stale or service is not loaded after update | LaunchAgent plist still points at old install metadata or launchd has not loaded the repaired service | Run `hermes gateway install`, then `hermes gateway start`; verify `Service definition matches the current Hermes install` |
+| `hermes update` warns lazy backends failed to refresh with `cannot import name apply_subprocess_home_env` | Mid-update backend refresh loaded stale modules while source/dependencies were being replaced | Finish the update, then rerun `hermes update --yes --no-backup`; if already up to date and `hermes doctor` passes required packages, treat as non-blocking |
+| `hermes doctor` warns `model.default 'openai-codex/gpt-5.5' uses a vendor/model slug but provider is 'openai-codex'` | v0.17 doctor now flags vendor-prefixed slugs outside aggregators, but the configured Codex OAuth route may still work | Verify with a real smoke test (`hermes -z ...`). If it works, leave as a warning; if it fails, select the model interactively with `hermes model` or update config to the v0.17 canonical model id |
+
+---
+
+## What's new in v0.14.0 (vs v0.12.0)
+
+Major additions (1682 commits, 4 new bundled skills + 79 updated, 4 removed):
+
+1. **`hermes proxy`** — OpenAI-compatible local proxy. Point any external tool that speaks OpenAI API (Cursor, Continue, Aider, etc.) at `http://localhost:<port>` with any dummy bearer; Hermes injects the real OAuth creds for Nous/Codex/etc. upstream. Run `hermes proxy providers` to see what's wired, `hermes proxy start` to launch.
+
+2. **`hermes lsp`** — Post-write semantic diagnostics. When the agent writes or patches code, Hermes spawns the appropriate LSP and surfaces real errors back to the model. `hermes lsp install-all` installs every server with a known auto-recipe.
+
+3. **`hermes send`** — Side-channel notification tool. `echo "build done" | hermes send -t telegram` to push a message through Hermes's configured Telegram (or Discord/Slack/Signal) bot **without** waking the agent loop. Perfect for cron/scripts.
+
+4. **`hermes checkpoints`** — Replaces ad-hoc snapshot logic with a real shadow-git checkpoint store. Every `write_file`/`patch`/`terminal` call gets a checkpoint; `/rollback` restores. `hermes checkpoints status` shows disk usage; `prune` to GC.
+
+5. **`hermes bundles`** — Group multiple skills under one `/slash` command. E.g. create a `/data-eng` bundle that loads dspy + huggingface-hub + jupyter-live-kernel in one shot.
+
+6. **`hermes computer-use`** — First-class `computer_use` toolset (macOS). Installs the `cua-driver` binary that the toolset shells out to. Re-runnable target for repair.
+
+7. **`hermes postinstall`** — Closes the gap for `pip install hermes-agent` users on platforms where pip can't provide system deps.
+
+8. **Bundled-skill sync** — 79 bundled skills got updates on this upgrade, 4 new (`macos-computer-use`, `baoyu-article-illustrator`, `kanban-codex-lane`, `teams-meeting-pipeline`), 4 removed. The updater syncs them to all profiles automatically.
+
+9. **`/rollback`** is now a real first-class command backed by `checkpoints` — use it inside chat to undo the agent's last filesystem-touching action.
+
+10. **Update flow** — `hermes update --check` is the official way to peek before installing. Pre-update backups are off by default; pass `--backup` to force one (saves to `~/.hermes/backups/`). `--no-backup` overrides any config opt-in.
 
 ---
 
@@ -513,10 +646,14 @@ uninstall             Remove Hermes
 
 ```
 -z PROMPT              One-shot prompt (non-interactive turn)
+--usage-file PATH       Write usage accounting details to a file
 -m MODEL               Override model for this run
 --provider PROVIDER    Override provider for this run
+--reasoning LEVEL      Override reasoning effort for this run
 -t TOOLSETS            Override which toolsets are active
 --resume SESSION       Resume an existing session by ID
+--no-restore-cwd       Keep the current directory when resuming
+--in DIR               Change directory before starting or resuming
 --continue [NAME]      Continue most recent session (or named)
 --worktree             Use a git worktree for the run
 --accept-hooks         Auto-approve unseen shell hooks (no TTY)
@@ -525,7 +662,9 @@ uninstall             Remove Hermes
 --pass-session-id      Pass the session ID through
 --ignore-user-config   Ignore user-level config overrides
 --ignore-rules         Ignore custom rules
+--safe-mode            Disable custom config, rules, plugins, and MCP servers
 --tui                  Force the TUI mode
+--cli                  Force the classic prompt-toolkit REPL
 --dev                  Dev mode
 ```
 
@@ -718,6 +857,8 @@ There's no single `hermes refresh` command; refresh is contextual. Mapping the c
 | Wired the wrong bot — config says one bot, logs/replies look like a different bot | Token belonged to a different bot — visually similar token (same digit length, similar prefix), different `id:secret` pair | **Always** `curl https://api.telegram.org/bot<TOKEN>/getMe` BEFORE wiring. The `result.username` field confirms which bot the token authenticates. |
 | Wrong model used despite `--model` flag | Provider for that model isn't configured | Check `~/.hermes/.env` has the right `*_API_KEY`; run `hermes auth` for OAuth providers |
 | `hermes update` fails or partial | Was running gateway, files in use | `hermes gateway stop && hermes update && hermes gateway start` |
+| `gpt-5.6-sol` is listed but Codex OAuth returns HTTP 400 saying the ChatGPT account is unsupported | Sol entitlement is account-specific; the active OAuth account may not have access | Sign out of `openai-codex`, authorize an eligible ChatGPT account with the device flow, set explicit Codex routing, restart, and smoke-test |
+| Codex OAuth returns HTTP 429 `The usage limit has been reached` | The OpenAI account quota is exhausted even though OAuth is valid | Wait for quota reset or authorize another eligible account/provider; config changes cannot bypass the upstream limit |
 | `hermes claw` errors / unclear | OpenClaw compatibility surface — depends on local OpenClaw install | Run `hermes claw --help` for current scope; not all OpenClaw commands are bridged |
 | `hermes import` doesn't see Claude Code | Importer scans known paths; non-default install missed | Pass explicit path: `hermes import --help` to see flags |
 
@@ -747,7 +888,25 @@ This skill grows with every use. Never let hard-won knowledge be lost.
 
 ## Version Check & Auto-Update Protocol
 
-**This skill was last updated for:** `Hermes v0.12.0 (build 2026.4.30)`
+**This skill was last updated for:** `Hermes v0.20.5 (build 2026.8.19, upstream 14c59f0b)`
+
+**Upstream drift check — 2026-08-24:** the installed build is still `v0.20.5` (`14c59f0b`, 2026-08-22), but `origin/main` has moved to `a0ca7c19` (2026-08-24) — **446 commits ahead**. Everything in the list below comes from commit subjects only and has **not** been verified against a running binary; treat it as a heads-up, not as documentation:
+
+- **cron** — explicit one-shot re-arm; refuses to run terminal jobs; misfire backstop now honours the one-shot grace window; due-scan won't dispatch a one-shot past its grace window
+- **curator** — pin/unpin reports real failures instead of false success, and surfaces pinned-but-unmanaged skills
+- **auth** — credential rotation for named custom providers after 401/429; PKCE/SameSite cookie corrections on native password login
+- **classifier** — 429 quota walls route to billing across providers; reset signals stay rate-limited
+- **desktop** — HUD game-overlay mode; remote file + SSH media routing per connection; stale group metadata cleared on disband
+- **bots** — typed failure reasons now reach the sending agent on A2A calls
+
+To pick them up and re-sync this skill:
+
+```bash
+hermes gateway stop && hermes update && hermes config migrate && hermes gateway start
+hermes doctor
+```
+
+Then re-run the **Skill Refresh Procedure** below (regenerate `cli-reference.md`, bump `hermes_version` + the marker above).
 
 ### Version Check (run at start of every Hermes session)
 
@@ -785,52 +944,76 @@ Extract:
 ### Skill Refresh Procedure
 
 When the local Hermes version is newer than `SKILL_VERSION`:
-
 1. **Notify the user**: "Syncing hermes-configure skill to match Hermes v<X.Y.Z>..."
 
-2. **Regenerate `cli-reference.md`:**
-   ```bash
-   HERMES=$(which hermes)
-   {
-     echo "# Hermes CLI Full Reference"
-     echo "_Auto-generated $(date '+%Y-%m-%d') for $($HERMES --version 2>&1 | head -1)_"
-     echo
-     echo "## hermes (top-level)"
-     echo '```'
-     $HERMES --help 2>&1
-     echo '```'
-   } > ~/.claude/skills/hermes-configure/cli-reference.md
+2. **Regenerate `cli-reference.md` (exhaustive, recursive, depth-safe).**
 
-   SUBS=$($HERMES --help 2>&1 | python3 -c "
-   import sys, re
-   m = re.search(r'\{([^}]+)\}', sys.stdin.read())
-   print('\n'.join(s.strip() for s in m.group(1).split(',') if s.strip()) if m else '')
-   ")
-   for cmd in $SUBS; do
-     {
-       echo
-       echo "## hermes $cmd"
-       echo '```'
-       $HERMES $cmd --help 2>&1
-       echo '```'
-     } >> ~/.claude/skills/hermes-configure/cli-reference.md
+   **Critical bug to avoid:** A naive regex like `\{([^}]+)\}` matches BOTH real subparser choice lists AND flag-value enums (e.g. `--type {oauth,api-key}`). Recursing on the latter causes a runaway — `hermes auth add oauth --help` returns the same help (argparse swallows the unknown positional), so the walker loops. A previous incident generated an 80 MB file before being killed.
 
-     NESTED=$($HERMES $cmd --help 2>&1 | python3 -c "
-   import sys, re
-   m = re.search(r'\{([^}]+)\}', sys.stdin.read())
-   print('\n'.join(s.strip() for s in m.group(1).split(',') if s.strip()) if m else '')
-   ")
-     for sub in $NESTED; do
-       {
-         echo
-         echo "### hermes $cmd $sub"
-         echo '```'
-         $HERMES $cmd $sub --help 2>&1
-         echo '```'
-       } >> ~/.claude/skills/hermes-configure/cli-reference.md
-     done
-   done
+   **Fix:** Parse subcommand choices ONLY from the `positional arguments:` block, and only when the choice list is followed by an indented `name   description` listing. Cap depth at 4. Track visited paths.
+
+   Save the following as `scripts/regen-cli-reference.py` in this skill directory and run with `python3`:
+
+   ```python
+   import re, subprocess, datetime
+   HERMES = subprocess.check_output(['which','hermes'], text=True).strip()
+   MAX_DEPTH, TIMEOUT = 4, 20
+
+   def run(path):
+       try:
+           r = subprocess.run([HERMES, *path, '--help'], capture_output=True, text=True, timeout=TIMEOUT)
+           return (r.stdout or '') + (r.stderr or '')
+       except Exception as e:
+           return f"<help fetch failed: {e}>"
+
+   def subcommands(help_text):
+       # Subparser choice list lives INSIDE 'positional arguments:' as an indented
+       # {a,b,c} line followed by indented name+description rows. Anything else
+       # (e.g. '--type {oauth,api-key}') is a flag enum -- ignore.
+       lines = help_text.splitlines()
+       in_pos = False
+       i = 0
+       while i < len(lines):
+           if re.match(r'^positional arguments:', lines[i]):
+               in_pos = True; i += 1; continue
+           if in_pos:
+               m = re.match(r'^\s+\{([a-zA-Z0-9_,\-]+)\}\s*\.{0,3}\s*$', lines[i])
+               if m:
+                   j = i + 1
+                   while j < len(lines) and not lines[j].strip(): j += 1
+                   if j < len(lines) and re.match(r'^\s{4,}\S+\s', lines[j]):
+                       return [s.strip() for s in m.group(1).split(',') if s.strip()]
+                   return []
+               if re.match(r'^[A-Za-z][A-Za-z ]*:\s*$', lines[i]):
+                   break
+           i += 1
+       return []
+
+   ver = subprocess.check_output([HERMES,'--version'], text=True).strip()
+   out = [f"# Hermes CLI Full Reference",
+          f"_Auto-generated {datetime.date.today()} for {ver}_",
+          "", "## hermes (top-level)", "```", run([]).rstrip(), "```"]
+
+   visited = set()
+   def walk(path, depth):
+       key = ' '.join(path)
+       if key in visited or depth > MAX_DEPTH: return
+       visited.add(key)
+       help_text = run(path)
+       hashes = '#' * (depth + 1)
+       out.append(f"\n{hashes} hermes {' '.join(path)}")
+       out.append("```"); out.append(help_text.rstrip()); out.append("```")
+       for sub in subcommands(help_text):
+           walk(path + [sub], depth + 1)
+
+   for cmd in subcommands(run([])):
+       walk([cmd], 1)
+
+   import pathlib
+   pathlib.Path.home().joinpath('.claude/skills/hermes-configure/cli-reference.md').write_text('\n'.join(out))
    ```
+
+   **Sanity check after running:** `ls -lh cli-reference.md` should be roughly **300–900 KB**, not tens of MB. If it explodes, the runaway is back — inspect `subcommands()` and confirm flag enums aren't being matched.
 
 3. **Read the project changelog** for delta between old and new:
    ```bash
@@ -859,3 +1042,4 @@ When the local Hermes version is newer than `SKILL_VERSION`:
 3. Don't run `hermes uninstall` to "fix" a config issue — `hermes doctor`, `hermes backup`, then targeted edits.
 4. Don't manually edit files inside `~/.hermes/hermes-agent/` (the project source). It's an `uv`-managed venv and edits will be wiped on update. User customization belongs in `~/.hermes/` root.
 5. Don't assume `hermes claw` is a complete OpenClaw bridge — verify per-command before relying on it.
+6. Don't use a naive `\{([^}]+)\}` regex when walking `--help` subcommands. Flag enums like `--type {oauth,api-key}` look identical to subparser choice lists and will cause an infinite-recursion runaway. Always anchor the parse to the `positional arguments:` block plus an indented description block (see Skill Refresh Procedure step 2).

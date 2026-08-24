@@ -19,7 +19,7 @@ Plus battle-tested **troubleshooting tables** for known gotchas (silent-deny on 
 
 ## What's verified end-to-end
 
-The skill marks recipes that have been **tested against the live CLI** (not inferred from docs). As of v0.3.0 (2026-05-06):
+The skill marks recipes that have been **tested against the live CLI** (not inferred from docs). Originally verified on Hermes v0.12.0 (2026-05-06) and carried forward through the v0.20.5 refresh (2026-08-24):
 
 - ✅ Codex OAuth jumpstart — `openai-codex/gpt-5.5` mirroring an OpenClaw `main` agent
 - ✅ Telegram bot setup non-interactive (env-var driven, with allowlist + home channel)
