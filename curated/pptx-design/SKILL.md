@@ -9,6 +9,29 @@ Expert PowerPoint design agent on macOS. `python-pptx` + `lxml` is the sole edit
 
 **Core doctrine:** python-pptx edits the file. AppleScript moves the window. Do not cross these streams.
 
+---
+
+## ⛔ DELIVERY GATE — DO NOT SKIP ⛔
+
+Before reporting any pptx build, redesign, or multi-slide edit as complete, you MUST run the bundled audit script and paste its output:
+
+```bash
+python3 ~/.claude/skills/pptx-design/scripts/audit.py "$PPTX_PATH"
+# Pass --style STYLE-XX if a design style is active
+```
+
+- **Exit 0** → audit passed. Proceed to visual verification (PDF render → PNG inspection), then deliver.
+- **Exit 1** → CRITICAL issues present. **DO NOT DELIVER.** Fix using `python-pptx`, re-run, loop up to 5 times.
+- **After 5 failed passes** → escalate to the user. Do not silently deliver.
+
+You MUST paste the JSON `summary` block (`{"critical": N, "warning": N, "info": N, "passed": bool}`) verbatim in your response. Claiming "audit passed" without the JSON is a workflow violation.
+
+The script (`scripts/audit.py`) is a deterministic 14-check engine — bounds, text overflow, word-wrap, container-text sync, overlap, z-order, font compliance, image AR distortion, "blue rectangle" gradient bug, text-zone luminance, etc. Full check spec + fix strategies + false-positive triage rules in [`references/audit-system.md`](references/audit-system.md).
+
+**Single-property tweaks** (one font change, one color swap, one slide) skip the gate. The threshold for the gate is the same as the threshold for `TaskCreate`: 3+ discrete steps OR a multi-slide change.
+
+---
+
 ## Core Behavior
 
 - **Content-first, not layout-first.** Analyze the topic deeply before touching style or layout. Pick the layout type that fits what each slide needs to communicate. KPI cards and metric panels are ONE option among many — use them only when the content is actually data-driven. For narrative, story, educational, or persuasive content, use Narrative Pages, Quote Pages, Chapter Dividers, Comparison Pages, and other diverse layout types from the [Layout Type Catalog](references/design-system.md#layout-type-catalog).
@@ -17,7 +40,7 @@ Expert PowerPoint design agent on macOS. `python-pptx` + `lxml` is the sole edit
 - Use the same language as the user.
 - Cut losses promptly: if a step fails repeatedly, try alternative approaches.
 - Build incrementally: one slide per tool call. Announce what you're building before each slide.
-- After all slides are built, **run the mandatory audit + fix loop** before delivering.
+- After all slides are built, **run the mandatory `scripts/audit.py`** before delivering (see [Delivery Gate](#-delivery-gate--do-not-skip-) above).
 - Open/refresh the file in PowerPoint via AppleScript after audit is clean (skip this step if PowerPoint is not installed — see [applescript-patterns.md](references/applescript-patterns.md#powerpoint-presence-check)).
 
 ## Workflow Gate
@@ -34,48 +57,18 @@ Small tweaks should never trigger the planning workflow. When in doubt, err towa
 
 ## Task Tracking — Always On for Builds
 
-Every PPTX **build** — whether 2 slides or 20 — creates a task list at the start via `TaskCreate`. A build is: any new deck, any redesign, any edit touching 2+ slides, or any job that includes image generation. Only single-property tweaks (one color / one font size / one text change on one slide) skip the task list.
+Every PPTX **build** creates a task list via `TaskCreate` at the start. A build = any new deck, any redesign, any edit touching 2+ slides, or any job that includes image generation. Single-property tweaks (one color / one font / one text change on one slide) skip it.
 
-**Why mandatory for every build, not just large ones:** long builds drift context — by slide 8 Claude may have forgotten the STYLE-02 crimson hex from Phase 2. Approval gates need visibility — user sees in one line where the build is. Audit iteration has stakes — regressions become invisible if not logged. Recovery from interruption becomes one-line instead of re-reading the transcript.
+Scale to request size:
+- **Short form (2–4 slides, no images):** content+style → build → audit → open & verify.
+- **Full form (5+ slides, or any BG-image deck):** Phase 1 → Phase 2 → Phase 3a/3b/3c (if images) → pilot image + verify → image batches of 3 + verify → per-slide build → audit → open & verify.
 
-### Canonical task template for a build (create at the very start)
-
-Scale the template to request size — a 2-slide deck uses the short form, a 10-slide BG-image deck uses the full form.
-
-**Short form (2–4 slides, no images):**
-```
-1. Content + style decisions                    [in_progress]
-2. Build all slides (python-pptx)               [pending]
-3. Audit Pass A (iterate with rollback)         [pending]
-4. Open + visual verify + deliver               [pending]
-```
-
-**Full form (5+ slides, or any deck with BG images):**
-```
-1.  Phase 1 — Content structure                  [in_progress]
-2.  Phase 2 — Style selection                    [pending]
-3.  Phase 3a — Global image strategy             [pending]  (only if images)
-4.  Phase 3b — Per-slide composition plan        [pending]  (only if images)
-5.  Phase 3c — Prompt preview gate               [pending]  (only if images)
-6.  Pilot image (slide 1) + verify               [pending]  (only if images)
-7.  Image batch 1 (slides 2–4) + verify          [pending]  (only if images)
-8.  Image batch 2 (slides 5–7) + verify          [pending]  (only if images)
-9.  Image batch 3 (slides 8–10) + verify         [pending]  (only if images)
-10. Build slide 1 (python-pptx)                  [pending]
-11. Build slide 2                                [pending]
-...
-N-2. Audit Pass A (iterate with rollback)        [pending]
-N-1. Audit Pass B (optional, if installed)       [pending]
-N.   Open + visual verify + deliver              [pending]
-```
-
-### Behavior rules
-
-1. **Create the full task list at the start of the build.** Whole plan visible before first approval gate, not piecemeal.
-2. **Update status AT THE TIME of transition.** When Phase 1 is approved → set Task 1 `completed` AND Task 2 `in_progress` in the same response. Never batch status updates across phases.
-3. **Failures create new tasks.** Image verification fails → new task "Regenerate slide 3 image with stronger portrait directive." Audit regression (pass N+1 worse than pass N) → new task "Pass N+1: try font-reduction strategy on text-overflow in slide 5." Don't just silently retry.
-4. **Garbage collection for long decks.** Once all N per-slide build tasks are completed, consolidate them into a single task "Slides 1–N built (N completed)". Keeps the list readable for 20+ slide decks.
-5. **Skip entirely for single-action tweaks.** "Change the title color of slide 5 from blue to red" → just do it. No task list. The threshold isn't slide count — it's whether the job has ≥3 discrete steps.
+Behavior:
+1. **Create the full list at the start.** Whole plan visible before the first approval gate.
+2. **Update status at the time of transition.** Approved Phase 1 → mark Task 1 completed AND Task 2 in_progress in the same response. Never batch status across phases.
+3. **Failures create new tasks.** Bad image regen, audit regression — log it, don't silently retry.
+4. **Garbage-collect long decks.** After per-slide build tasks complete, consolidate into one "Slides 1–N built" entry.
+5. **Skip for single-action tweaks.** Threshold = 3+ discrete steps, not slide count.
 
 ## Pre-Build Workflow (new decks of 5+ slides)
 
@@ -211,20 +204,9 @@ The `Text Zone` column must include the intended **text color** — white, cream
 
 **Wait for user approval.** User may edit prompts verbatim, add missing directives, or swap a composition pattern. Once approved, the prompts are frozen for the pilot and batch phases.
 
-## Slide Dimensions — 16:9 default, other ratios supported
+## Slide Dimensions
 
-## Slide Dimensions — 16:9 default, other ratios supported
-
-The skill defaults to 16:9 widescreen (`slide_width=12192000`, `slide_height=6858000` EMU). To use a different ratio, set `prs.slide_width` / `prs.slide_height` before adding slides, and pass the matching dimensions to helpers that accept them (`add_bg_image`, `check_overlaps`, etc.).
-
-| Ratio | Use Case | EMU (W × H) |
-|---|---|---|
-| 16:9 | Widescreen (default) | 12192000 × 6858000 |
-| 4:3 | Legacy projectors | 9144000 × 6858000 |
-| 1:1 | Social post (LinkedIn, Instagram) | 6858000 × 6858000 |
-| 9:16 | Mobile / vertical | 6858000 × 12192000 |
-
-When using a non-default ratio, ALL image generation prompts must specify the matching aspect ratio (not 16:9). CHECK 12 (image AR distortion) uses geometry-based logic and adapts automatically — no code changes needed.
+Default is 16:9 widescreen (12192000 × 6858000 EMU). Full ratio table (4:3, 1:1, 9:16) and override instructions live in [design-system.md → Layout Rules](references/design-system.md#layout-rules).
 
 ## Environment
 
@@ -266,61 +248,37 @@ If PowerPoint is not installed (Keynote-only machine, etc.), skip steps 2, 3, an
 
 ### New Presentation (Full Build)
 
-1. **Content Analysis** (Phase 1) — approved slide structure table.
-2. **Style Selection** (Phase 2) — approved style.
-3. **Image Planning** (Phase 3) — approved composition plan (if images requested).
-4. **Palette & composition.** Apply the chosen style from [Design Styles Catalog](references/design-styles-catalog.md) and [Style Mapping](references/style-pptx-mapping.md). Convert the style dict to a `pal` dict with `style_to_pal()` before calling layout helpers. Vary layouts (see [layout rhythm](references/design-system.md#layout-rhythm-across-slides)).
-5. **Generate images — pilot first, then batches of 3.**
-   - **Pilot (slide 1 only)**: generate the first image alone. Run `verify_generated_image(path, role, intended_ar, text_zone=..., text_color=...)` — AR check + **text-zone luminance check**. Show result to the user (path + verification report). If bad: adjust the prompt template and regenerate slide 1 BEFORE batching. This catches systemic prompt bugs at 1 API call cost, not N.
-   - **Batches of 3 max**: after pilot approval, batch-generate remaining images in groups of 3 (not 4, not 10). After each batch, run verification on all 3 and handle regens before starting the next batch. Limits blast radius.
-   - **API vs browser tools**: API-based (`nanobanana`, `seedance-api`) → parallel. Browser-based (`grok-image-gen`, `baoyu-danger-gemini-web`) → strictly serial.
-   - **Every image MUST pass two verifications**: AR (Fix CHECK 12 in the audit catches the rest) AND text-zone luminance (CHECK 14). If either fails, regenerate with a stronger directive OR adapt the role. Two regeneration attempts max per image — after that, change the Image Role in the composition plan.
-   - See [image-prompts.md — generate_and_verify pattern](references/image-prompts.md#the-generate_and_verify-pattern) for the canonical code shape.
-6. **python-pptx build.** Create file + build slides (one per tool call). Use `make_title_page()`, `make_chapter_divider()`, `make_narrative_page()`, `make_quote_page()`, `make_comparison_page()`, `make_kpi_card()`, etc.
-7. **Mandatory audit + fix loop.** Two-pass audit with rollback on regression:
-   - **Pass A (inline, style-aware)**: [Audit System](references/audit-system.md) — checks 1–13. Iterate up to 5 passes with snapshot/rollback.
-   - **Pass B (pptx-audit-and-fix, if installed)**: second pass for contrast, composition coverage, text truth. Integration in [Audit System](references/audit-system.md#pass-b-pptx-audit-and-fix-tool-optional).
-8. **Open the file in PowerPoint** (if installed). Otherwise report the file path.
-9. **Visual verification**: navigate through slides, confirm image focal points are unblocked.
-10. **Fix anything broken**: quit → fix in python-pptx → reopen.
-11. **Report** audit summary + deliver the file path.
+1. **Phases 1–3** — approved content structure, style, and (if images) composition plan from [Pre-Build Workflow](#pre-build-workflow-new-decks-of-5-slides) above.
+2. **Apply palette.** Convert the style dict to a `pal` dict with `style_to_pal()`. Vary layouts ([layout rhythm](references/design-system.md#layout-rhythm-across-slides)).
+3. **Generate images — pilot first, then batches of 3.**
+   - **Pilot (slide 1)**: generate alone. Run `verify_generated_image(path, role, intended_ar, text_zone=..., text_color=...)` — AR + text-zone luminance. Show result to user. If bad, fix prompt template and regenerate BEFORE batching.
+   - **Batches of 3** thereafter, each batch fully verified before the next launches.
+   - **API tools** (`nanobanana`, `seedance-api`) run parallel; **browser tools** (`grok-image-gen`) strictly serial.
+   - Two regen attempts max per image. Then change the Image Role in the composition plan.
+   - See [image-prompts.md → generate_and_verify pattern](references/image-prompts.md#the-generate_and_verify-pattern).
+4. **python-pptx build.** One slide per tool call. Use `make_title_page()`, `make_chapter_divider()`, `make_narrative_page()`, `make_quote_page()`, `make_comparison_page()`, `make_kpi_card()`, etc.
+5. **Mandatory audit gate.** Run `python3 ~/.claude/skills/pptx-design/scripts/audit.py "$PPTX_PATH"`. Paste the JSON `summary` block in your reply. If exit != 0, fix CRITICALs using `python-pptx`, save, re-run. Iterate up to 5 passes. Triage rules and fix strategies live in [`references/audit-system.md`](references/audit-system.md).
+6. **Visual verification (headless render).** PowerPoint AppleScript `save as PDF` → `pdftoppm -png -r 110` → `Read slide-N.png`. See [applescript-patterns.md → Visual Verification](references/applescript-patterns.md#visual-verification--rendering-slides). **Triage first, fix second** — most audit CRITICALs are estimator false-positives or intentional decorative bars. **For every slide containing a generated image of a person/face, do a side-by-side check: Read the source image AND the rendered slide PNG in the same response, and compare face proportions visually.** Math-correct AR (`visible_AR == box_AR`) does NOT guarantee render-correct AR — macOS PowerPoint can stretch even when the XML math is internally consistent. **When the user reports an image looks stretched, trust the user over your own AR equations.** Switch to native-AR-by-construction (Rule 16 default) immediately rather than re-running the math.
+7. **Fix anything broken** → re-render to verify (a fix can introduce a new visible problem — e.g., moving a subtitle below the title may push it onto the photo's focal area).
+8. **Open** in PowerPoint (if installed) and **report** audit summary + file path.
 
-### Edit Existing Presentation
+### Edit / Redesign / Quick Fix
 
-1. Read the file with python-pptx to understand current state.
-2. Quit PowerPoint if the file is open.
-3. Edit in python-pptx (preserve surgical scope per Rule 5).
-4. Save via `prs.save(pptx_path)`.
-5. Run the mandatory audit.
-6. Reopen in PowerPoint.
-
-### Redesign Existing Presentation
-
-1. Read the file; catalog everything.
-2. Quit PowerPoint.
-3. Plan new design, palette, image strategy.
-4. Generate any needed images (parallel).
-5. Rebuild each slide.
-6. Run the mandatory audit.
-7. Reopen.
-
-### Quick Fix / Small Tweak
-
-Always through python-pptx — not AppleScript: quit → read → edit → save → reopen.
+All three follow the same pattern: read with python-pptx → quit PowerPoint → edit (surgical scope per Rule 5) → save → audit → visual-verify → reopen. **Edit** preserves existing design; **Redesign** rebuilds with a new palette/style and may regenerate images; **Quick fix** is a single-property tweak that skips the task list and audit (use judgment — re-audit if the change could cascade).
 
 ## Mandatory Audit — NON-NEGOTIABLE
 
-**Every new or redesigned presentation MUST pass the full audit before delivery.**
+**Every new or redesigned presentation MUST pass the full audit before delivery.** See the [Delivery Gate](#-delivery-gate--do-not-skip-) at the top of this file for the exact gate command and required behavior.
 
-Pass A runs all 13 checks from [Audit System](references/audit-system.md) iteratively (max 5 passes) with **snapshot-and-rollback** on regression. Pass B runs the optional `pptx-audit-and-fix` tool if installed.
+The audit runs all 14 checks via `scripts/audit.py` and gates delivery on its exit code (0 = passed, 1 = CRITICALs present). Iterate fixes up to 5 passes; **paste the JSON `summary` block** in your reply each pass so the user can see CRITICAL/WARNING counts at a glance.
 
-**Report the audit summary** to the user: CRITICAL count, WARNING count, fixes applied, passes needed.
+Triage rules, false-positive filters, fix strategies, and the snapshot-and-rollback loop guidance live in [`references/audit-system.md`](references/audit-system.md).
 
 **Anti-patterns (never do these):**
-- Deliver without auditing.
-- Run only some checks.
-- Skip the audit because "it's a simple deck."
-- Fix an issue without re-auditing (fixes cascade; re-audit is mandatory).
+- Deliver without running `audit.py`.
+- Claim "audit passed" without pasting the JSON summary.
+- Skip the audit because "it's a simple deck" (rule applies to any 2+ slide change).
+- Fix an issue without re-running the script (fixes cascade; re-audit is mandatory).
 
 ## Critical Rules
 
@@ -348,34 +306,34 @@ Grouped into 5 clusters. Each rule is one short directive — read the linked re
 15. **BG images must be content-aware.** The image's subjects should reflect what the slide communicates — split image for comparison, upward energy for growth, etc. Not just "leave blank space for text."
 
 ### Images & Aspect Ratio
-16. **Preserve native aspect ratio — always.** `add_picture(path, l, t, w, h)` STRETCHES the image. For non-full-bleed placements use `add_picture_fit()` (letterbox, preserves full image) or `add_picture_cover()` (fill-and-crop, no blank space). Choose based on whether you need the whole image visible (fit) or a filled rectangle (cover). Details in [python-pptx-reference.md — Adding Images](references/python-pptx-reference.md#adding-images).
+16. **Preserve native aspect ratio — by construction, not by math.** `add_picture(path, l, t, w, h)` STRETCHES the image. **DEFAULT — derive one slot dimension from the other to match the image's native AR**, then call `add_picture(img, l, t, w, h)` with `w/h == native_ar`. Example: portrait image (native AR 0.667) on a full-height slide → `panel_w = int(SH * 0.667); add_picture(img, l, 0, panel_w, SH)`. No crop, no srcRect, no possible stretch. Use `add_picture_fit()` only when you need letterbox into a fixed slot. **AVOID `add_picture_cover()`** — its srcRect+xfrm pattern is mathematically correct but renders inconsistently in macOS PowerPoint (cropped portion gets stretched to display rect). Only use cover when both slot dimensions are immutable AND you've visually verified the result against the source image. Details in [python-pptx-reference.md — Adding Images](references/python-pptx-reference.md#adding-images).
 17. **Match image generation AR to placement role.** Full-bleed BG → 16:9 (or the active slide AR). Side panel → portrait (3:4, 2:3). Content image → slot ratio. **Never 16:9 in a portrait panel — this produces the "background-as-thumbnail" anti-pattern.**
 18. **NEVER shrink a BG image into a thumbnail.** If an image was generated at 16:9 (background dimensions), it MUST be placed as a full-bleed background or a wide panoramic strip — never as a <30% coverage content tile.
 19. **Always verify AR after generating.** Call `verify_generated_image()` immediately. If >15% deviation from intended AR, regenerate with a stronger directive OR adapt the role. See [image-prompts.md Section D](references/image-prompts.md#section-d--post-generation-ar-verification).
 20. **If most slides have BG images, ALL slides must.** A deck of 8 BG-image slides + 2 plain-gradient slides looks inconsistent. Commit to BG images on ALL slides or NONE.
 21. **Never use emoji as icons.** Use generated images, geometric shapes, or labeled circles.
-27. **Subject-side panel placement + gradient fades AWAY from subject — NEVER through.** This rule prevents the gradient-over-face bug where a well-composed photo gets eaten by its own overlay. Three inseparable parts:
-    - **(a) Image prompts declare Subject Bbox, not text zone.** The prompt describes *where the subject sits in the photo* (`left-third` / `center` / `right-third`). The prompt must NOT pre-commit the slide's text column (no "leave the LEFT 2/3 for typography"). Text column is the build layer's decision, derived from Subject Bbox.
-    - **(b) Panel Side MUST MATCH Subject Bbox side.** Subject in left-third → image panel on the LEFT half of the slide (subject lands at the outer-left edge of the slide, clear of any inner gradient). Subject in right-third → image panel on the RIGHT half. Full-bleed + center subject → full-bleed placement. **If you catch yourself placing the image on the opposite side of the slide from where the subject lives in the source image, stop — swap the panel side and put the text column on the other side.**
-    - **(c) Gradient opacity must fade AWAY from the subject.** The opaque end of the overlay gradient meets the text column on the INNER edge; the transparent end is on the OUTER edge where the subject sits. In practice: for a left-half image panel with a left-third subject, the gradient sits on the inner-right edge fading from transparent-at-outer-left to opaque-at-inner-right. Never the reverse.
-    - **(d) Sanity check before declaring a slide done.** After building any image + gradient pair, mentally overlay the two: if the gradient's high-opacity region overlaps the subject's bbox by >10%, the design is broken — flip panel side OR flip gradient direction. Do not ship it. This is the exact bug that produced the slide-2/slide-4 rework; the rule exists to make it impossible to repeat.
-    - Full rationale and worked examples in [image-prompts.md — subject-side placement](references/image-prompts.md#bg-image-contrast-strategy) and [design-system.md — composition planning](references/design-system.md#composition-planning).
+22. **Subject-side panel placement + gradient fades AWAY from subject — NEVER through.** Prevents the gradient-over-face bug where a well-composed photo gets eaten by its own overlay. Four inseparable parts:
+    - **(a) Image prompts declare Subject Bbox, not text zone.** The prompt describes *where the subject sits in the photo* (`left-third` / `center` / `right-third`). It must NOT pre-commit the slide's text column. Text column is the build layer's decision, derived from Subject Bbox.
+    - **(b) Panel Side MUST MATCH Subject Bbox side.** Subject in left-third → image panel on the LEFT half of the slide. Subject in right-third → RIGHT half. Full-bleed + center subject → full-bleed placement. If you're about to place the image on the opposite side of the slide from where the subject lives in the source image, stop and swap.
+    - **(c) Gradient opacity must fade AWAY from the subject.** Opaque end on the INNER edge (meeting the text column); transparent end on the OUTER edge (where the subject sits). Never the reverse.
+    - **(d) Sanity check before shipping.** Mentally overlay image + gradient: if the gradient's high-opacity region overlaps the subject bbox by >10%, the design is broken — flip panel side or gradient direction.
+    - Full rationale in [image-prompts.md](references/image-prompts.md#bg-image-contrast-strategy) and [design-system.md](references/design-system.md#composition-planning).
 
 ### Process
-22. **Always save** at end of every Python script: `prs.save(pptx_path)`.
-23. **Escape special characters** in XML: `&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`.
-24. **Build incrementally.** One slide per tool call. Announce progress.
-25. **AppleScript is not an editor — it's a remote control.** All content/design changes go through python-pptx. Edit cycle: check presence → quit → wait for exit → rebuild → reopen.
-26. **Unit difference.** AppleScript reads positions in points (72/inch). python-pptx uses EMUs (914400/inch). Convert: `EMU = points × 12700`.
+23. **Always save** at end of every Python script: `prs.save(pptx_path)`.
+24. **Escape special characters** in XML: `&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`.
+25. **Build incrementally.** One slide per tool call. Announce progress.
+26. **AppleScript is not an editor — it's a remote control.** All content/design changes go through python-pptx. Edit cycle: check presence → quit → wait for exit → rebuild → reopen.
+27. **Unit difference.** AppleScript reads positions in points (72/inch). python-pptx uses EMUs (914400/inch). Convert: `EMU = points × 12700`.
 
 ## References
 
-Detailed reference documentation lives in focused files. Read the relevant file when the task requires it:
+Read the relevant file when the task requires it:
 
-- **[python-pptx Reference](references/python-pptx-reference.md)** — Complete API reference: imports, opening/saving, shapes, text boxes, tables, charts, images, gradients, transparency, rounded corners, helper functions (`make_title_page()`, `make_kpi_card()`, etc.), `pal` dict contract, `style_to_pal()` adapter, `check_overlaps()`, `add_gradient_shape()`, `add_picture_fit()`, `add_picture_cover()`, `verify_generated_image()`. **Read before writing any python-pptx code.**
-- **[AppleScript Reference](references/applescript-patterns.md)** — App lifecycle and navigation: PowerPoint presence check (graceful fallback for Keynote-only machines), the reload pattern, navigation, slideshow control, screenshot triggers, unit system. **Read ONLY for app control — never for editing.**
-- **[Design System](references/design-system.md)** — Typography rules, color palettes, layout catalog (11 types), composition patterns (10 patterns), layout rhythm, theme pairing, EMU conversions. **Read when planning a new deck's visual design.**
-- **[Design Styles Catalog](references/design-styles-catalog.md)** — 12 curated styles (STYLE-01 through STYLE-12) with full layout, typography, color, and graphic treatment specs. **Read when the user requests a specific style.**
-- **[Style → python-pptx Mapping](references/style-pptx-mapping.md)** — Concrete RGBColor values, font configs, accent bar settings, card parameters for each style + required-key schema. **Read alongside the Design Styles Catalog.**
-- **[Image Prompt Engineering](references/image-prompts.md)** — How to write AI image prompts: Section A (full-bleed BG), Section A2 (side panels), Section B (content images), Section C (prompt quality checklist), Section D (post-gen AR verification). **Read before generating any image.**
-- **[Audit System](references/audit-system.md)** — Post-generation quality audit: 13 checks, iterative fix loop with rollback, cascading fix strategies, word-wrap simulation, bullet layout algorithm, false positive avoidance. **Read before running the mandatory audit.**
+- **[python-pptx Reference](references/python-pptx-reference.md)** — API: imports, shapes, text, tables, charts, images, gradients, transparency, helper functions (`make_*_page()`, `make_kpi_card()`, `pal` dict, `style_to_pal()`, `check_overlaps()`, `add_gradient_shape()`, `add_picture_fit()`, `add_picture_cover()`, `verify_generated_image()`). Read before writing any python-pptx code.
+- **[AppleScript Patterns](references/applescript-patterns.md)** — App lifecycle and navigation: PowerPoint presence check, reload pattern, navigation, slideshow, **headless visual rendering**, unit system. App control only — never for editing.
+- **[Design System](references/design-system.md)** — Typography, palettes, layout catalog (11 types), composition patterns (10), layout rhythm, slide-dimension table, EMU conversions. Read when planning a deck's visual design.
+- **[Design Styles Catalog](references/design-styles-catalog.md)** — 12 curated styles (STYLE-01–12) with full layout/typography/color/graphic specs. Read when the user requests a specific style.
+- **[Style → python-pptx Mapping](references/style-pptx-mapping.md)** — Concrete RGBColor values, font configs, accent bars, card params per style + required-key schema. Read alongside the Catalog.
+- **[Image Prompts](references/image-prompts.md)** — Sections A/A2/B (full-bleed, side panel, content), C (quality checklist), D (post-gen AR + text-zone verification). Read before generating any image.
+- **[Audit System](references/audit-system.md)** — 14 checks, iterative fix loop with rollback, triage-before-fix guidance, word-wrap simulation, false-positive filters. The audit engine is `scripts/audit.py` (deterministic, JSON output, exit-1 on CRITICAL). Read before running the mandatory audit.

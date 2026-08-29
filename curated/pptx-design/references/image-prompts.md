@@ -451,7 +451,7 @@ def orientation_directive(intended_ar):
 | Tool type | Strategy |
 |---|---|
 | API-based (`nanobanana`, `seedance-api`, `acestep`) | Parallel within each batch of 3 |
-| Browser-based (`grok-image-gen`, `baoyu-danger-gemini-web`) | Strictly serial (one Chrome session) |
+| Browser-based (`grok-image-gen`) | Strictly serial (one Chrome session) |
 
 ### Prompt Preview Gate (MANDATORY)
 

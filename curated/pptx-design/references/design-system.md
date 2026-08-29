@@ -60,7 +60,17 @@ Define a complete palette before building any deck.
 
 ## Layout Rules
 
-- Slide dimensions: **12192000 x 6858000 EMU** (13.333" x 7.5") — **16:9 widescreen** (default)
+- Slide dimensions: **12192000 × 6858000 EMU** (13.333" × 7.5") — **16:9 widescreen** (default). For other ratios, set `prs.slide_width` / `prs.slide_height` BEFORE adding slides; pass matching dimensions to helpers like `add_bg_image()` and `check_overlaps()`. CHECK 12 (image AR distortion) adapts automatically — no code changes needed.
+
+  | Ratio | Use Case | EMU (W × H) |
+  |---|---|---|
+  | 16:9 | Widescreen (default) | 12192000 × 6858000 |
+  | 4:3 | Legacy projectors | 9144000 × 6858000 |
+  | 1:1 | Social post (LinkedIn, Instagram) | 6858000 × 6858000 |
+  | 9:16 | Mobile / vertical | 6858000 × 12192000 |
+
+  When using a non-default ratio, ALL image-generation prompts must specify the matching aspect ratio (not 16:9).
+
 - Minimum margin from edge: **457200 EMU** (0.5 inch)
 - Gap between cards/panels: **150000-250000 EMU**
 - Every shape MUST have explicit left, top, width, height.
