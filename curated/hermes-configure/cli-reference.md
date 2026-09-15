@@ -1,10 +1,494 @@
 # Hermes CLI Full Reference
-_Auto-generated 2026-08-22 for Hermes Agent v0.20.5 (2026.8.19) · upstream 14c59f0b
-Install directory: /Users/zanearcher/.hermes/hermes-agent
+_Auto-generated 2026-09-15 for Hermes Agent v0.21.3 (2026.9.14) · upstream a982d2c8
+Install directory: /Users/adamcohen/.hermes/hermes-agent
 Install method: git
-Python: 3.11.15
+Python: 3.11.16
 OpenAI SDK: 2.24.0
 Up to date_
+
+## Command index
+
+- [hermes (top-level)](#hermes-top-level)
+- [hermes chat](#hermes-chat)
+- [hermes model](#hermes-model)
+- [hermes moa](#hermes-moa)
+- [hermes moa list](#hermes-moa-list)
+- [hermes moa ls](#hermes-moa-ls)
+- [hermes moa configure](#hermes-moa-configure)
+- [hermes moa config](#hermes-moa-config)
+- [hermes moa delete](#hermes-moa-delete)
+- [hermes moa rm](#hermes-moa-rm)
+- [hermes fallback](#hermes-fallback)
+- [hermes fallback list](#hermes-fallback-list)
+- [hermes fallback ls](#hermes-fallback-ls)
+- [hermes fallback add](#hermes-fallback-add)
+- [hermes fallback remove](#hermes-fallback-remove)
+- [hermes fallback rm](#hermes-fallback-rm)
+- [hermes fallback clear](#hermes-fallback-clear)
+- [hermes worktree](#hermes-worktree)
+- [hermes worktree list](#hermes-worktree-list)
+- [hermes worktree ls](#hermes-worktree-ls)
+- [hermes worktree audit](#hermes-worktree-audit)
+- [hermes worktree prune](#hermes-worktree-prune)
+- [hermes browser](#hermes-browser)
+- [hermes browser close-profile](#hermes-browser-close-profile)
+- [hermes secrets](#hermes-secrets)
+- [hermes secrets bitwarden](#hermes-secrets-bitwarden)
+- [hermes secrets bitwarden setup](#hermes-secrets-bitwarden-setup)
+- [hermes secrets bitwarden status](#hermes-secrets-bitwarden-status)
+- [hermes secrets bitwarden token](#hermes-secrets-bitwarden-token)
+- [hermes secrets bitwarden sync](#hermes-secrets-bitwarden-sync)
+- [hermes secrets bitwarden disable](#hermes-secrets-bitwarden-disable)
+- [hermes secrets bitwarden install](#hermes-secrets-bitwarden-install)
+- [hermes secrets bw](#hermes-secrets-bw)
+- [hermes secrets bw setup](#hermes-secrets-bw-setup)
+- [hermes secrets bw status](#hermes-secrets-bw-status)
+- [hermes secrets bw token](#hermes-secrets-bw-token)
+- [hermes secrets bw sync](#hermes-secrets-bw-sync)
+- [hermes secrets bw disable](#hermes-secrets-bw-disable)
+- [hermes secrets bw install](#hermes-secrets-bw-install)
+- [hermes secrets onepassword](#hermes-secrets-onepassword)
+- [hermes secrets onepassword setup](#hermes-secrets-onepassword-setup)
+- [hermes secrets onepassword status](#hermes-secrets-onepassword-status)
+- [hermes secrets onepassword token](#hermes-secrets-onepassword-token)
+- [hermes secrets onepassword set](#hermes-secrets-onepassword-set)
+- [hermes secrets onepassword remove](#hermes-secrets-onepassword-remove)
+- [hermes secrets onepassword sync](#hermes-secrets-onepassword-sync)
+- [hermes secrets onepassword disable](#hermes-secrets-onepassword-disable)
+- [hermes secrets op](#hermes-secrets-op)
+- [hermes secrets op setup](#hermes-secrets-op-setup)
+- [hermes secrets op status](#hermes-secrets-op-status)
+- [hermes secrets op token](#hermes-secrets-op-token)
+- [hermes secrets op set](#hermes-secrets-op-set)
+- [hermes secrets op remove](#hermes-secrets-op-remove)
+- [hermes secrets op sync](#hermes-secrets-op-sync)
+- [hermes secrets op disable](#hermes-secrets-op-disable)
+- [hermes secrets 1password](#hermes-secrets-1password)
+- [hermes secrets 1password setup](#hermes-secrets-1password-setup)
+- [hermes secrets 1password status](#hermes-secrets-1password-status)
+- [hermes secrets 1password token](#hermes-secrets-1password-token)
+- [hermes secrets 1password set](#hermes-secrets-1password-set)
+- [hermes secrets 1password remove](#hermes-secrets-1password-remove)
+- [hermes secrets 1password sync](#hermes-secrets-1password-sync)
+- [hermes secrets 1password disable](#hermes-secrets-1password-disable)
+- [hermes egress](#hermes-egress)
+- [hermes egress install](#hermes-egress-install)
+- [hermes egress setup](#hermes-egress-setup)
+- [hermes egress start](#hermes-egress-start)
+- [hermes egress stop](#hermes-egress-stop)
+- [hermes egress restart](#hermes-egress-restart)
+- [hermes egress reload](#hermes-egress-reload)
+- [hermes egress status](#hermes-egress-status)
+- [hermes egress disable](#hermes-egress-disable)
+- [hermes egress config](#hermes-egress-config)
+- [hermes migrate](#hermes-migrate)
+- [hermes migrate xai](#hermes-migrate-xai)
+- [hermes gateway](#hermes-gateway)
+- [hermes gateway run](#hermes-gateway-run)
+- [hermes gateway start](#hermes-gateway-start)
+- [hermes gateway stop](#hermes-gateway-stop)
+- [hermes gateway restart](#hermes-gateway-restart)
+- [hermes gateway status](#hermes-gateway-status)
+- [hermes gateway install](#hermes-gateway-install)
+- [hermes gateway uninstall](#hermes-gateway-uninstall)
+- [hermes gateway list](#hermes-gateway-list)
+- [hermes gateway setup](#hermes-gateway-setup)
+- [hermes gateway migrate-legacy](#hermes-gateway-migrate-legacy)
+- [hermes gateway migrate](#hermes-gateway-migrate)
+- [hermes gateway enroll](#hermes-gateway-enroll)
+- [hermes proxy](#hermes-proxy)
+- [hermes proxy start](#hermes-proxy-start)
+- [hermes proxy status](#hermes-proxy-status)
+- [hermes proxy providers](#hermes-proxy-providers)
+- [hermes lsp](#hermes-lsp)
+- [hermes lsp status](#hermes-lsp-status)
+- [hermes lsp list](#hermes-lsp-list)
+- [hermes lsp install](#hermes-lsp-install)
+- [hermes lsp install-all](#hermes-lsp-install-all)
+- [hermes lsp restart](#hermes-lsp-restart)
+- [hermes lsp which](#hermes-lsp-which)
+- [hermes setup](#hermes-setup)
+- [hermes whatsapp](#hermes-whatsapp)
+- [hermes whatsapp-cloud](#hermes-whatsapp-cloud)
+- [hermes slack](#hermes-slack)
+- [hermes slack manifest](#hermes-slack-manifest)
+- [hermes send](#hermes-send)
+- [hermes login](#hermes-login)
+- [hermes logout](#hermes-logout)
+- [hermes auth](#hermes-auth)
+- [hermes auth add](#hermes-auth-add)
+- [hermes auth list](#hermes-auth-list)
+- [hermes auth remove](#hermes-auth-remove)
+- [hermes auth reset](#hermes-auth-reset)
+- [hermes auth priority](#hermes-auth-priority)
+- [hermes auth refresh](#hermes-auth-refresh)
+- [hermes auth status](#hermes-auth-status)
+- [hermes auth logout](#hermes-auth-logout)
+- [hermes auth upgrade](#hermes-auth-upgrade)
+- [hermes auth spotify](#hermes-auth-spotify)
+- [hermes status](#hermes-status)
+- [hermes pause](#hermes-pause)
+- [hermes resume](#hermes-resume)
+- [hermes cron](#hermes-cron)
+- [hermes cron list](#hermes-cron-list)
+- [hermes cron create](#hermes-cron-create)
+- [hermes cron add](#hermes-cron-add)
+- [hermes cron edit](#hermes-cron-edit)
+- [hermes cron pause](#hermes-cron-pause)
+- [hermes cron resume](#hermes-cron-resume)
+- [hermes cron run](#hermes-cron-run)
+- [hermes cron remove](#hermes-cron-remove)
+- [hermes cron rm](#hermes-cron-rm)
+- [hermes cron delete](#hermes-cron-delete)
+- [hermes cron resnap](#hermes-cron-resnap)
+- [hermes cron status](#hermes-cron-status)
+- [hermes cron runs](#hermes-cron-runs)
+- [hermes cron history](#hermes-cron-history)
+- [hermes cron incidents](#hermes-cron-incidents)
+- [hermes cron notepad](#hermes-cron-notepad)
+- [hermes cron doctor](#hermes-cron-doctor)
+- [hermes cron tick](#hermes-cron-tick)
+- [hermes sync](#hermes-sync)
+- [hermes sync status](#hermes-sync-status)
+- [hermes sync pull](#hermes-sync-pull)
+- [hermes sync push](#hermes-sync-push)
+- [hermes sync now](#hermes-sync-now)
+- [hermes sync enable](#hermes-sync-enable)
+- [hermes sync disable](#hermes-sync-disable)
+- [hermes sync device](#hermes-sync-device)
+- [hermes sync propose](#hermes-sync-propose)
+- [hermes webhook](#hermes-webhook)
+- [hermes webhook subscribe](#hermes-webhook-subscribe)
+- [hermes webhook add](#hermes-webhook-add)
+- [hermes webhook list](#hermes-webhook-list)
+- [hermes webhook ls](#hermes-webhook-ls)
+- [hermes webhook remove](#hermes-webhook-remove)
+- [hermes webhook rm](#hermes-webhook-rm)
+- [hermes webhook test](#hermes-webhook-test)
+- [hermes peer](#hermes-peer)
+- [hermes peer add](#hermes-peer-add)
+- [hermes peer set](#hermes-peer-set)
+- [hermes peer list](#hermes-peer-list)
+- [hermes peer ls](#hermes-peer-ls)
+- [hermes peer remove](#hermes-peer-remove)
+- [hermes peer rm](#hermes-peer-rm)
+- [hermes peer dm](#hermes-peer-dm)
+- [hermes peer run](#hermes-peer-run)
+- [hermes peer status](#hermes-peer-status)
+- [hermes peer stop](#hermes-peer-stop)
+- [hermes portal](#hermes-portal)
+- [hermes portal login](#hermes-portal-login)
+- [hermes portal info](#hermes-portal-info)
+- [hermes portal status](#hermes-portal-status)
+- [hermes portal open](#hermes-portal-open)
+- [hermes portal tools](#hermes-portal-tools)
+- [hermes kanban](#hermes-kanban)
+- [hermes kanban init](#hermes-kanban-init)
+- [hermes kanban boards](#hermes-kanban-boards)
+- [hermes kanban boards list](#hermes-kanban-boards-list)
+- [hermes kanban boards ls](#hermes-kanban-boards-ls)
+- [hermes kanban boards create](#hermes-kanban-boards-create)
+- [hermes kanban boards new](#hermes-kanban-boards-new)
+- [hermes kanban boards rm](#hermes-kanban-boards-rm)
+- [hermes kanban boards remove](#hermes-kanban-boards-remove)
+- [hermes kanban boards delete](#hermes-kanban-boards-delete)
+- [hermes kanban boards switch](#hermes-kanban-boards-switch)
+- [hermes kanban boards use](#hermes-kanban-boards-use)
+- [hermes kanban boards show](#hermes-kanban-boards-show)
+- [hermes kanban boards current](#hermes-kanban-boards-current)
+- [hermes kanban boards rename](#hermes-kanban-boards-rename)
+- [hermes kanban boards set-default-workdir](#hermes-kanban-boards-set-default-workdir)
+- [hermes kanban boards export](#hermes-kanban-boards-export)
+- [hermes kanban boards import](#hermes-kanban-boards-import)
+- [hermes kanban create](#hermes-kanban-create)
+- [hermes kanban swarm](#hermes-kanban-swarm)
+- [hermes kanban list](#hermes-kanban-list)
+- [hermes kanban ls](#hermes-kanban-ls)
+- [hermes kanban show](#hermes-kanban-show)
+- [hermes kanban assign](#hermes-kanban-assign)
+- [hermes kanban set-model](#hermes-kanban-set-model)
+- [hermes kanban reclaim](#hermes-kanban-reclaim)
+- [hermes kanban reassign](#hermes-kanban-reassign)
+- [hermes kanban diagnostics](#hermes-kanban-diagnostics)
+- [hermes kanban diag](#hermes-kanban-diag)
+- [hermes kanban link](#hermes-kanban-link)
+- [hermes kanban unlink](#hermes-kanban-unlink)
+- [hermes kanban claim](#hermes-kanban-claim)
+- [hermes kanban comment](#hermes-kanban-comment)
+- [hermes kanban attach](#hermes-kanban-attach)
+- [hermes kanban attachments](#hermes-kanban-attachments)
+- [hermes kanban attach-rm](#hermes-kanban-attach-rm)
+- [hermes kanban complete](#hermes-kanban-complete)
+- [hermes kanban edit](#hermes-kanban-edit)
+- [hermes kanban block](#hermes-kanban-block)
+- [hermes kanban schedule](#hermes-kanban-schedule)
+- [hermes kanban unblock](#hermes-kanban-unblock)
+- [hermes kanban request-review](#hermes-kanban-request-review)
+- [hermes kanban request-changes](#hermes-kanban-request-changes)
+- [hermes kanban reopen-review](#hermes-kanban-reopen-review)
+- [hermes kanban promote](#hermes-kanban-promote)
+- [hermes kanban archive](#hermes-kanban-archive)
+- [hermes kanban tail](#hermes-kanban-tail)
+- [hermes kanban dispatch](#hermes-kanban-dispatch)
+- [hermes kanban daemon](#hermes-kanban-daemon)
+- [hermes kanban watch](#hermes-kanban-watch)
+- [hermes kanban stats](#hermes-kanban-stats)
+- [hermes kanban notify-subscribe](#hermes-kanban-notify-subscribe)
+- [hermes kanban notify-list](#hermes-kanban-notify-list)
+- [hermes kanban notify-unsubscribe](#hermes-kanban-notify-unsubscribe)
+- [hermes kanban log](#hermes-kanban-log)
+- [hermes kanban runs](#hermes-kanban-runs)
+- [hermes kanban heartbeat](#hermes-kanban-heartbeat)
+- [hermes kanban assignees](#hermes-kanban-assignees)
+- [hermes kanban context](#hermes-kanban-context)
+- [hermes kanban specify](#hermes-kanban-specify)
+- [hermes kanban decompose](#hermes-kanban-decompose)
+- [hermes kanban gc](#hermes-kanban-gc)
+- [hermes kanban repair](#hermes-kanban-repair)
+- [hermes project](#hermes-project)
+- [hermes project create](#hermes-project-create)
+- [hermes project list](#hermes-project-list)
+- [hermes project ls](#hermes-project-ls)
+- [hermes project show](#hermes-project-show)
+- [hermes project add-folder](#hermes-project-add-folder)
+- [hermes project remove-folder](#hermes-project-remove-folder)
+- [hermes project rename](#hermes-project-rename)
+- [hermes project set-primary](#hermes-project-set-primary)
+- [hermes project use](#hermes-project-use)
+- [hermes project archive](#hermes-project-archive)
+- [hermes project restore](#hermes-project-restore)
+- [hermes project bind-board](#hermes-project-bind-board)
+- [hermes hooks](#hermes-hooks)
+- [hermes hooks list](#hermes-hooks-list)
+- [hermes hooks ls](#hermes-hooks-ls)
+- [hermes hooks test](#hermes-hooks-test)
+- [hermes hooks revoke](#hermes-hooks-revoke)
+- [hermes hooks remove](#hermes-hooks-remove)
+- [hermes hooks rm](#hermes-hooks-rm)
+- [hermes hooks doctor](#hermes-hooks-doctor)
+- [hermes doctor](#hermes-doctor)
+- [hermes verify](#hermes-verify)
+- [hermes security](#hermes-security)
+- [hermes security audit](#hermes-security-audit)
+- [hermes approvals](#hermes-approvals)
+- [hermes approvals suggest](#hermes-approvals-suggest)
+- [hermes approvals test](#hermes-approvals-test)
+- [hermes dump](#hermes-dump)
+- [hermes debug](#hermes-debug)
+- [hermes debug share](#hermes-debug-share)
+- [hermes debug delete](#hermes-debug-delete)
+- [hermes backup](#hermes-backup)
+- [hermes checkpoints](#hermes-checkpoints)
+- [hermes checkpoints status](#hermes-checkpoints-status)
+- [hermes checkpoints list](#hermes-checkpoints-list)
+- [hermes checkpoints prune](#hermes-checkpoints-prune)
+- [hermes checkpoints clear](#hermes-checkpoints-clear)
+- [hermes checkpoints clear-legacy](#hermes-checkpoints-clear-legacy)
+- [hermes import](#hermes-import)
+- [hermes import-agent](#hermes-import-agent)
+- [hermes config](#hermes-config)
+- [hermes config show](#hermes-config-show)
+- [hermes config edit](#hermes-config-edit)
+- [hermes config get](#hermes-config-get)
+- [hermes config set](#hermes-config-set)
+- [hermes config unset](#hermes-config-unset)
+- [hermes config path](#hermes-config-path)
+- [hermes config env-path](#hermes-config-env-path)
+- [hermes config check](#hermes-config-check)
+- [hermes config migrate](#hermes-config-migrate)
+- [hermes skin](#hermes-skin)
+- [hermes skin list](#hermes-skin-list)
+- [hermes skin use](#hermes-skin-use)
+- [hermes skin set](#hermes-skin-set)
+- [hermes console](#hermes-console)
+- [hermes pairing](#hermes-pairing)
+- [hermes pairing list](#hermes-pairing-list)
+- [hermes pairing approve](#hermes-pairing-approve)
+- [hermes pairing revoke](#hermes-pairing-revoke)
+- [hermes pairing clear-pending](#hermes-pairing-clear-pending)
+- [hermes skills](#hermes-skills)
+- [hermes skills trust](#hermes-skills-trust)
+- [hermes skills untrust](#hermes-skills-untrust)
+- [hermes skills browse](#hermes-skills-browse)
+- [hermes skills search](#hermes-skills-search)
+- [hermes skills install](#hermes-skills-install)
+- [hermes skills inspect](#hermes-skills-inspect)
+- [hermes skills list](#hermes-skills-list)
+- [hermes skills check](#hermes-skills-check)
+- [hermes skills update](#hermes-skills-update)
+- [hermes skills audit](#hermes-skills-audit)
+- [hermes skills uninstall](#hermes-skills-uninstall)
+- [hermes skills reset](#hermes-skills-reset)
+- [hermes skills list-modified](#hermes-skills-list-modified)
+- [hermes skills diff](#hermes-skills-diff)
+- [hermes skills opt-out](#hermes-skills-opt-out)
+- [hermes skills opt-in](#hermes-skills-opt-in)
+- [hermes skills repair-official](#hermes-skills-repair-official)
+- [hermes skills publish](#hermes-skills-publish)
+- [hermes skills snapshot](#hermes-skills-snapshot)
+- [hermes skills snapshot export](#hermes-skills-snapshot-export)
+- [hermes skills snapshot import](#hermes-skills-snapshot-import)
+- [hermes skills tap](#hermes-skills-tap)
+- [hermes skills tap list](#hermes-skills-tap-list)
+- [hermes skills tap add](#hermes-skills-tap-add)
+- [hermes skills tap remove](#hermes-skills-tap-remove)
+- [hermes skills config](#hermes-skills-config)
+- [hermes bundles](#hermes-bundles)
+- [hermes bundles list](#hermes-bundles-list)
+- [hermes bundles show](#hermes-bundles-show)
+- [hermes bundles create](#hermes-bundles-create)
+- [hermes bundles delete](#hermes-bundles-delete)
+- [hermes bundles reload](#hermes-bundles-reload)
+- [hermes plugins](#hermes-plugins)
+- [hermes plugins install](#hermes-plugins-install)
+- [hermes plugins search](#hermes-plugins-search)
+- [hermes plugins browse](#hermes-plugins-browse)
+- [hermes plugins validate](#hermes-plugins-validate)
+- [hermes plugins update](#hermes-plugins-update)
+- [hermes plugins remove](#hermes-plugins-remove)
+- [hermes plugins rm](#hermes-plugins-rm)
+- [hermes plugins uninstall](#hermes-plugins-uninstall)
+- [hermes plugins list](#hermes-plugins-list)
+- [hermes plugins ls](#hermes-plugins-ls)
+- [hermes plugins enable](#hermes-plugins-enable)
+- [hermes plugins disable](#hermes-plugins-disable)
+- [hermes plugins capabilities](#hermes-plugins-capabilities)
+- [hermes plugins doctor](#hermes-plugins-doctor)
+- [hermes plugins compat](#hermes-plugins-compat)
+- [hermes plugins pack](#hermes-plugins-pack)
+- [hermes plugins pack install](#hermes-plugins-pack-install)
+- [hermes plugins pack export](#hermes-plugins-pack-export)
+- [hermes plugins pack show](#hermes-plugins-pack-show)
+- [hermes plugins show](#hermes-plugins-show)
+- [hermes plugins info](#hermes-plugins-info)
+- [hermes curator](#hermes-curator)
+- [hermes curator status](#hermes-curator-status)
+- [hermes curator usage](#hermes-curator-usage)
+- [hermes curator run](#hermes-curator-run)
+- [hermes curator pause](#hermes-curator-pause)
+- [hermes curator resume](#hermes-curator-resume)
+- [hermes curator pin](#hermes-curator-pin)
+- [hermes curator unpin](#hermes-curator-unpin)
+- [hermes curator list-unmanaged](#hermes-curator-list-unmanaged)
+- [hermes curator adopt](#hermes-curator-adopt)
+- [hermes curator restore](#hermes-curator-restore)
+- [hermes curator list-archived](#hermes-curator-list-archived)
+- [hermes curator archive](#hermes-curator-archive)
+- [hermes curator prune](#hermes-curator-prune)
+- [hermes curator backup](#hermes-curator-backup)
+- [hermes curator rollback](#hermes-curator-rollback)
+- [hermes curator ledger](#hermes-curator-ledger)
+- [hermes curator purge](#hermes-curator-purge)
+- [hermes pets](#hermes-pets)
+- [hermes pets list](#hermes-pets-list)
+- [hermes pets install](#hermes-pets-install)
+- [hermes pets select](#hermes-pets-select)
+- [hermes pets show](#hermes-pets-show)
+- [hermes pets off](#hermes-pets-off)
+- [hermes pets scale](#hermes-pets-scale)
+- [hermes pets remove](#hermes-pets-remove)
+- [hermes pets doctor](#hermes-pets-doctor)
+- [hermes journey](#hermes-journey)
+- [hermes journey list](#hermes-journey-list)
+- [hermes journey delete](#hermes-journey-delete)
+- [hermes journey edit](#hermes-journey-edit)
+- [hermes learning](#hermes-learning)
+- [hermes learning list](#hermes-learning-list)
+- [hermes learning delete](#hermes-learning-delete)
+- [hermes learning edit](#hermes-learning-edit)
+- [hermes memory-graph](#hermes-memory-graph)
+- [hermes memory-graph list](#hermes-memory-graph-list)
+- [hermes memory-graph delete](#hermes-memory-graph-delete)
+- [hermes memory-graph edit](#hermes-memory-graph-edit)
+- [hermes memory](#hermes-memory)
+- [hermes memory setup](#hermes-memory-setup)
+- [hermes memory status](#hermes-memory-status)
+- [hermes memory off](#hermes-memory-off)
+- [hermes memory reset](#hermes-memory-reset)
+- [hermes tools](#hermes-tools)
+- [hermes tools list](#hermes-tools-list)
+- [hermes tools disable](#hermes-tools-disable)
+- [hermes tools enable](#hermes-tools-enable)
+- [hermes tools post-setup](#hermes-tools-post-setup)
+- [hermes computer-use](#hermes-computer-use)
+- [hermes computer-use install](#hermes-computer-use-install)
+- [hermes computer-use status](#hermes-computer-use-status)
+- [hermes computer-use doctor](#hermes-computer-use-doctor)
+- [hermes computer-use permissions](#hermes-computer-use-permissions)
+- [hermes computer-use permissions status](#hermes-computer-use-permissions-status)
+- [hermes computer-use permissions grant](#hermes-computer-use-permissions-grant)
+- [hermes mcp](#hermes-mcp)
+- [hermes mcp serve](#hermes-mcp-serve)
+- [hermes mcp add](#hermes-mcp-add)
+- [hermes mcp remove](#hermes-mcp-remove)
+- [hermes mcp rm](#hermes-mcp-rm)
+- [hermes mcp list](#hermes-mcp-list)
+- [hermes mcp ls](#hermes-mcp-ls)
+- [hermes mcp test](#hermes-mcp-test)
+- [hermes mcp configure](#hermes-mcp-configure)
+- [hermes mcp config](#hermes-mcp-config)
+- [hermes mcp login](#hermes-mcp-login)
+- [hermes mcp reauth](#hermes-mcp-reauth)
+- [hermes mcp picker](#hermes-mcp-picker)
+- [hermes mcp catalog](#hermes-mcp-catalog)
+- [hermes mcp install](#hermes-mcp-install)
+- [hermes sessions](#hermes-sessions)
+- [hermes sessions list](#hermes-sessions-list)
+- [hermes sessions export](#hermes-sessions-export)
+- [hermes sessions delete](#hermes-sessions-delete)
+- [hermes sessions prune](#hermes-sessions-prune)
+- [hermes sessions archive](#hermes-sessions-archive)
+- [hermes sessions optimize](#hermes-sessions-optimize)
+- [hermes sessions clean-markers](#hermes-sessions-clean-markers)
+- [hermes sessions optimize-storage](#hermes-sessions-optimize-storage)
+- [hermes sessions repair](#hermes-sessions-repair)
+- [hermes sessions repair-routing](#hermes-sessions-repair-routing)
+- [hermes sessions recover](#hermes-sessions-recover)
+- [hermes sessions stats](#hermes-sessions-stats)
+- [hermes sessions rename](#hermes-sessions-rename)
+- [hermes sessions pin](#hermes-sessions-pin)
+- [hermes sessions unpin](#hermes-sessions-unpin)
+- [hermes sessions pinned](#hermes-sessions-pinned)
+- [hermes sessions retitle-skills](#hermes-sessions-retitle-skills)
+- [hermes sessions browse](#hermes-sessions-browse)
+- [hermes sessions import](#hermes-sessions-import)
+- [hermes insights](#hermes-insights)
+- [hermes monitoring](#hermes-monitoring)
+- [hermes monitoring status](#hermes-monitoring-status)
+- [hermes claw](#hermes-claw)
+- [hermes claw migrate](#hermes-claw-migrate)
+- [hermes claw cleanup](#hermes-claw-cleanup)
+- [hermes claw clean](#hermes-claw-clean)
+- [hermes vault](#hermes-vault)
+- [hermes vault add](#hermes-vault-add)
+- [hermes vault list](#hermes-vault-list)
+- [hermes vault rm](#hermes-vault-rm)
+- [hermes vault sources](#hermes-vault-sources)
+- [hermes update](#hermes-update)
+- [hermes uninstall](#hermes-uninstall)
+- [hermes acp](#hermes-acp)
+- [hermes profile](#hermes-profile)
+- [hermes profile list](#hermes-profile-list)
+- [hermes profile use](#hermes-profile-use)
+- [hermes profile create](#hermes-profile-create)
+- [hermes profile delete](#hermes-profile-delete)
+- [hermes profile describe](#hermes-profile-describe)
+- [hermes profile show](#hermes-profile-show)
+- [hermes profile alias](#hermes-profile-alias)
+- [hermes profile rename](#hermes-profile-rename)
+- [hermes profile export](#hermes-profile-export)
+- [hermes profile import](#hermes-profile-import)
+- [hermes profile install](#hermes-profile-install)
+- [hermes profile update](#hermes-profile-update)
+- [hermes profile info](#hermes-profile-info)
+- [hermes completion](#hermes-completion)
+- [hermes dashboard](#hermes-dashboard)
+- [hermes dashboard register](#hermes-dashboard-register)
+- [hermes serve](#hermes-serve)
+- [hermes desktop](#hermes-desktop)
+- [hermes gui](#hermes-gui)
+- [hermes logs](#hermes-logs)
+- [hermes prompt-size](#hermes-prompt-size)
 
 ## hermes (top-level)
 ```
@@ -15,13 +499,13 @@ usage: hermes [-h] [--version] [-z PROMPT] [--usage-file PATH] [-m MODEL]
               [--skills SKILLS] [--yolo] [--pass-session-id]
               [--ignore-user-config] [--ignore-rules] [--safe-mode] [--tui]
               [--cli] [--dev]
-              {chat,model,moa,fallback,worktree,secrets,egress,migrate,gateway,proxy,lsp,setup,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,pause,resume,cron,sync,webhook,peer,portal,kanban,project,hooks,doctor,verify,security,approvals,dump,debug,backup,checkpoints,import,import-agent,config,skin,console,pairing,skills,bundles,plugins,curator,pets,journey,learning,memory-graph,memory,tools,computer-use,mcp,sessions,insights,monitoring,claw,update,uninstall,acp,profile,completion,dashboard,serve,desktop,gui,logs,prompt-size}
+              {chat,model,moa,fallback,worktree,browser,secrets,egress,migrate,gateway,proxy,lsp,setup,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,pause,resume,cron,sync,webhook,peer,portal,kanban,project,hooks,doctor,verify,security,approvals,dump,debug,backup,checkpoints,import,import-agent,config,skin,console,pairing,skills,bundles,plugins,curator,pets,journey,learning,memory-graph,memory,tools,computer-use,mcp,sessions,insights,monitoring,claw,vault,update,uninstall,acp,profile,completion,dashboard,serve,desktop,gui,logs,prompt-size}
               ...
 
 Hermes Agent - AI assistant with tool-calling capabilities
 
 positional arguments:
-  {chat,model,moa,fallback,worktree,secrets,egress,migrate,gateway,proxy,lsp,setup,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,pause,resume,cron,sync,webhook,peer,portal,kanban,project,hooks,doctor,verify,security,approvals,dump,debug,backup,checkpoints,import,import-agent,config,skin,console,pairing,skills,bundles,plugins,curator,pets,journey,learning,memory-graph,memory,tools,computer-use,mcp,sessions,insights,monitoring,claw,update,uninstall,acp,profile,completion,dashboard,serve,desktop,gui,logs,prompt-size}
+  {chat,model,moa,fallback,worktree,browser,secrets,egress,migrate,gateway,proxy,lsp,setup,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,pause,resume,cron,sync,webhook,peer,portal,kanban,project,hooks,doctor,verify,security,approvals,dump,debug,backup,checkpoints,import,import-agent,config,skin,console,pairing,skills,bundles,plugins,curator,pets,journey,learning,memory-graph,memory,tools,computer-use,mcp,sessions,insights,monitoring,claw,vault,update,uninstall,acp,profile,completion,dashboard,serve,desktop,gui,logs,prompt-size}
                         Command to run
     chat                Interactive chat with the agent
     model               Select default model and provider
@@ -30,6 +514,8 @@ positional arguments:
                         model fails)
     worktree            Audit and reclaim accumulated git worktrees and merged
                         branches
+    browser             Real-profile browsing helpers (close a browser locking
+                        its profile)
     secrets             Manage external secret sources (Bitwarden, 1Password)
     egress              Manage the iron-proxy egress credential-injection
                         firewall
@@ -97,6 +583,8 @@ positional arguments:
     monitoring          Inspect gateway monitoring (health & diagnostics
                         export)
     claw                OpenClaw migration tools
+    vault               Manage the local encrypted autofill vault (add/list/rm
+                        credentials)
     update              Update Hermes Agent to the latest version
     uninstall           Uninstall Hermes Agent
     acp                 Run Hermes Agent as an ACP (Agent Client Protocol)
@@ -198,7 +686,9 @@ Examples:
     hermes auth add <provider>    Add a pooled credential
     hermes auth list              List pooled credentials
     hermes auth remove <p> <t>    Remove pooled credential by index, id, or label
-    hermes auth reset <provider>  Clear exhaustion status for a provider
+    hermes auth reset <p> [t]     Clear exhaustion status for a provider, or one credential
+    hermes auth priority <p> <t> <n>  Move a pooled credential to priority n (0 = tried first)
+    hermes auth refresh <p> [t]   Refresh a pooled OAuth credential and clear its cooldown
     hermes model                  Select default model
     hermes fallback [list]        Show fallback provider chain
     hermes fallback add           Add a fallback provider (same picker as `hermes model`)
@@ -230,27 +720,34 @@ For more help on a command:
 
 ## hermes chat
 ```
-usage: hermes chat [-h] [-q QUERY | --query-file PATH] [--image IMAGE]
-                   [-m MODEL] [-t TOOLSETS] [--reasoning LEVEL] [-s SKILLS]
-                   [--provider PROVIDER] [-v] [-Q] [--resume SESSION_ID]
-                   [--no-restore-cwd] [--in DIR] [--continue [SESSION_NAME]]
-                   [--create-if-missing] [--worktree] [--accept-hooks]
-                   [--checkpoints] [--max-turns N] [--run-budget SECONDS]
-                   [--yolo] [--pass-session-id] [--ignore-user-config]
-                   [--ignore-rules] [--safe-mode] [--source SOURCE] [--tui]
-                   [--cli] [--dev]
+usage: hermes chat [-h] [-q QUERY | --query-file PATH] [--oneshot]
+                   [--image IMAGE] [-m MODEL] [-t TOOLSETS]
+                   [--reasoning LEVEL] [-s SKILLS] [--provider PROVIDER] [-v]
+                   [-Q] [--resume SESSION_ID] [--no-restore-cwd] [--in DIR]
+                   [--continue [SESSION_NAME]] [--create-if-missing]
+                   [--worktree] [--accept-hooks] [--checkpoints]
+                   [--max-turns N] [--run-budget SECONDS] [--yolo]
+                   [--pass-session-id] [--ignore-user-config] [--ignore-rules]
+                   [--safe-mode] [--source SOURCE] [--tui] [--cli] [--dev]
 
 Start an interactive chat session with Hermes Agent
 
 options:
   -h, --help            show this help message and exit
   -q QUERY, --query QUERY
-                        Single query (non-interactive mode)
+                        Query to run. On a real TTY the prompt seeds an
+                        interactive session (submitted literally as the first
+                        turn); combined with --oneshot or -Q, or on a non-TTY,
+                        it answers and exits.
   --query-file PATH     Read the single query from a file instead of the
                         command line ('-' reads stdin). Safe for arbitrary
                         text: nothing is shell-interpreted, so quotes, $(...),
                         and backticks are preserved verbatim. Mutually
                         exclusive with -q.
+  --oneshot             With -q/--query-file: answer the query and exit
+                        (legacy single-query behavior) instead of seeding an
+                        interactive session. Implied on non-TTY stdio and by
+                        -Q/--quiet.
   --image IMAGE         Optional local image path to attach to a single query
   -m MODEL, --model MODEL
                         Model to use (e.g., anthropic/claude-sonnet-4)
@@ -528,42 +1025,83 @@ options:
 
 ### hermes worktree list
 ```
-usage: hermes worktree list [-h] [--repo REPO]
+usage: hermes worktree list [-h] [--repo REPO] [--json] [--older-than DAYS]
 
 options:
-  -h, --help   show this help message and exit
-  --repo REPO  Repo root (default: current repo)
+  -h, --help         show this help message and exit
+  --repo REPO        Repo root (default: current repo)
+  --json             Machine-readable audit output (trees, external trees,
+                     branches)
+  --older-than DAYS  Treat reapable trees younger than DAYS as keep
 ```
 
 ### hermes worktree ls
 ```
-usage: hermes worktree list [-h] [--repo REPO]
+usage: hermes worktree list [-h] [--repo REPO] [--json] [--older-than DAYS]
 
 options:
-  -h, --help   show this help message and exit
-  --repo REPO  Repo root (default: current repo)
+  -h, --help         show this help message and exit
+  --repo REPO        Repo root (default: current repo)
+  --json             Machine-readable audit output (trees, external trees,
+                     branches)
+  --older-than DAYS  Treat reapable trees younger than DAYS as keep
 ```
 
 ### hermes worktree audit
 ```
-usage: hermes worktree list [-h] [--repo REPO]
+usage: hermes worktree list [-h] [--repo REPO] [--json] [--older-than DAYS]
 
 options:
-  -h, --help   show this help message and exit
-  --repo REPO  Repo root (default: current repo)
+  -h, --help         show this help message and exit
+  --repo REPO        Repo root (default: current repo)
+  --json             Machine-readable audit output (trees, external trees,
+                     branches)
+  --older-than DAYS  Treat reapable trees younger than DAYS as keep
 ```
 
 ### hermes worktree prune
 ```
-usage: hermes worktree prune [-h] [--repo REPO] [--dry-run] [--trees-only]
-                             [--branches-only]
+usage: hermes worktree prune [-h] [--repo REPO] [--json] [--older-than DAYS]
+                             [--dry-run] [--trees-only] [--branches-only]
+
+options:
+  -h, --help         show this help message and exit
+  --repo REPO        Repo root (default: current repo)
+  --json             Machine-readable result (actions taken/planned, preserved
+                     trees)
+  --older-than DAYS  Only reap trees idle for at least DAYS days (safety gates
+                     still apply)
+  --dry-run          Show the plan without changing anything
+  --trees-only       Only remove worktrees; leave local branches alone
+  --branches-only    Only delete merged local branches; leave worktrees alone
+```
+
+## hermes browser
+```
+usage: hermes browser [-h] {close-profile} ...
+
+Helpers for real-profile browsing (browser.use_real_profile). close-profile
+terminates the browser process tree holding your default profile so Hermes can
+copy it — DESTRUCTIVE (unsaved tabs in that browser are lost). The agent runs
+this only after you approve closing the browser.
+
+positional arguments:
+  {close-profile}
+    close-profile  Close the browser locking your real profile (asks nothing —
+                   run only with the user's explicit OK; loses unsaved tabs)
 
 options:
   -h, --help       show this help message and exit
-  --repo REPO      Repo root (default: current repo)
-  --dry-run        Show the plan without changing anything
-  --trees-only     Only remove worktrees; leave local branches alone
-  --branches-only  Only delete merged local branches; leave worktrees alone
+```
+
+### hermes browser close-profile
+```
+usage: hermes browser close-profile [-h] [--browser BROWSER]
+
+options:
+  -h, --help         show this help message and exit
+  --browser BROWSER  Override detected default browser
+                     (chrome/edge/brave/brave-origin/chromium)
 ```
 
 ## hermes secrets
@@ -1227,13 +1765,13 @@ options:
 ## hermes gateway
 ```
 usage: hermes gateway [-h] [--accept-hooks]
-                      {run,start,stop,restart,status,install,uninstall,list,setup,migrate-legacy,enroll}
+                      {run,start,stop,restart,status,install,uninstall,list,setup,migrate-legacy,migrate,enroll}
                       ...
 
 Manage the messaging gateway (Telegram, Discord, WhatsApp, Weixin, and more)
 
 positional arguments:
-  {run,start,stop,restart,status,install,uninstall,list,setup,migrate-legacy,enroll}
+  {run,start,stop,restart,status,install,uninstall,list,setup,migrate-legacy,migrate,enroll}
     run                 Run gateway in foreground (recommended for WSL,
                         Docker, Termux)
     start               Start the installed systemd/launchd background service
@@ -1247,6 +1785,8 @@ positional arguments:
     setup               Configure messaging platforms
     migrate-legacy      Remove legacy hermes.service units from pre-rename
                         installs
+    migrate             Move per-profile gateways onto one multiplexed default
+                        gateway (or back)
     enroll              Enroll this gateway with a relay connector (writes
                         relay auth creds to .env)
 
@@ -1296,13 +1836,16 @@ options:
 
 ### hermes gateway start
 ```
-usage: hermes gateway start [-h] [--system] [--all]
+usage: hermes gateway start [-h] [--system] [--all] [--force]
 
 options:
   -h, --help  show this help message and exit
   --system    Target the Linux system-level gateway service
   --all       Kill ALL stale gateway processes across all profiles before
               starting
+  --force     Start a separate gateway for this profile even when the default
+              multiplexer already serves it (not recommended: two pollers on
+              one bot token, port conflicts)
 ```
 
 ### hermes gateway stop
@@ -1317,12 +1860,15 @@ options:
 
 ### hermes gateway restart
 ```
-usage: hermes gateway restart [-h] [--system] [--all]
+usage: hermes gateway restart [-h] [--system] [--all] [--force]
 
 options:
   -h, --help  show this help message and exit
   --system    Target the Linux system-level gateway service
   --all       Kill ALL gateway processes across all profiles before restarting
+  --force     Start a separate gateway for this profile even when the default
+              multiplexer already serves it (not recommended: two pollers on
+              one bot token, port conflicts)
 ```
 
 ### hermes gateway status
@@ -1345,7 +1891,8 @@ usage: hermes gateway install [-h] [--force] [--system]
 
 options:
   -h, --help            show this help message and exit
-  --force               Force reinstall
+  --force               Force reinstall, and install even when the default
+                        multiplexer already serves this profile
   --system              Install as a Linux system-level service (starts at
                         boot)
   --run-as-user RUN_AS_USER
@@ -1395,6 +1942,25 @@ options:
   -h, --help  show this help message and exit
   --dry-run   List what would be removed without doing it
   -y, --yes   Skip the confirmation prompt
+```
+
+### hermes gateway migrate
+```
+usage: hermes gateway migrate [-h] [--multiplex | --standalone] [--dry-run]
+                              [-y]
+
+Stop and uninstall each secondary profile's standalone gateway, turn on
+gateway.multiplex_profiles on the default profile and restart its gateway so
+it serves every profile. Runs a preflight first (duplicate bot tokens, port-
+binding platforms without a /p/<profile>/ ingress) and changes nothing when
+blocked. --standalone rolls the recorded migration back.
+
+options:
+  -h, --help    show this help message and exit
+  --multiplex   Migrate to one multiplexed gateway (default)
+  --standalone  Roll back to per-profile gateways from the recorded manifest
+  --dry-run     Print the plan and blockers without changing anything
+  -y, --yes     Apply without confirmation
 ```
 
 ### hermes gateway enroll
@@ -1588,12375 +2154,6 @@ options:
                         wizard.
 ```
 
-### hermes setup model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup model agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-### hermes setup tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tts agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-### hermes setup terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup terminal agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-### hermes setup gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup gateway agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-### hermes setup tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup tools agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-### hermes setup telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup telemetry agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-### hermes setup agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent model model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent model tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent model terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent model gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent model tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent model telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent model agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tts model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tts tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tts terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tts gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tts tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tts telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tts agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent terminal model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent terminal tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent terminal terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent terminal gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent terminal tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent terminal telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent terminal agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent gateway model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent gateway tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent gateway terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent gateway gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent gateway tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent gateway telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent gateway agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tools model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tools tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tools terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tools gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tools tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tools telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent tools agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent telemetry model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent telemetry tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent telemetry terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent telemetry gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent telemetry tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent telemetry telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent telemetry agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-#### hermes setup agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent agent model
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent agent tts
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent agent terminal
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent agent gateway
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent agent tools
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent agent telemetry
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
-##### hermes setup agent agent agent
-```
-usage: hermes setup [-h] [--non-interactive] [--reset] [--reconfigure]
-                    [--quick] [--portal]
-                    [{model,tts,terminal,gateway,tools,telemetry,agent}]
-
-Configure Hermes Agent with an interactive wizard. Run a specific section:
-hermes setup model|tts|terminal|gateway|tools|telemetry|agent
-
-positional arguments:
-  {model,tts,terminal,gateway,tools,telemetry,agent}
-                        Run a specific setup section instead of the full
-                        wizard
-
-options:
-  -h, --help            show this help message and exit
-  --non-interactive     Non-interactive mode (use defaults/env vars)
-  --reset               Reset configuration to defaults
-  --reconfigure         (Default on existing installs.) Re-run the full
-                        wizard, showing current values as defaults. Kept for
-                        backwards compatibility — a bare 'hermes setup' now
-                        does this.
-  --quick               On existing installs: only prompt for items that are
-                        missing or unset, instead of running the full
-                        reconfigure wizard.
-  --portal              One-shot Nous Portal setup: log in via OAuth, pick a
-                        Nous model, set Nous as the inference provider, and
-                        opt into the Tool Gateway. Skips the rest of the
-                        wizard.
-```
-
 ## hermes whatsapp
 ```
 usage: hermes whatsapp [-h]
@@ -14117,17 +2314,24 @@ options:
 
 ## hermes auth
 ```
-usage: hermes auth [-h] {add,list,remove,reset,status,logout,spotify} ...
+usage: hermes auth [-h]
+                   {add,list,remove,reset,priority,refresh,status,logout,upgrade,spotify}
+                   ...
 
 positional arguments:
-  {add,list,remove,reset,status,logout,spotify}
+  {add,list,remove,reset,priority,refresh,status,logout,upgrade,spotify}
     add                 Add a pooled credential
     list                List pooled credentials
     remove              Remove a pooled credential by index, id, or label
-    reset               Clear exhaustion status for all credentials for a
-                        provider
+    reset               Clear exhaustion status for a provider's credentials
+                        (all, or one target)
+    priority            Move a pooled credential to a priority (0 = tried
+                        first under fill_first)
+    refresh             Refresh a pooled OAuth credential's tokens and clear
+                        its cooldown
     status              Show auth status for a provider
     logout              Log out a provider and clear stored auth state
+    upgrade             Sign in with a Nous account, keeping your connectors
     spotify             Authenticate Hermes with Spotify via PKCE
 
 options:
@@ -14137,7 +2341,8 @@ options:
 ### hermes auth add
 ```
 usage: hermes auth add [-h] [--type {oauth,api-key,api_key}] [--label LABEL]
-                       [--api-key API_KEY] [--portal-url PORTAL_URL]
+                       [--priority PRIORITY] [--api-key API_KEY]
+                       [--portal-url PORTAL_URL]
                        [--inference-url INFERENCE_URL] [--client-id CLIENT_ID]
                        [--scope SCOPE] [--no-browser] [--timeout TIMEOUT]
                        [--insecure] [--ca-bundle CA_BUNDLE]
@@ -14152,6 +2357,8 @@ options:
   --type {oauth,api-key,api_key}
                         Credential type to add
   --label LABEL         Optional display label
+  --priority PRIORITY   Place the new credential at this priority (0 = tried
+                        first under fill_first); appends last when omitted
   --api-key API_KEY     API key value (otherwise prompted securely)
   --portal-url PORTAL_URL
                         Nous portal base URL
@@ -14192,10 +2399,38 @@ options:
 
 ### hermes auth reset
 ```
-usage: hermes auth reset [-h] provider
+usage: hermes auth reset [-h] provider [target]
 
 positional arguments:
   provider    Provider id
+  target      Optional credential index, entry id, or exact label; clears
+              every credential when omitted
+
+options:
+  -h, --help  show this help message and exit
+```
+
+### hermes auth priority
+```
+usage: hermes auth priority [-h] provider target priority
+
+positional arguments:
+  provider    Provider id
+  target      Credential index, entry id, or exact label
+  priority    New priority; others are renumbered
+
+options:
+  -h, --help  show this help message and exit
+```
+
+### hermes auth refresh
+```
+usage: hermes auth refresh [-h] provider [target]
+
+positional arguments:
+  provider    Provider id
+  target      Credential index, entry id, or exact label (required when the
+              pool holds more than one)
 
 options:
   -h, --help  show this help message and exit
@@ -14221,6 +2456,16 @@ positional arguments:
 
 options:
   -h, --help  show this help message and exit
+```
+
+### hermes auth upgrade
+```
+usage: hermes auth upgrade [-h] [--no-browser] [--timeout TIMEOUT]
+
+options:
+  -h, --help         show this help message and exit
+  --no-browser       Do not auto-open a browser for sign-in
+  --timeout TIMEOUT  Network timeout in seconds
 ```
 
 ### hermes auth spotify
@@ -14284,13 +2529,13 @@ options:
 ## hermes cron
 ```
 usage: hermes cron [-h] [--accept-hooks]
-                   {list,create,add,edit,pause,resume,run,remove,rm,delete,status,runs,history,notepad,tick}
+                   {list,create,add,edit,pause,resume,run,remove,rm,delete,resnap,status,runs,history,incidents,notepad,doctor,tick}
                    ...
 
 Manage scheduled tasks
 
 positional arguments:
-  {list,create,add,edit,pause,resume,run,remove,rm,delete,status,runs,history,notepad,tick}
+  {list,create,add,edit,pause,resume,run,remove,rm,delete,resnap,status,runs,history,incidents,notepad,doctor,tick}
     list                List scheduled jobs
     create (add)        Create a scheduled job
     edit                Edit an existing scheduled job
@@ -14299,10 +2544,16 @@ positional arguments:
     run                 Run a job on the next scheduler tick
     remove (rm, delete)
                         Remove a scheduled job
+    resnap              Adopt the current global inference resolution for
+                        unpinned jobs without pinning them (they keep tracking
+                        future global changes). Use after deliberately
+                        changing the default model.
     status              Check if cron scheduler is running
     runs (history)      Show durable execution attempts
+    incidents           List or acknowledge durable cron failure incidents
     notepad             Read/write a job's durable notepad (persistent KV
                         across runs)
+    doctor              Check scheduled jobs for common health issues
     tick                Run due jobs once and exit
 
 options:
@@ -14324,11 +2575,13 @@ options:
 ### hermes cron create
 ```
 usage: hermes cron create [-h] [--name NAME] [--deliver DELIVER]
+                          [--failure-deliver FAILURE_DELIVER]
                           [--repeat REPEAT] [--skill SKILLS] [--script SCRIPT]
                           [--no-agent] [--monitor-script MONITOR_SCRIPT]
                           [--monitor-url MONITOR_URL] [--workdir WORKDIR]
                           [--model MODEL] [--provider MODEL_PROVIDER]
                           [--reasoning-effort REASONING_EFFORT] [--continuity]
+                          [--paused] [--paused-reason PAUSED_REASON]
                           schedule [prompt]
 
 positional arguments:
@@ -14342,6 +2595,11 @@ options:
                         signal, platform:chat_id, or bot-chat[:profile]
                         (inject output into a local profile's canonical Bot
                         Chat as a message the bot responds to)
+  --failure-deliver FAILURE_DELIVER
+                        Override target for FAILURE notices only (same grammar
+                        as --deliver). 'local' suppresses failure notices
+                        entirely; run state stays visible in `hermes cron
+                        list`. Omit = failures follow --deliver.
   --repeat REPEAT       Optional repeat count
   --skill SKILLS        Attach a skill. Repeat to add multiple skills.
   --script SCRIPT       Path to a script under ~/.hermes/scripts/. Default
@@ -14389,16 +2647,22 @@ options:
                         what was already reported and continue where the last
                         run left off (scouts, monitors, incremental digests).
                         First run is unchanged.
+  --paused              Create disabled in one write; resume to schedule, or
+                        explicitly run now.
+  --paused-reason PAUSED_REASON
+                        Auditable reason; requires --paused.
 ```
 
 ### hermes cron add
 ```
 usage: hermes cron create [-h] [--name NAME] [--deliver DELIVER]
+                          [--failure-deliver FAILURE_DELIVER]
                           [--repeat REPEAT] [--skill SKILLS] [--script SCRIPT]
                           [--no-agent] [--monitor-script MONITOR_SCRIPT]
                           [--monitor-url MONITOR_URL] [--workdir WORKDIR]
                           [--model MODEL] [--provider MODEL_PROVIDER]
                           [--reasoning-effort REASONING_EFFORT] [--continuity]
+                          [--paused] [--paused-reason PAUSED_REASON]
                           schedule [prompt]
 
 positional arguments:
@@ -14412,6 +2676,11 @@ options:
                         signal, platform:chat_id, or bot-chat[:profile]
                         (inject output into a local profile's canonical Bot
                         Chat as a message the bot responds to)
+  --failure-deliver FAILURE_DELIVER
+                        Override target for FAILURE notices only (same grammar
+                        as --deliver). 'local' suppresses failure notices
+                        entirely; run state stays visible in `hermes cron
+                        list`. Omit = failures follow --deliver.
   --repeat REPEAT       Optional repeat count
   --skill SKILLS        Attach a skill. Repeat to add multiple skills.
   --script SCRIPT       Path to a script under ~/.hermes/scripts/. Default
@@ -14459,12 +2728,17 @@ options:
                         what was already reported and continue where the last
                         run left off (scouts, monitors, incremental digests).
                         First run is unchanged.
+  --paused              Create disabled in one write; resume to schedule, or
+                        explicitly run now.
+  --paused-reason PAUSED_REASON
+                        Auditable reason; requires --paused.
 ```
 
 ### hermes cron edit
 ```
 usage: hermes cron edit [-h] [--schedule SCHEDULE] [--prompt PROMPT]
-                        [--name NAME] [--deliver DELIVER] [--repeat REPEAT]
+                        [--name NAME] [--deliver DELIVER]
+                        [--failure-deliver FAILURE_DELIVER] [--repeat REPEAT]
                         [--skill SKILLS] [--add-skill ADD_SKILLS]
                         [--remove-skill REMOVE_SKILLS] [--clear-skills]
                         [--script SCRIPT] [--no-agent] [--agent]
@@ -14484,6 +2758,9 @@ options:
   --prompt PROMPT       New prompt/task instruction
   --name NAME           New job name
   --deliver DELIVER     New delivery target
+  --failure-deliver FAILURE_DELIVER
+                        Override target for failure notices (same grammar as
+                        --deliver; 'local' suppresses; '' clears the override)
   --repeat REPEAT       New repeat count
   --skill SKILLS        Replace the job's skills with this set. Repeat to
                         attach multiple skills.
@@ -14543,13 +2820,15 @@ options:
 
 ### hermes cron resume
 ```
-usage: hermes cron resume [-h] job_id
+usage: hermes cron resume [-h] [--at RUN_AT] [--run-now] job_id
 
 positional arguments:
-  job_id      Job ID to resume
+  job_id       Job ID to resume
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help   show this help message and exit
+  --at RUN_AT  Re-arm at an ISO-8601 time
+  --run-now    Re-arm to run now
 ```
 
 ### hermes cron run
@@ -14599,6 +2878,18 @@ options:
   -h, --help  show this help message and exit
 ```
 
+### hermes cron resnap
+```
+usage: hermes cron resnap [-h] [--all] [job_id]
+
+positional arguments:
+  job_id      Job ID to resnap (omit with --all)
+
+options:
+  -h, --help  show this help message and exit
+  --all       Resnap every unpinned agent job to the current global resolution
+```
+
 ### hermes cron status
 ```
 usage: hermes cron status [-h]
@@ -14631,6 +2922,21 @@ options:
   --limit LIMIT  Rows to show (1-500)
 ```
 
+### hermes cron incidents
+```
+usage: hermes cron incidents [-h] [--state {detected,alerted,resolved,closed}]
+                             [{list,ack}] [incident_id]
+
+positional arguments:
+  {list,ack}            Action (default: list)
+  incident_id           Incident ID to acknowledge (ack)
+
+options:
+  -h, --help            show this help message and exit
+  --state {detected,alerted,resolved,closed}
+                        Filter incidents by lifecycle state
+```
+
 ### hermes cron notepad
 ```
 usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
@@ -14646,304 +2952,12 @@ options:
   -h, --help            show this help message and exit
 ```
 
-#### hermes cron notepad get
+### hermes cron doctor
 ```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
+usage: hermes cron doctor [-h]
 
 options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad get get
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad get set
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad get delete
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad get list
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-#### hermes cron notepad set
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad set get
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad set set
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad set delete
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad set list
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-#### hermes cron notepad delete
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad delete get
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad delete set
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad delete delete
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad delete list
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-#### hermes cron notepad list
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad list get
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad list set
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad list delete
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
-```
-
-##### hermes cron notepad list list
-```
-usage: hermes cron notepad [-h] job_id [{get,set,delete,list}] [key] [value]
-
-positional arguments:
-  job_id                Job ID the notepad belongs to
-  {get,set,delete,list}
-                        Action (default: list)
-  key                   Notepad key (get/set/delete)
-  value                 Value to store (set)
-
-options:
-  -h, --help            show this help message and exit
+  -h, --help  show this help message and exit
 ```
 
 ### hermes cron tick
@@ -15092,8 +3106,9 @@ usage: hermes webhook subscribe [-h] [--prompt PROMPT] [--events EVENTS]
                                 [--description DESCRIPTION] [--skills SKILLS]
                                 [--deliver DELIVER]
                                 [--deliver-chat-id DELIVER_CHAT_ID]
-                                [--secret SECRET] [--deliver-only]
-                                [--script SCRIPT]
+                                [--secret SECRET] [--route-profile PROFILE]
+                                [--deliver-only] [--script SCRIPT]
+                                [--cron-job CRON_JOB]
                                 name
 
 positional arguments:
@@ -15110,6 +3125,12 @@ options:
   --deliver-chat-id DELIVER_CHAT_ID
                         Target chat ID for cross-platform delivery
   --secret SECRET       HMAC secret (auto-generated if omitted)
+  --route-profile PROFILE
+                        Bind the route to a multiplexed profile: only POSTs to
+                        /p/PROFILE/webhooks/<name> are accepted and the agent
+                        runs as that profile (default: default; kept on
+                        update). Distinct from the global -p/--profile, which
+                        picks the gateway whose subscriptions file is written.
   --deliver-only        Skip the agent — deliver the rendered prompt directly
                         as the message. Zero LLM cost. Requires --deliver to
                         be a real target (not 'log').
@@ -15117,6 +3138,12 @@ options:
                         route payload is passed as JSON on stdin; empty
                         stdout, [SILENT], or a nonzero exit code ignores the
                         webhook.
+  --cron-job CRON_JOB   Fire an existing cron job (by ID or name) when this
+                        route receives an event, instead of starting a fresh
+                        agent run. The rendered --prompt template is passed to
+                        the job as transient per-run context; the job's own
+                        prompt, skills, and delivery settings apply. Mutually
+                        exclusive with --deliver-only.
 ```
 
 ### hermes webhook add
@@ -15125,8 +3152,9 @@ usage: hermes webhook subscribe [-h] [--prompt PROMPT] [--events EVENTS]
                                 [--description DESCRIPTION] [--skills SKILLS]
                                 [--deliver DELIVER]
                                 [--deliver-chat-id DELIVER_CHAT_ID]
-                                [--secret SECRET] [--deliver-only]
-                                [--script SCRIPT]
+                                [--secret SECRET] [--route-profile PROFILE]
+                                [--deliver-only] [--script SCRIPT]
+                                [--cron-job CRON_JOB]
                                 name
 
 positional arguments:
@@ -15143,6 +3171,12 @@ options:
   --deliver-chat-id DELIVER_CHAT_ID
                         Target chat ID for cross-platform delivery
   --secret SECRET       HMAC secret (auto-generated if omitted)
+  --route-profile PROFILE
+                        Bind the route to a multiplexed profile: only POSTs to
+                        /p/PROFILE/webhooks/<name> are accepted and the agent
+                        runs as that profile (default: default; kept on
+                        update). Distinct from the global -p/--profile, which
+                        picks the gateway whose subscriptions file is written.
   --deliver-only        Skip the agent — deliver the rendered prompt directly
                         as the message. Zero LLM cost. Requires --deliver to
                         be a real target (not 'log').
@@ -15150,6 +3184,12 @@ options:
                         route payload is passed as JSON on stdin; empty
                         stdout, [SILENT], or a nonzero exit code ignores the
                         webhook.
+  --cron-job CRON_JOB   Fire an existing cron job (by ID or name) when this
+                        route receives an event, instead of starting a fresh
+                        agent run. The rendered --prompt template is passed to
+                        the job as transient per-run context; the job's own
+                        prompt, skills, and delivery settings apply. Mutually
+                        exclusive with --deliver-only.
 ```
 
 ### hermes webhook list
@@ -15204,16 +3244,22 @@ options:
 
 ## hermes peer
 ```
-usage: hermes peer [-h] {add,set,list,ls,remove,rm,dm} ...
+usage: hermes peer [-h] {add,set,list,ls,remove,rm,dm,run,status,stop} ...
 
 Register other Hermes gateways as peers and message their agents. 'hermes peer dm <peer>[/<agent>] "..."' delivers into the remote agent's canonical Bot Chat over the peer's API server and prints the reply — the cross-machine twin of 'hermes -p <bot> chat'. The peer must run the api_server platform; its API_SERVER_KEY is stored locally as a credential in ~/.hermes/.env.
 
 positional arguments:
-  {add,set,list,ls,remove,rm,dm}
+  {add,set,list,ls,remove,rm,dm,run,status,stop}
     add (set)           Register (or update) a peer gateway
     list (ls)           List registered peers
     remove (rm)         Remove a peer
     dm                  Message an agent on a peer gateway and print its reply
+    run                 Start a long peer turn asynchronously and return its
+                        run ID
+    status              Read the status and final output of an asynchronous
+                        peer run
+    stop                Stop one asynchronous peer run without affecting
+                        another turn
 
 options:
   -h, --help            show this help message and exit
@@ -15223,6 +3269,9 @@ Examples:
   hermes peer list
   hermes peer dm spark "Message from 🤖 dixie (@dixie): disk status?"
   hermes peer dm spark/researcher "..."   # named profile on a multiplexed peer
+  hermes peer run spark --idempotency-key ticket-123 < long-task.txt
+  hermes peer status spark run_abc123
+  hermes peer stop spark run_abc123
   hermes peer remove spark
 
 Exit codes: 0 ok, 1 delivery/peer error, 2 usage error.
@@ -15307,6 +3356,49 @@ options:
   --json      Emit a JSON result
 ```
 
+### hermes peer run
+```
+usage: hermes peer run [-h] [--idempotency-key IDEMPOTENCY_KEY] [--json]
+                       target [message]
+
+positional arguments:
+  target                <peer> or <peer>/<agent> (named profile on a
+                        multiplexed peer)
+  message               Message text (or stdin)
+
+options:
+  -h, --help            show this help message and exit
+  --idempotency-key IDEMPOTENCY_KEY
+                        Stable retry key (generated when omitted)
+  --json                Emit a JSON result
+```
+
+### hermes peer status
+```
+usage: hermes peer status [-h] [--json] target run_id
+
+positional arguments:
+  target      <peer> or <peer>/<agent> (named profile on a multiplexed peer)
+  run_id      Run ID returned by 'hermes peer run'
+
+options:
+  -h, --help  show this help message and exit
+  --json      Emit a JSON result
+```
+
+### hermes peer stop
+```
+usage: hermes peer stop [-h] [--json] target run_id
+
+positional arguments:
+  target      <peer> or <peer>/<agent> (named profile on a multiplexed peer)
+  run_id      Run ID returned by 'hermes peer run'
+
+options:
+  -h, --help  show this help message and exit
+  --json      Emit a JSON result
+```
+
 ## hermes portal
 ```
 usage: hermes portal [-h] {login,info,status,open,tools} ...
@@ -15378,8 +3470,7 @@ usage: hermes kanban [-h] [--board <slug>]
 Durable SQLite-backed task board shared across Hermes profiles. Tasks are
 claimed atomically, can depend on other tasks, and are executed by a named
 profile in an isolated workspace. See https://hermes-
-agent.nousresearch.com/docs/user-guide/features/kanban or docs/hermes-
-kanban-v1-spec.pdf for the full design.
+agent.nousresearch.com/docs/user-guide/features/kanban.
 
 positional arguments:
   {init,boards,create,swarm,list,ls,show,assign,set-model,reclaim,reassign,diagnostics,diag,link,unlink,claim,comment,attach,attachments,attach-rm,complete,edit,block,schedule,unblock,request-review,request-changes,reopen-review,promote,archive,tail,dispatch,daemon,watch,stats,notify-subscribe,notify-list,notify-unsubscribe,log,runs,heartbeat,assignees,context,specify,decompose,gc,repair}
@@ -15479,7 +3570,7 @@ options:
 ### hermes kanban boards
 ```
 usage: hermes kanban boards [-h]
-                            {list,ls,create,new,rm,remove,delete,switch,use,show,current,rename,set-default-workdir}
+                            {list,ls,create,new,rm,remove,delete,switch,use,show,current,rename,set-default-workdir,export,import}
                             ...
 
 Boards let you separate unrelated streams of work (projects, repos, domains)
@@ -15488,7 +3579,7 @@ dispatcher loop — tasks on one board cannot collide with tasks on another. The
 first board is 'default' and always exists.
 
 positional arguments:
-  {list,ls,create,new,rm,remove,delete,switch,use,show,current,rename,set-default-workdir}
+  {list,ls,create,new,rm,remove,delete,switch,use,show,current,rename,set-default-workdir,export,import}
     list (ls)           List all boards with task counts
     create (new)        Create a new board
     rm (remove, delete)
@@ -15499,6 +3590,8 @@ positional arguments:
                         immutable)
     set-default-workdir
                         Set the default workspace path for tasks on a board
+    export              Export a board to a portable .tar.gz archive
+    import              Import a board archive as a new board
 
 options:
   -h, --help            show this help message and exit
@@ -15675,6 +3768,48 @@ options:
   -h, --help  show this help message and exit
 ```
 
+#### hermes kanban boards export
+```
+usage: hermes kanban boards export [-h] [-o OUTPUT] [--no-attachments]
+                                   [--include-logs] [--json]
+                                   [slug]
+
+Package a board's tasks, comments, links, history, and file attachments into
+one archive that can be imported on another machine. Claims, worker PIDs, chat
+subscriptions, and paths belonging to this machine are stripped. Workspaces
+are never included — they are rebuilt on demand.
+
+positional arguments:
+  slug                  Board to export (default: the current board)
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        Archive path (default: ./<slug>.tar.gz)
+  --no-attachments      Skip attachment files, keeping the archive small
+  --include-logs        Include per-task worker logs
+  --json
+```
+
+#### hermes kanban boards import
+```
+usage: hermes kanban boards import [-h] [--as AS_SLUG] [--switch] [--json]
+                                   archive
+
+Import a .tar.gz produced by `hermes kanban boards export`. The board always
+lands as a NEW board — the slug gains a numeric suffix if it is already taken
+— so an import can never overwrite or merge into a board you already have.
+
+positional arguments:
+  archive       Path to the .tar.gz archive
+
+options:
+  -h, --help    show this help message and exit
+  --as AS_SLUG  Slug for the imported board (default: from the archive)
+  --switch      Switch to the imported board afterwards
+  --json
+```
+
 ### hermes kanban create
 ```
 usage: hermes kanban create [-h] [--body BODY] [--assignee ASSIGNEE]
@@ -15685,7 +3820,8 @@ usage: hermes kanban create [-h] [--body BODY] [--assignee ASSIGNEE]
                             [--max-runtime MAX_RUNTIME]
                             [--created-by CREATED_BY] [--skill SKILLS]
                             [--max-retries N] [--model MODEL_OVERRIDE]
-                            [--provider PROVIDER_OVERRIDE] [--goal]
+                            [--provider PROVIDER_OVERRIDE]
+                            [--completion-contract CONTRACT] [--goal]
                             [--goal-max-turns N]
                             [--initial-status {blocked,running}] [--json]
                             title
@@ -15700,7 +3836,8 @@ options:
   --parent PARENT       Parent task id (repeatable)
   --workspace WORKSPACE
                         scratch | worktree | worktree:<path> | dir:<path>
-                        (default: scratch)
+                        (default: scratch; an explicit 'scratch' also opts out
+                        of a project-scoped board's project)
   --branch BRANCH       Branch name for worktree tasks, e.g. wt/t6-wire
   --project PROJECT     Link to a project (id or slug). Anchors the task's
                         worktree under the project's primary repo with a
@@ -15737,6 +3874,9 @@ options:
   --provider PROVIDER_OVERRIDE
                         Provider the --model belongs to (passed as --provider
                         <name> to the worker). Requires --model.
+  --completion-contract CONTRACT
+                        local-only (default), OWNER/REPO for publication, or
+                        exact GitHub PR URL; required CI gates done.
   --goal                Run the worker in a goal loop: after each turn a judge
                         checks the response against the card title/body and,
                         if not done, the worker keeps going in the same
@@ -16165,8 +4305,7 @@ options:
 
 ### hermes kanban promote
 ```
-usage: hermes kanban promote [-h] [--ids IDS [IDS ...]] [--force] [--dry-run]
-                             [--json]
+usage: hermes kanban promote [-h] [--ids IDS [IDS ...]] [--dry-run] [--json]
                              task_id [reason ...]
 
 positional arguments:
@@ -16177,8 +4316,6 @@ options:
   -h, --help           show this help message and exit
   --ids IDS [IDS ...]  Additional task ids to promote with the same reason
                        (bulk mode)
-  --force              Promote even if parent dependencies are not yet
-                       done/archived
   --dry-run            Validate the promotion without mutating state
   --json               Emit machine-readable JSON result
 ```
@@ -16272,6 +4409,8 @@ usage: hermes kanban notify-subscribe [-h] --platform PLATFORM --chat-id
                                       [--user-id USER_ID]
                                       [--user-id-alt USER_ID_ALT]
                                       [--chat-type {dm,group,channel,thread}]
+                                      [--parent-chat-id PARENT_CHAT_ID]
+                                      [--guild-id GUILD_ID]
                                       [--notifier-profile NOTIFIER_PROFILE]
                                       [--delivery-mode {notify,notify+wake,wake}]
                                       task_id
@@ -16291,6 +4430,10 @@ options:
                         wake delivery modes resolve the operator's real
                         session. Omit to leave an existing sub unchanged (new
                         subs default to 'dm').
+  --parent-chat-id PARENT_CHAT_ID
+                        Parent channel ID for a thread or forum post, used for
+                        multiplex profile routing.
+  --guild-id GUILD_ID   Discord guild ID, used for multiplex profile routing.
   --notifier-profile NOTIFIER_PROFILE
                         Profile gateway that owns/delivers this subscription
                         (default: active profile)
@@ -16805,6 +4948,26 @@ options:
   -h, --help    show this help message and exit
 ```
 
+### hermes security audit
+```
+usage: hermes security audit [-h] [--json]
+                             [--fail-on {low,moderate,high,critical}]
+                             [--skip-venv] [--skip-plugins] [--skip-mcp]
+
+Query OSV.dev for known vulnerabilities in installed components.
+
+options:
+  -h, --help            show this help message and exit
+  --json                Emit machine-readable JSON instead of human-readable
+                        text
+  --fail-on {low,moderate,high,critical}
+                        Exit non-zero when any finding meets this severity
+                        (default: critical)
+  --skip-venv           Skip scanning the Hermes Python venv
+  --skip-plugins        Skip scanning plugin requirements files
+  --skip-mcp            Skip scanning pinned MCP servers in config.yaml
+```
+
 ## hermes approvals
 ```
 usage: hermes approvals [-h] <subcommand> ...
@@ -16820,6 +4983,59 @@ positional arguments:
 
 options:
   -h, --help    show this help message and exit
+```
+
+### hermes approvals suggest
+```
+usage: hermes approvals suggest [-h] [--apply N[,M...]] [--json] [--days DAYS]
+                                [--min-count MIN_COUNT] [--limit LIMIT]
+                                [--db DB]
+
+Scan the session database for dangerous-classified commands that ran with user
+approval, rank the recurring patterns, and print a numbered allowlist
+proposal. Nothing is written unless --apply is given. Destructive classes
+(recursive delete, sudo, disk writes, credential edits, ...) are never
+proposed.
+
+options:
+  -h, --help            show this help message and exit
+  --apply N[,M...]      Merge the numbered proposals (from a prior run) into
+                        command_allowlist in config.yaml
+  --json                Emit machine-readable JSON instead of human-readable
+                        text
+  --days DAYS           How far back to scan session history (default: 90; 0 =
+                        all)
+  --min-count MIN_COUNT
+                        Minimum approval count for a pattern to be proposed
+                        (default: 2)
+  --limit LIMIT         Maximum number of proposals to show (default: 20)
+  --db DB               Path to an alternate session database (default:
+                        ~/.hermes/state.db)
+```
+
+### hermes approvals test
+```
+usage: hermes approvals test [-h] [--env-type ENV_TYPE] [--json] ...
+
+Evaluate a command against the REAL runtime approval guards — hardline
+blocklist, user approvals.deny rules, dangerous-pattern detection, allowlist,
+yolo/off bypass — and print the verdict, the matching rule, and the
+normalized-command trace, without executing the command, prompting anyone, or
+persisting anything. Exit codes: 0 allow, 2 ask-approval, 3 deny (hardline or
+user deny rule). Tip: use `--` before the command so its own flags aren't
+parsed: hermes approvals test -- rm -rf /tmp/x
+
+positional arguments:
+  command              The command to evaluate (prefix with -- to protect its
+                       flags)
+
+options:
+  -h, --help           show this help message and exit
+  --env-type ENV_TYPE  Terminal backend type to evaluate against (default:
+                       local; isolated container backends like docker skip the
+                       guards)
+  --json               Emit machine-readable JSON instead of human-readable
+                       text
 ```
 
 ## hermes dump
@@ -16854,7 +5070,7 @@ Examples:
     hermes debug share              Upload debug report (asks for confirmation)
     hermes debug share --yes        Skip confirmation (for scripts/CI)
     hermes debug share --lines 500  Include more log lines
-    hermes debug share --expire 30  Keep paste for 30 days
+    hermes debug share --expire 30  Keep dpaste.com fallback pastes for 30 days
     hermes debug share --local      Print report locally (no upload)
     hermes debug share --no-redact  Disable upload-time secret redaction
     hermes debug share --nous       Upload to Nous-internal storage (private)
@@ -16869,7 +5085,10 @@ usage: hermes debug share [-h] [--lines LINES] [--expire EXPIRE] [--local]
 options:
   -h, --help       show this help message and exit
   --lines LINES    Number of log lines to include per log file (default: 200)
-  --expire EXPIRE  Paste expiry in days (default: 7)
+  --expire EXPIRE  dpaste.com fallback retention in days (minimum 1; default:
+                   1). paste.rs pastes are always deleted after 6 hours, but
+                   if the upload falls back to dpaste.com the pastes live for
+                   this many days and cannot be deleted.
   --local          Print the report locally instead of uploading
   -y, --yes        Skip the confirmation prompt and upload immediately.
                    Required in non-interactive contexts (scripts/CI); without
@@ -16901,7 +5120,7 @@ options:
 
 ## hermes backup
 ```
-usage: hermes backup [-h] [-o OUTPUT] [-q] [-l LABEL]
+usage: hermes backup [-h] [-o OUTPUT] [-q] [-l LABEL] [-k N]
 
 Create a zip archive of your entire Hermes configuration, skills, sessions,
 and data (excludes the hermes-agent codebase). Use --quick for a fast snapshot
@@ -16916,6 +5135,9 @@ options:
                         state.db, .env, auth, cron)
   -l LABEL, --label LABEL
                         Label for the snapshot (only used with --quick)
+  -k N, --keep N        After a full backup, delete older hermes-backup-*.zip
+                        files in the output directory beyond the newest N
+                        (default 3; 0 keeps everything)
 ```
 
 ## hermes checkpoints
@@ -16937,6 +5159,60 @@ positional arguments:
 
 options:
   -h, --help    show this help message and exit
+```
+
+### hermes checkpoints status
+```
+usage: hermes checkpoints status [-h] [--limit LIMIT]
+
+options:
+  -h, --help     show this help message and exit
+  --limit LIMIT  Max projects to list (default 20)
+```
+
+### hermes checkpoints list
+```
+usage: hermes checkpoints list [-h] [--limit LIMIT]
+
+options:
+  -h, --help     show this help message and exit
+  --limit LIMIT
+```
+
+### hermes checkpoints prune
+```
+usage: hermes checkpoints prune [-h] [--retention-days RETENTION_DAYS]
+                                [--max-size-mb MAX_SIZE_MB] [--keep-orphans]
+                                [-f]
+
+options:
+  -h, --help            show this help message and exit
+  --retention-days RETENTION_DAYS
+                        Drop projects whose last_touch is older than N days
+                        (default 7)
+  --max-size-mb MAX_SIZE_MB
+                        After orphan/stale prune, drop oldest commits per
+                        project until total size <= this (default 500)
+  --keep-orphans        Skip deleting projects whose workdir no longer exists
+  -f, --force           Skip the orphan-deletion confirmation prompt
+```
+
+### hermes checkpoints clear
+```
+usage: hermes checkpoints clear [-h] [-f]
+
+options:
+  -h, --help   show this help message and exit
+  -f, --force  Skip confirmation prompt
+```
+
+### hermes checkpoints clear-legacy
+```
+usage: hermes checkpoints clear-legacy [-h] [-f]
+
+options:
+  -h, --help   show this help message and exit
+  -f, --force  Skip confirmation prompt
 ```
 
 ## hermes import
@@ -17678,17 +5954,20 @@ options:
 ## hermes plugins
 ```
 usage: hermes plugins [-h]
-                      {install,search,update,remove,rm,uninstall,list,ls,enable,disable,capabilities,doctor,pack,show,info}
+                      {install,search,browse,validate,update,remove,rm,uninstall,list,ls,enable,disable,capabilities,doctor,compat,pack,show,info}
                       ...
 
 Install, update, remove, list, or validate native Hermes plugins and portable
 Agent Plugins v1 packages. Portable packages install disabled.
 
 positional arguments:
-  {install,search,update,remove,rm,uninstall,list,ls,enable,disable,capabilities,doctor,pack,show,info}
-    install             Install a plugin from a Git URL, owner/repo, or index
-                        name
-    search              Search the community plugin index
+  {install,search,browse,validate,update,remove,rm,uninstall,list,ls,enable,disable,capabilities,doctor,compat,pack,show,info}
+    install             Install a plugin from the curated catalog, a Git URL,
+                        or owner/repo
+    search              Search the curated Hermes plugin catalog
+    browse              List every curated plugin catalog entry
+    validate            Validate a plugin directory for catalog admission (CI
+                        gate)
     update              Pull latest changes for an installed plugin
     remove (rm, uninstall)
                         Remove an installed plugin
@@ -17697,6 +5976,8 @@ positional arguments:
     disable             Disable a plugin without removing it
     capabilities        Show declared vs granted capabilities per plugin
     doctor              Validate a plugin with the real runtime contracts
+    compat              Show installed plugins that import paths removed by
+                        the Sep 2026 decomposition
     pack                Declarative, shareable plugin sets (hermes-pack.yaml)
     show (info)         Show details for a single plugin (including
                         emits/listens)
@@ -17708,18 +5989,20 @@ options:
 ### hermes plugins install
 ```
 usage: hermes plugins install [-h] [--force] [--ref COMMIT_SHA]
-                              [--enable | --no-enable]
+                              [--allow-removed] [--enable | --no-enable]
                               identifier
 
 positional arguments:
-  identifier        Git URL, owner/repo shorthand (e.g. anpicasso/hermes-
-                    plugin-chrome-profiles), or a bare plugin name resolved
-                    through the community index (see `hermes plugins search`)
+  identifier        Bare plugin catalog entry name (see `hermes plugins
+                    search`), Git URL, or owner/repo shorthand (e.g.
+                    anpicasso/hermes-plugin-chrome-profiles)
 
 options:
   -h, --help        show this help message and exit
   --force, -f       Remove existing plugin and reinstall
   --ref COMMIT_SHA  Install exactly one immutable 40-character Git commit SHA
+  --allow-removed   DANGEROUS: bypass the catalog removed-plugin blocklist
+                    check
   --enable          Auto-enable the plugin after install (skip confirmation
                     prompt)
   --no-enable       Install disabled (skip confirmation prompt); enable later
@@ -17728,19 +6011,35 @@ options:
 
 ### hermes plugins search
 ```
-usage: hermes plugins search [-h] [--json] [--capability CAP] [--refresh]
-                             [term]
+usage: hermes plugins search [-h] [--json] [term]
 
 positional arguments:
-  term              Search term matched fuzzily against name, description, and
-                    tags (omit to browse the full index)
+  term        Query matched against entry names, descriptions and declared
+              tools (omit to list the whole catalog)
 
 options:
-  -h, --help        show this help message and exit
-  --json            Print machine-readable JSON
-  --capability CAP  Filter by declared capability (e.g. tools, platform,
-                    commands)
-  --refresh         Bypass the local cache and re-fetch the index
+  -h, --help  show this help message and exit
+  --json      Print machine-readable JSON
+```
+
+### hermes plugins browse
+```
+usage: hermes plugins browse [-h]
+
+options:
+  -h, --help  show this help message and exit
+```
+
+### hermes plugins validate
+```
+usage: hermes plugins validate [-h] [--json] path
+
+positional arguments:
+  path        Path to the plugin directory
+
+options:
+  -h, --help  show this help message and exit
+  --json      Print machine-readable JSON (for CI)
 ```
 
 ### hermes plugins update
@@ -17874,6 +6173,25 @@ options:
   --ci        Exit non-zero when validation reports an error
 ```
 
+### hermes plugins compat
+```
+usage: hermes plugins compat [-h] [--json] [path]
+
+Statically scans every enabled external plugin for imports of pre-
+decomposition module paths (see COMPAT_MANIFEST.md) and prints file:line, old
+path -> new path. Exits 1 when any plugin is affected. Plugins still affected
+on the removal date are not loaded (override:
+plugins.allow_deprecated_imports: true).
+
+positional arguments:
+  path        Scan one plugin directory instead of the installed set (for
+              plugin authors)
+
+options:
+  -h, --help  show this help message and exit
+  --json      Machine-readable output
+```
+
 ### hermes plugins pack
 ```
 usage: hermes plugins pack [-h] {install,export,show} ...
@@ -17979,7 +6297,7 @@ positional arguments:
     archive             Manually archive a skill (move to .archive/, excluded
                         from prompt)
     prune               Bulk-archive curator-managed skills idle for >= N days
-                        (default 90)
+                        (default: curator.archive_after_days)
     backup              Take a manual tar.gz snapshot of ~/.hermes/skills/
                         (curator also does this automatically before every
                         real run)
@@ -18139,7 +6457,8 @@ usage: hermes curator prune [-h] [--days DAYS] [-y] [--dry-run]
 
 options:
   -h, --help   show this help message and exit
-  --days DAYS  Archive skills idle for at least N days (default: 90)
+  --days DAYS  Archive skills idle for at least N days (default:
+               curator.archive_after_days, 30)
   -y, --yes    Skip the confirmation prompt
   --dry-run    Show what would be archived without doing it
 ```
@@ -18882,13 +7201,16 @@ options:
 
 ### hermes mcp login
 ```
-usage: hermes mcp login [-h] name
+usage: hermes mcp login [-h] [--flow {browser,device}] name
 
 positional arguments:
-  name        Server name to re-authenticate
+  name                  Server name to re-authenticate
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  --flow {browser,device}
+                        OAuth flow (overrides oauth.flow): browser PKCE or RFC
+                        8628 device code
 ```
 
 ### hermes mcp reauth
@@ -19008,12 +7330,15 @@ usage: hermes sessions export [-h] [--format {jsonl,md,qmd,html,trace}]
                               [--max-tool-calls MAX_TOOL_CALLS] [--dry-run]
                               [--yes] [--redact] [--lineage {single,logical}]
                               [--delete-after-verified] [--force]
-                              [output]
+                              [OUTPUT]
 
 positional arguments:
-  output                Output path. JSONL: file path (use - for stdout,
-                        required). md/qmd: output directory (default: <hermes
-                        home>/session-exports)
+  OUTPUT                Where to write. jsonl/html/trace: a file path, or a
+                        directory (existing, or ending in /) to write a
+                        default-named file into; - for stdout (jsonl/trace
+                        only; jsonl requires OUTPUT). md/qmd: a directory, one
+                        file per session (default: <hermes home>/session-
+                        exports)
 
 options:
   -h, --help            show this help message and exit
@@ -19571,6 +7896,67 @@ options:
   --yes, -y        Skip confirmation prompts
 ```
 
+## hermes vault
+```
+usage: hermes vault [-h] {add,list,rm,sources} ...
+
+Store login credentials in a locally encrypted vault. The agent sees handles
+and login identifiers (metadata); passwords are injected server-side by
+browser_vault_fill on the exact origin they were saved for and never enter the
+conversation.
+
+positional arguments:
+  {add,list,rm,sources}
+    add                 Save a login, card or address ahead of time (optional:
+                        the agent asks you on the page when it needs one)
+    list                List vault items (metadata only, never values)
+    rm                  Remove a vault item by handle
+    sources             Show detected password managers (1Password,
+                        Bitwarden); they are on automatically
+
+options:
+  -h, --help            show this help message and exit
+```
+
+### hermes vault add
+```
+usage: hermes vault add [-h] [--kind {login,payment,address}]
+
+options:
+  -h, --help            show this help message and exit
+  --kind {login,payment,address}
+                        Item kind (interactive prompt when omitted)
+```
+
+### hermes vault list
+```
+usage: hermes vault list [-h]
+
+options:
+  -h, --help  show this help message and exit
+```
+
+### hermes vault rm
+```
+usage: hermes vault rm [-h] handle
+
+positional arguments:
+  handle      Item handle (see `hermes vault list`)
+
+options:
+  -h, --help  show this help message and exit
+```
+
+### hermes vault sources
+```
+usage: hermes vault sources [-h] [--disable NAME | --enable NAME]
+
+options:
+  -h, --help      show this help message and exit
+  --disable NAME  Stop using a detected manager: onepassword | bitwarden
+  --enable NAME   Undo --disable
+```
+
 ## hermes update
 ```
 usage: hermes update [-h] [--gateway] [--check] [--plan] [--no-backup]
@@ -19596,9 +7982,10 @@ options:
   --backup         Force a FULL pre-update backup (quick state snapshot +
                    HERMES_HOME zip) for this run, regardless of
                    updates.pre_update_backup
-  --yes, -y        Assume yes for interactive prompts (config migration, stash
-                   restore). API-key entry is skipped; run 'hermes config
-                   migrate' separately for those.
+  --yes, -y        Run without blocking on prompts: accepts the config-
+                   migration and stash-restore prompts, skips the fork-
+                   upstream prompt without adding a remote. API-key entry is
+                   skipped; run 'hermes config migrate' separately for those.
   --keep-stash     Do NOT re-apply local changes after the update. Uncommitted
                    changes are still stashed so the update can proceed, but
                    they stay parked in git stash instead of being restored
@@ -19722,7 +8109,8 @@ options:
 ### hermes profile create
 ```
 usage: hermes profile create [-h] [--clone] [--clone-all]
-                             [--clone-from SOURCE] [--no-alias] [--no-skills]
+                             [--clone-from SOURCE] [--clone-channels]
+                             [--no-alias] [--no-skills]
                              [--description DESCRIPTION]
                              profile_name
 
@@ -19732,11 +8120,16 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   --clone               Copy config.yaml, .env, SOUL.md, and skills from
-                        active profile
+                        active profile (messaging bot tokens/allowlists are
+                        left behind; see --clone-channels)
   --clone-all           Full copy of active profile (all state, excluding per-
-                        profile history)
+                        profile history and messaging channels)
   --clone-from SOURCE   Source profile to clone from; implies --clone unless
                         --clone-all is set
+  --clone-channels      Also copy the source's messaging channels (bot tokens,
+                        allowlists, platform sections). Two profiles holding
+                        one bot token collide; refused when the source is
+                        served by a live multiplexed gateway.
   --no-alias            Skip wrapper script creation
   --no-skills           Create an empty profile with no bundled skills (opts
                         out of `hermes update` skill sync)
@@ -19826,7 +8219,9 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
-                        Output file (default: <name>.tar.gz)
+                        Output file (default: a managed profile-
+                        exports/<name>-<timestamp>.tar.gz under the default
+                        Hermes home)
 ```
 
 ### hermes profile import
@@ -20008,7 +8403,8 @@ options:
 ```
 usage: hermes desktop [-h] [--source] [--build-only] [--fake-boot]
                       [--ignore-existing] [--hermes-root HERMES_ROOT]
-                      [--cwd CWD] [--skip-build] [--force-build]
+                      [--cwd CWD] [--skip-build] [--local] [--force-build]
+                      [--setup-tcc-identity] [--identity IDENTITY]
 
 Launch the Hermes Electron desktop app. By default this installs workspace
 Node dependencies, builds the current OS's unpacked Electron app, then
@@ -20031,14 +8427,26 @@ options:
                         (sets HERMES_DESKTOP_CWD)
   --skip-build          Skip npm install/package and launch the existing
                         unpacked app from apps/desktop/release
+  --local               Show the local-models UI in the desktop app (models
+                        pane, quickstart, picker rows)
   --force-build         Force a full rebuild even if the content stamp matches
+  --setup-tcc-identity  macOS only: create/import a self-signed code-signing
+                        certificate in the login keychain and point
+                        desktop.macos_signing_identity at it, then re-sign the
+                        packaged app. Makes macOS TCC grants (Full Disk
+                        Access, Accessibility, Files and Folders, microphone)
+                        survive rebuilds with a certificate-anchored identity.
+                        Idempotent — safe to re-run after updates.
+  --identity IDENTITY   Certificate name to create/use for --setup-tcc-
+                        identity (default: Hermes Local Signing)
 ```
 
 ## hermes gui
 ```
 usage: hermes desktop [-h] [--source] [--build-only] [--fake-boot]
                       [--ignore-existing] [--hermes-root HERMES_ROOT]
-                      [--cwd CWD] [--skip-build] [--force-build]
+                      [--cwd CWD] [--skip-build] [--local] [--force-build]
+                      [--setup-tcc-identity] [--identity IDENTITY]
 
 Launch the Hermes Electron desktop app. By default this installs workspace
 Node dependencies, builds the current OS's unpacked Electron app, then
@@ -20061,7 +8469,18 @@ options:
                         (sets HERMES_DESKTOP_CWD)
   --skip-build          Skip npm install/package and launch the existing
                         unpacked app from apps/desktop/release
+  --local               Show the local-models UI in the desktop app (models
+                        pane, quickstart, picker rows)
   --force-build         Force a full rebuild even if the content stamp matches
+  --setup-tcc-identity  macOS only: create/import a self-signed code-signing
+                        certificate in the login keychain and point
+                        desktop.macos_signing_identity at it, then re-sign the
+                        packaged app. Makes macOS TCC grants (Full Disk
+                        Access, Accessibility, Files and Folders, microphone)
+                        survive rebuilds with a certificate-anchored identity.
+                        Idempotent — safe to re-run after updates.
+  --identity IDENTITY   Certificate name to create/use for --setup-tcc-
+                        identity (default: Hermes Local Signing)
 ```
 
 ## hermes logs

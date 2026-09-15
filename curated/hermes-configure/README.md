@@ -8,7 +8,7 @@ Battle-tested guidance for managing a Hermes Agent install:
 
 - **Channels** — Telegram / Discord / WhatsApp / Slack messaging gateway
 - **Models** — full provider table (20 providers: Nous, Anthropic, OpenAI Codex, Gemini, OpenRouter, z.ai, Kimi, MiniMax, NVIDIA, Ollama, LM Studio, …) and how to switch the default
-- **Skills** — 89 bundled skills, structure conventions, where user skills live
+- **Skills** — 58 bundled skills across 12 categories, structure conventions, where user skills live
 - **Plugins** — Hermes' Python plugin system at `~/.hermes/hermes-agent/plugins/`
 - **Gateway** — service vs foreground, restart, install/uninstall
 - **Cron / Hooks / Memory / MCP / ACP / Sessions / Insights**
@@ -17,9 +17,15 @@ Battle-tested guidance for managing a Hermes Agent install:
 
 Plus battle-tested **troubleshooting tables** for known gotchas (silent-deny on Telegram allowlists, polling conflicts, the `hermes login` command-removed footgun, auth.json schema mismatch with `~/.codex/auth.json`, etc.).
 
+## Current local install
+
+Hermes v0.21.3 (build 2026.9.14, upstream a982d2c8), freshly installed 2026-09-15.
+Config schema 45; model/auth and gateway setup remain for the user. Doctor reports
+npm advisories and missing optional integrations; final status exits cleanly. See SKILL.md for the verified results and remaining steps.
+
 ## What's verified end-to-end
 
-The skill marks recipes that have been **tested against the live CLI** (not inferred from docs). Originally verified on Hermes v0.12.0 (2026-05-06) and carried forward through the v0.20.5 refresh (2026-08-24):
+The skill marks recipes that have been **tested against the live CLI** (not inferred from docs). Originally verified on Hermes v0.12.0 (2026-05-06) and carried forward through the v0.21.3 fresh-install sync (2026-09-15):
 
 - ✅ Codex OAuth jumpstart — `openai-codex/gpt-5.5` mirroring an OpenClaw `main` agent
 - ✅ Telegram bot setup non-interactive (env-var driven, with allowlist + home channel)
@@ -46,3 +52,5 @@ The skill includes a **Version Check & Auto-Update Protocol** — when Hermes is
 - `SKILL.md` — main skill (Hermes/OpenClaw map, all subcommand domains, troubleshooting, jumpstart recipes, self-evolution protocol, version check protocol)
 - `commands.md` — condensed CLI reference, one line per command
 - `cli-reference.md` — full `--help` output for every top-level subcommand and nested subcommands (auto-generated from the live binary)
+
+- `scripts/regen-cli-reference.py` — guarded live CLI capture with a command index; writes to this directory

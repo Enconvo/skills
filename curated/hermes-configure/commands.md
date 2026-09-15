@@ -1,6 +1,8 @@
 # Hermes CLI Commands (Condensed Reference)
 
-Generated from Hermes Agent v0.20.5 (2026.8.19) · upstream 14c59f0b. One line per command, key flags only.
+Generated from Hermes Agent v0.21.3 (2026.9.14) · upstream a982d2c8. Verified 2026-09-15. One line per command, key flags only.
+
+**Changes vs v0.20.5:** new top-level `browser` and `vault`; no removed commands or changed global flags in live top-level help. Removed stale documentation for `version` (use `--version`) and `postinstall` (not accepted by this CLI).
 
 **Top-level additions observed by v0.20.5:** `worktree`, `egress`, `pause`, `resume`, `sync`, `peer`, `verify`, `approvals`, `import-agent`, `skin`, and `monitoring`. v0.18 additions remain: `console`, `journey`, `learning`, and `memory-graph`; earlier additions include `moa`, `secrets`, `migrate`, `whatsapp-cloud`, `portal`, `project`, `pets`, `serve`, `desktop`, `gui`, `prompt-size`, `proxy`, `lsp`, `send`, `checkpoints`, `bundles`, and `computer-use`.
 
@@ -78,6 +80,7 @@ tools                             Toggle agent tools on/off
 mcp                               Manage MCP server registrations
 lsp                               Manage language servers for semantic diagnostics
 computer-use                      Install/check cua-driver for computer_use
+browser                           Real-profile browser helpers; close-profile requires explicit consent
 ```
 
 Skills location: `~/.hermes/skills/<category>/<name>/SKILL.md`
@@ -117,7 +120,7 @@ prompt-size                       Prompt/context sizing diagnostics
 
 ```
 status                            Show status of all components
-doctor                            Health checks + auto-fix
+doctor                            Health checks; --fix applies supported repairs
 security                          Security checks/advisories
 egress                            Credential-injection firewall management
 approvals                         Mine approval history into allowlist proposals
@@ -136,6 +139,7 @@ logs                              View ~/.hermes/logs/
 config                            View current config
 config edit                       Open ~/.hermes/config.yaml in $EDITOR
 secrets                           External secret-source management
+vault                             Encrypted autofill vault: add / list / rm / sources
 skin                              List, switch, and tweak UI skins
 ```
 
@@ -176,10 +180,23 @@ serve                             Headless backend server entrypoint
 desktop / gui                     Desktop app control surfaces
 pets                              Desktop pet/companion control surface
 completion                        Print shell completion script
-version                           Print version
+--version / -V                    Print version (global flag, not a subcommand)
 ```
 
 ---
+
+## Global flag aliases
+
+The full global flag set is unchanged from v0.20.5. The condensed form above also supports:
+`-h/--help`, `-V/--version`, `-z/--oneshot`, `-m/--model`, `-t/--toolsets`,
+`-r/--resume`, `-c/--continue`, `-w/--worktree`, and `-s/--skills`.
+
+## Fresh-install state (2026-09-15)
+
+Config schema 45; template model `anthropic/claude-opus-4.6`, provider `auto`.
+No provider credentials or messaging service configured. Use `hermes setup`, or
+`hermes model` plus `hermes auth add <provider> --type ...`; configure messaging
+with `hermes gateway setup`, then `hermes gateway install` and `hermes gateway start`.
 
 ## Quick Common Recipes
 
