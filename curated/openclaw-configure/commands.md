@@ -1,37 +1,43 @@
 # OpenClaw CLI Commands (Condensed Reference)
 
-Generated from `OpenClaw 2026.7.1-2 (0790d9f)` on 2026-08-03. Usage and first-level subcommands; see `cli-reference.md` for every option.
+Generated from `OpenClaw 2026.9.4 (3a9d69d)` on 2026-09-13. Usage and first-level subcommands; see `cli-reference.md` for entry-point options.
 
 ## Top-Level Commands
 
 ```text
   Hint: commands suffixed with * have subcommands. Run <command> --help for details.
   acp *                Run an ACP bridge backed by the Gateway
-  agent                Run an agent turn via the Gateway (use --local for
+  agent *              Run an agent turn via the Gateway (use --local for
                        embedded)
   agents *             Manage isolated agents (workspaces + auth + routing)
-  approvals *          Manage exec approvals (gateway or node host)
+  approvals *          Manage approval policy and pending requests
   attach               Attach Claude Code to a gateway session with scoped MCP
                        tools
-  audit                Inspect metadata-only agent run and tool action records
-  backup *             Create and verify local backup archives for OpenClaw
-                       state
+  audit                Inspect activity records and exact-run identity context
+  automations *        Manage automations (alias for cron)
+  backup *             Create, verify, and restore backup archives and SQLite
+                       snapshots
+  browser *            Manage OpenClaw's dedicated browser (Chrome/Chromium)
   capability *         Run provider capability commands (fallback alias: infer)
   channels *           Manage connected chat channels and accounts
   chat                 Open a local terminal UI (alias for tui --local)
   clawbot *            Legacy clawbot command aliases
-  commitments *        List and manage inferred follow-up commitments
+  codex *              Inspect and branch from Codex sessions through the
+                       Gateway
   completion           Generate shell completion script
   config *             Non-interactive config helpers
                        (get/set/patch/unset/file/schema/validate). Run without
                        subcommand for guided setup.
   configure            Interactive configuration for credentials, channels,
                        gateway, and agent defaults
-  crestodian           Open the ring-zero setup and repair helper
-  cron *               Manage cron jobs (via Gateway)
+  connect              Connect this machine to an OpenClaw Gateway as a node
+  cron *               Manage automations (via Gateway)
   daemon *             Manage the Gateway service (launchd/systemd/schtasks)
   dashboard            Open the Control UI with your current token
-  devices *            Device pairing and auth tokens
+  database *           Inspect database schema compatibility and shared-state
+                       write ownership
+  devices *            Device pairing and auth tokens (for mobile app setup
+                       codes, use `openclaw qr` instead)
   directory *          Lookup contact and group IDs (self, peers, groups) for
                        supported chat channels
   dns *                DNS helpers for wide-area discovery (Tailscale + CoreDNS)
@@ -40,6 +46,8 @@ Generated from `OpenClaw 2026.7.1-2 (0790d9f)` on 2026-08-03. Usage and first-le
   exec-approvals *     Manage exec approvals (alias for approvals)
   exec-policy *        Show or synchronize requested exec policy with host
                        approvals
+  file-transfer *      Review file-transfer standing approvals
+  fleet *              Provision and manage isolated tenant cells (experimental)
   gateway *            Run, inspect, and query the WebSocket Gateway
   health               Fetch health from the running gateway
   help                 Display help for command
@@ -55,30 +63,37 @@ Generated from `OpenClaw 2026.7.1-2 (0790d9f)` on 2026-08-03. Usage and first-le
   node *               Run and manage the headless node host service
   nodes *              Manage gateway-owned nodes (pairing, status, invoke, and
                        media)
-  onboard              Guided setup for auth, models, Gateway, workspace,
+  onboard *            Guided setup for auth, models, Gateway, workspace,
                        channels, and skills
+  openclam *           Pair and inspect the OpenClam channel
   pairing *            Secure DM pairing (approve inbound requests)
   plugins *            Manage OpenClaw plugins and extensions
   promos *             Discover and claim promotional model offers from ClawHub
   proxy *              Run the OpenClaw debug proxy and inspect captured traffic
   qr                   Generate a mobile pairing QR code and setup code
   reset                Reset local config/state (keeps the CLI installed)
+  resume               Resume a recent Gateway session in the TUI
   sandbox *            Manage sandbox containers (Docker-based agent isolation)
   secrets *            Secrets runtime controls
   security *           Audit local config and state for common security
                        foot-guns
   sessions *           List stored conversation sessions
-  setup                Alias for openclaw onboard
+  setup                Chat with OpenClaw; onboard when setup is incomplete
   skills *             List and inspect available skills
   status               Show channel health and recent session recipients
   system *             System tools (events, heartbeat, presence)
   tasks *              Inspect durable background tasks and TaskFlow state
+  telemetry *          Inspect and manage anonymous usage telemetry
   terminal             Open a local terminal UI (alias for tui --local)
   transcripts *        Inspect stored transcripts
+  triage               Collect sanitized diagnostics and open a local coding
+                       agent for repair
   tui                  Open a terminal UI connected to the Gateway
-  uninstall            Uninstall the gateway service + local data (CLI remains)
+  uninstall            Uninstall the gateway service + local data
   update *             Update OpenClaw and inspect update channel status
+  users *              Manage durable user profiles and email aliases
   webhooks *           Webhook helpers and integrations
+  worker               Run the restricted cloud worker runtime
   worktrees *          Create, inspect, restore, and clean up managed worktrees
 ```
 
@@ -94,7 +109,9 @@ Usage: openclaw acp [options] [command]
 ## `agent`
 
 ```text
-Usage: openclaw agent [options]
+Usage: openclaw agent [options] [command]
+
+  exec                       Run one isolated headless embedded agent turn
 ```
 
 ## `agents`
@@ -118,19 +135,41 @@ Usage: openclaw approvals|exec-approvals [options] [command]
 
   allowlist   Edit the per-agent allowlist
   get         Fetch exec approvals snapshot
+  grants      Standing grants minted by allow-always on automation approvals
+  pending     List pending exec, plugin, and system-agent approvals
+  resolve     Resolve a pending approval
   set         Replace exec approvals with a JSON file
 ```
 
 ## `attach`
 
 ```text
-Usage: openclaw attach [options]
+Usage: openclaw attach [options] [target]
 ```
 
 ## `audit`
 
 ```text
 Usage: openclaw audit [options]
+```
+
+## `automations`
+
+```text
+Usage: openclaw cron|automations [options] [command]
+
+  add                    Add an automation
+  disable                Disable an automation
+  edit                   Edit an automation (patch fields)
+  enable                 Enable an automation
+  get                    Get an automation as JSON
+  list                   List automations
+  rm                     Remove an automation
+  run                    Run an automation now (debug)
+  runs                   Show automation run history
+  scratch                Read or replace an automation's private scratch
+  show                   Show an automation
+  status                 Show automations scheduler status
 ```
 
 ## `backup`
@@ -140,8 +179,71 @@ Usage: openclaw backup [options] [command]
 
   create      Write a backup archive for config, credentials, sessions, and
               workspaces
+  disable     Remove the scheduled Git backup automation
+  enable      Provision a Gateway automation for scheduled Git backups
+  git         Create and restore deterministic versioned SQLite dumps in Git
   help        Display help for command
+  restore     Restore a verified backup archive to a fresh staging directory
+  sqlite      Create, list, verify, and restore SQLite snapshots
   verify      Validate a backup archive and its embedded manifest
+```
+
+## `browser`
+
+```text
+Usage: openclaw browser [options] [command]
+
+  batch                     Run a batch of browser actions in one call
+  click                     Click an element by ref from snapshot
+  click-coords              Click viewport coordinates
+  close                     Close a tab (tab reference optional)
+  console                   Get recent console messages
+  cookie-sync               Sync allowlisted macOS browser cookies to a managed
+                            profile
+  cookies                   Read/write cookies
+  create-profile            Create a new browser profile
+  delete-profile            Delete a browser profile
+  dialog                    Arm the next modal dialog (alert/confirm/prompt)
+  doctor                    Check browser plugin readiness
+  download                  Click a ref and save the resulting download
+  drag                      Drag from one ref to another
+  errors                    Get recent page errors
+  evaluate                  Evaluate a function against the page or a ref
+  extension                 Chrome extension install, status, and pairing
+  fill                      Fill a form with JSON field descriptors
+  focus                     Focus a tab by tab reference
+  highlight                 Highlight an element by ref
+  hover                     Hover an element by ai ref
+  import-profile            Import cookies from a macOS Chrome-family profile
+  navigate                  Navigate the current tab to a URL
+  open                      Open a URL in a new tab
+  pdf                       Save page as PDF
+  press                     Press a key
+  profiles                  List all browser profiles
+  requests                  Get recent network requests (best-effort)
+  reset-profile             Reset browser profile (moves it to Trash)
+  resize                    Resize the viewport
+  responsebody              Wait for a network response and return its body
+  screenshot                Capture a screenshot (prints the saved path)
+  scrollintoview            Scroll an element into view by ref from snapshot
+  select                    Select option(s) in a select element
+  set                       Browser environment settings
+  snapshot                  Capture a snapshot (default: ai; aria is the
+                            accessibility tree)
+  start                     Start the browser (no-op if already running)
+  status                    Show browser status
+  stop                      Stop the browser (best-effort)
+  storage                   Read/write localStorage/sessionStorage
+  system-profiles           List Chrome-family profiles available for cookie
+                            import
+  tab                       Tab shortcuts (index-based)
+  tabs                      List open tabs
+  trace                     Record a Playwright trace
+  type                      Type into an element by ref from snapshot
+  upload                    Arm file upload for the next file chooser
+  wait                      Wait for time, selector, URL, load state, or JS
+                            conditions
+  waitfordownload           Wait for the next download (and save it)
 ```
 
 ## `capability`
@@ -168,6 +270,7 @@ Usage: openclaw channels [options] [command]
 
   add           Add or update a channel account
   capabilities  Show provider capabilities (intents/scopes + supported features)
+  dead-letters  Inspect and resubmit failed inbound channel events
   list          List chat channels (configured by default; pass --all for
                 installable catalog)
   login         Link a channel account (if supported)
@@ -181,7 +284,7 @@ Usage: openclaw channels [options] [command]
 ## `chat`
 
 ```text
-Usage: openclaw tui|terminal [options]
+Usage: openclaw tui|terminal [options] [target]
 ```
 
 ## `clawbot`
@@ -193,13 +296,15 @@ Usage: openclaw clawbot [options] [command]
   qr          Generate a mobile pairing QR code and setup code
 ```
 
-## `commitments`
+## `codex`
 
 ```text
-Usage: openclaw commitments [options] [command]
+Usage: openclaw codex [options] [command]
 
-  dismiss            Dismiss inferred follow-up commitments
-  list               List inferred follow-up commitments
+  archive     Archive a stored or idle Gateway-local Codex thread
+  continue    Continue a Gateway-local Codex thread as an OpenClaw branch
+  help        Display help for command
+  sessions    List non-archived Codex app-server sessions across connected hosts
 ```
 
 ## `completion`
@@ -245,28 +350,29 @@ Usage: openclaw config [options] [command]
 Usage: openclaw configure [options]
 ```
 
-## `crestodian`
+## `connect`
 
 ```text
-Usage: openclaw crestodian [options]
+Usage: openclaw connect [options] [target]
 ```
 
 ## `cron`
 
 ```text
-Usage: openclaw cron [options] [command]
+Usage: openclaw cron|automations [options] [command]
 
-  add         Add a cron job
-  disable     Disable a cron job
-  edit        Edit a cron job (patch fields)
-  enable      Enable a cron job
-  get         Get a cron job as JSON
-  list        List cron jobs
-  rm          Remove a cron job
-  run         Run a cron job now (debug)
-  runs        Show cron run history
-  show        Show a cron job
-  status      Show cron scheduler status
+  add                    Add an automation
+  disable                Disable an automation
+  edit                   Edit an automation (patch fields)
+  enable                 Enable an automation
+  get                    Get an automation as JSON
+  list                   List automations
+  rm                     Remove an automation
+  run                    Run an automation now (debug)
+  runs                   Show automation run history
+  scratch                Read or replace an automation's private scratch
+  show                   Show an automation
+  status                 Show automations scheduler status
 ```
 
 ## `daemon`
@@ -275,7 +381,7 @@ Usage: openclaw cron [options] [command]
 Usage: openclaw daemon [options] [command]
 
   help        Display help for command
-  install     Install the Gateway service (launchd/systemd/schtasks)
+  install     Install and start the Gateway service (launchd/systemd/schtasks)
   restart     Restart the Gateway service (launchd/systemd/schtasks)
   start       Start the Gateway service (launchd/systemd/schtasks)
   status      Show service install status + probe connectivity/capability
@@ -289,6 +395,18 @@ Usage: openclaw daemon [options] [command]
 Usage: openclaw dashboard [options]
 ```
 
+## `database`
+
+```text
+Usage: openclaw database [options] [command]
+
+  ownership        Inspect or claim write ownership
+  preflight        Compare one copied SQLite file with this release's state
+                   schema
+  preflight-agent  Compare one copied agent SQLite file with this release's
+                   agent schema and owner
+```
+
 ## `devices`
 
 ```text
@@ -296,9 +414,12 @@ Usage: openclaw devices [options] [command]
 
   approve     Approve a pending device pairing request
   clear       Clear paired devices from the gateway table
+  join-code   Mint a single-use node onboarding URL (not a mobile app setup
+              code; use `openclaw qr` for that)
   list        List pending and paired devices
   reject      Reject a pending device pairing request
   remove      Remove a paired device entry
+  rename      Assign an operator label to a paired device
   revoke      Revoke a device token for a role
   rotate      Rotate a device token for a role
 ```
@@ -342,6 +463,9 @@ Usage: openclaw approvals|exec-approvals [options] [command]
 
   allowlist   Edit the per-agent allowlist
   get         Fetch exec approvals snapshot
+  grants      Standing grants minted by allow-always on automation approvals
+  pending     List pending exec, plugin, and system-agent approvals
+  resolve     Resolve a pending approval
   set         Replace exec approvals with a JSON file
 ```
 
@@ -356,32 +480,65 @@ Usage: openclaw exec-policy [options] [command]
   show        Show the local config policy, host approvals, and effective merge
 ```
 
+## `file-transfer`
+
+```text
+Usage: openclaw file-transfer [options] [command]
+
+  approvals   Manage standing approvals
+  help        Display help for command
+```
+
+## `fleet`
+
+```text
+Usage: openclaw fleet [options] [command]
+
+  backup      Back up one tenant cell as a host operator (archive contains
+              secrets)
+  create      Create an isolated tenant cell
+  doctor      Audit fleet cells without changing them
+  help        Display help for command
+  list        List tenant cells
+  logs        Stream tenant cell container logs
+  restart     Restart a tenant cell
+  restore     Restore one tenant cell as a host operator (archive contains
+              secrets)
+  rm          Remove a tenant cell
+  start       Start a tenant cell
+  status      Show tenant cell status
+  stop        Stop a tenant cell
+  upgrade     Replace a tenant cell with a freshly pulled image
+```
+
 ## `gateway`
 
 ```text
 Usage: openclaw gateway [options] [command]
 
-  call                       Call a Gateway method
-  diagnostics                Export local support diagnostics
-  discover                   Discover gateways via Bonjour (local + wide-area if
-                             configured)
-  health                     Fetch Gateway health
-  install                    Install the Gateway service
-                             (launchd/systemd/schtasks)
-  probe                      Show gateway reachability, auth capability, and
-                             read-probe summary (local + remote)
-  restart                    Restart the Gateway service
-                             (launchd/systemd/schtasks)
-  run                        Run the WebSocket Gateway (foreground)
-  stability                  Fetch payload-free Gateway stability diagnostics
-  start                      Start the Gateway service
-                             (launchd/systemd/schtasks)
-  status                     Show gateway service status + probe
-                             connectivity/capability
-  stop                       Stop the Gateway service (launchd/systemd/schtasks)
-  uninstall                  Uninstall the Gateway service
-                             (launchd/systemd/schtasks)
-  usage-cost                 Fetch usage cost summary from session logs
+  auth-token                Reveal the configured shared Gateway token
+  call                      Call a Gateway method
+  diagnostics               Export local support diagnostics
+  discover                  Discover gateways via Bonjour (local + wide-area if
+                            configured)
+  health                    Fetch Gateway health
+  install                   Install and start the Gateway service
+                            (launchd/systemd/schtasks)
+  probe                     Show gateway reachability, auth capability, and
+                            read-probe summary (local + remote)
+  restart                   Restart the Gateway service
+                            (launchd/systemd/schtasks)
+  resume                    Release a cooperative Gateway suspension
+  run                       Run the WebSocket Gateway (foreground)
+  stability                 Fetch payload-free Gateway stability diagnostics
+  start                     Start the Gateway service (launchd/systemd/schtasks)
+  status                    Show gateway service status + probe
+                            connectivity/capability
+  stop                      Stop the Gateway service (launchd/systemd/schtasks)
+  suspend                   Prepare the Gateway for cooperative host suspension
+  uninstall                 Uninstall the Gateway service
+                            (launchd/systemd/schtasks)
+  usage-cost                Fetch usage cost summary from session logs
 ```
 
 ## `health`
@@ -397,31 +554,37 @@ Usage: openclaw [options] [command]
 
   Hint: commands suffixed with * have subcommands. Run <command> --help for details.
   acp *                Run an ACP bridge backed by the Gateway
-  agent                Run an agent turn via the Gateway (use --local for
+  agent *              Run an agent turn via the Gateway (use --local for
                        embedded)
   agents *             Manage isolated agents (workspaces + auth + routing)
-  approvals *          Manage exec approvals (gateway or node host)
+  approvals *          Manage approval policy and pending requests
   attach               Attach Claude Code to a gateway session with scoped MCP
                        tools
-  audit                Inspect metadata-only agent run and tool action records
-  backup *             Create and verify local backup archives for OpenClaw
-                       state
+  audit                Inspect activity records and exact-run identity context
+  automations *        Manage automations (alias for cron)
+  backup *             Create, verify, and restore backup archives and SQLite
+                       snapshots
+  browser *            Manage OpenClaw's dedicated browser (Chrome/Chromium)
   capability *         Run provider capability commands (fallback alias: infer)
   channels *           Manage connected chat channels and accounts
   chat                 Open a local terminal UI (alias for tui --local)
   clawbot *            Legacy clawbot command aliases
-  commitments *        List and manage inferred follow-up commitments
+  codex *              Inspect and branch from Codex sessions through the
+                       Gateway
   completion           Generate shell completion script
   config *             Non-interactive config helpers
                        (get/set/patch/unset/file/schema/validate). Run without
                        subcommand for guided setup.
   configure            Interactive configuration for credentials, channels,
                        gateway, and agent defaults
-  crestodian           Open the ring-zero setup and repair helper
-  cron *               Manage cron jobs (via Gateway)
+  connect              Connect this machine to an OpenClaw Gateway as a node
+  cron *               Manage automations (via Gateway)
   daemon *             Manage the Gateway service (launchd/systemd/schtasks)
   dashboard            Open the Control UI with your current token
-  devices *            Device pairing and auth tokens
+  database *           Inspect database schema compatibility and shared-state
+                       write ownership
+  devices *            Device pairing and auth tokens (for mobile app setup
+                       codes, use `openclaw qr` instead)
   directory *          Lookup contact and group IDs (self, peers, groups) for
                        supported chat channels
   dns *                DNS helpers for wide-area discovery (Tailscale + CoreDNS)
@@ -430,6 +593,8 @@ Usage: openclaw [options] [command]
   exec-approvals *     Manage exec approvals (alias for approvals)
   exec-policy *        Show or synchronize requested exec policy with host
                        approvals
+  file-transfer *      Review file-transfer standing approvals
+  fleet *              Provision and manage isolated tenant cells (experimental)
   gateway *            Run, inspect, and query the WebSocket Gateway
   health               Fetch health from the running gateway
   help                 Display help for command
@@ -445,30 +610,37 @@ Usage: openclaw [options] [command]
   node *               Run and manage the headless node host service
   nodes *              Manage gateway-owned nodes (pairing, status, invoke, and
                        media)
-  onboard              Guided setup for auth, models, Gateway, workspace,
+  onboard *            Guided setup for auth, models, Gateway, workspace,
                        channels, and skills
+  openclam *           Pair and inspect the OpenClam channel
   pairing *            Secure DM pairing (approve inbound requests)
   plugins *            Manage OpenClaw plugins and extensions
   promos *             Discover and claim promotional model offers from ClawHub
   proxy *              Run the OpenClaw debug proxy and inspect captured traffic
   qr                   Generate a mobile pairing QR code and setup code
   reset                Reset local config/state (keeps the CLI installed)
+  resume               Resume a recent Gateway session in the TUI
   sandbox *            Manage sandbox containers (Docker-based agent isolation)
   secrets *            Secrets runtime controls
   security *           Audit local config and state for common security
                        foot-guns
   sessions *           List stored conversation sessions
-  setup                Alias for openclaw onboard
+  setup                Chat with OpenClaw; onboard when setup is incomplete
   skills *             List and inspect available skills
   status               Show channel health and recent session recipients
   system *             System tools (events, heartbeat, presence)
   tasks *              Inspect durable background tasks and TaskFlow state
+  telemetry *          Inspect and manage anonymous usage telemetry
   terminal             Open a local terminal UI (alias for tui --local)
   transcripts *        Inspect stored transcripts
+  triage               Collect sanitized diagnostics and open a local coding
+                       agent for repair
   tui                  Open a terminal UI connected to the Gateway
-  uninstall            Uninstall the gateway service + local data (CLI remains)
+  uninstall            Uninstall the gateway service + local data
   update *             Update OpenClaw and inspect update channel status
+  users *              Manage durable user profiles and email aliases
   webhooks *           Webhook helpers and integrations
+  worker               Run the restricted cloud worker runtime
   worktrees *          Create, inspect, restore, and clean up managed worktrees
 ```
 
@@ -477,13 +649,13 @@ Usage: openclaw [options] [command]
 ```text
 Usage: openclaw hooks [options] [command]
 
-  check       Check hooks eligibility status
-  disable     Disable a hook
-  enable      Enable a hook
-  info        Show detailed information about a hook
-  install     Deprecated: install a hook pack via `openclaw plugins install`
-  list        List all hooks
-  update      Deprecated: update hook packs via `openclaw plugins update`
+  check         Check hooks eligibility status
+  disable       Disable a hook
+  enable        Enable a hook
+  info          Show detailed information about a hook
+  install       Deprecated: install a hook pack via `openclaw plugins install`
+  list          List all hooks
+  update        Deprecated: update hook packs via `openclaw plugins update`
 ```
 
 ## `infer`
@@ -536,17 +708,22 @@ Usage: openclaw mcp [options] [command]
 ```text
 Usage: openclaw memory [options] [command]
 
-  index            Reindex memory files
-  promote          Rank short-term recalls and optionally append top entries to
-                   MEMORY.md
-  promote-explain  Explain a specific promotion candidate and its score
-                   breakdown
-  rem-backfill     Write grounded historical REM summaries into DREAMS.md for UI
-                   review
-  rem-harness      Preview REM reflections, candidate truths, and deep
-                   promotions without writing
-  search           Search memory files
-  status           Show memory search index status
+  forget            Delete memories and derived artifacts from selected sessions
+  index             Reindex memory files
+  promote           Rank short-term recalls and optionally append top entries to
+                    MEMORY.md
+  promote-explain   Explain a specific promotion candidate and its score
+                    breakdown
+  rem-backfill      Write grounded historical REM summaries into DREAMS.md for
+                    UI review
+  rem-harness       Preview REM reflections, candidate truths, and deep
+                    promotions without writing
+  reset             Clear the derived memory index and embedding cache without
+                    deleting sessions
+  search            Search memory files
+  session-backfill  Distill retained session history into staged memory
+                    candidates
+  status            Show memory search index status
 ```
 
 ## `message`
@@ -595,11 +772,13 @@ Usage: openclaw migrate [options] [command] [provider]
 ```text
 Usage: openclaw models [options] [command]
 
+  accounts         Manage your personal model accounts on the Gateway
   aliases          Manage model aliases
-  auth             Manage model auth profiles
+  auth             Manage system/agent credentials on this machine
   fallbacks        Manage model fallback list
   image-fallbacks  Manage image model fallback list
   list             List models (configured by default)
+  refresh          Refresh the hosted model catalog
   scan             Scan OpenRouter free models for tools + images
   set              Set the default model
   set-image        Set the image model
@@ -612,6 +791,7 @@ Usage: openclaw models [options] [command]
 Usage: openclaw node [options] [command]
 
   help        Display help for command
+  identity    Print the node host device identity (device id + public key)
   install     Install the node host service (launchd/systemd/schtasks)
   restart     Restart the node host service (launchd/systemd/schtasks)
   run         Run the headless node host (foreground)
@@ -628,13 +808,13 @@ Usage: openclaw nodes [options] [command]
 
   approve     Approve a pending pairing request
   camera      Capture camera media from a paired node
-  canvas      Capture or render canvas content from a paired node
+  canvas      Present widget documents on a paired macOS panel
   describe    Describe a node (capabilities + supported invoke commands)
   help        Display help for command
   invoke      Invoke a command on a paired node
   list        List pending and paired nodes
   location    Fetch location from a paired node
-  notify      Send a local notification on a node (mac only)
+  notify      Send a local notification on a node
   pending     List pending pairing requests
   push        Send an APNs test push to an iOS node
   reject      Reject a pending pairing request
@@ -647,7 +827,20 @@ Usage: openclaw nodes [options] [command]
 ## `onboard`
 
 ```text
-Usage: openclaw onboard [options]
+Usage: openclaw onboard [options] [command]
+
+  recommendations                          Read the app recommendations stored during onboarding
+```
+
+## `openclam`
+
+```text
+Usage: openclaw openclam [options] [command]
+
+  help         Display help for command
+  pair         Create a one-time pairing code for OpenClam iOS
+  pair-device  Create a fresh iPhone code from the existing OpenClam connection
+  status       Show OpenClam pairing state without secrets
 ```
 
 ## `pairing`
@@ -665,7 +858,7 @@ Usage: openclaw pairing [options] [command]
 ```text
 Usage: openclaw plugins [options] [command]
 
-  build        Generate simple tool plugin metadata
+  build        Build plugin metadata and native Control UI assets
   disable      Disable a plugin in config
   doctor       Report plugin load issues
   enable       Enable a plugin in config
@@ -675,11 +868,13 @@ Usage: openclaw plugins [options] [command]
                clawhub:package, or marketplace entry)
   list         List discovered plugins
   marketplace  Inspect Claude-compatible plugin marketplaces
+  pack         Bundle a built plugin into an exact artifact for activation
+               approval
   registry     Inspect or rebuild the persisted plugin registry
   search       Search ClawHub plugin packages
   uninstall    Uninstall a plugin
   update       Update installed plugins and tracked hook packs
-  validate     Validate simple tool plugin metadata
+  validate     Validate plugin metadata and native Control UI assets
 ```
 
 ## `promos`
@@ -720,6 +915,12 @@ Usage: openclaw qr [options]
 Usage: openclaw reset [options]
 ```
 
+## `resume`
+
+```text
+Usage: openclaw resume [options] [query]
+```
+
 ## `sandbox`
 
 ```text
@@ -741,6 +942,7 @@ Usage: openclaw secrets [options] [command]
               preflight)
   help        Display help for command
   reload      Re-resolve secret references and atomically swap runtime snapshot
+  store       Manage the team-scoped SQLite secret and environment store
 ```
 
 ## `security`
@@ -757,9 +959,12 @@ Usage: openclaw security [options] [command]
 ```text
 Usage: openclaw sessions [options] [command]
 
+  archive             Archive stored sessions via the running gateway
   cleanup             Run session-store maintenance now
   compact             Compact a stored session transcript via the running
                       gateway
+  delete              Delete stored sessions and their live artifacts via the
+                      running gateway. Retained archives can remain searchable.
   export-trajectory   Export a redacted trajectory bundle for a stored session
   list                List stored conversation sessions
   tail                Tail human-readable session trajectory progress
@@ -777,9 +982,10 @@ Usage: openclaw setup [options]
 Usage: openclaw skills [options] [command]
 
   check         Check which skills are ready, visible, or missing requirements
-  curator       Inspect and manage skill lifecycle curation
+  curator       Inspect skill usage and collection review outcomes
   info          Show detailed information about a skill
   install       Install a skill from ClawHub, git, or a local directory
+  library       Manage authenticated personal and team skill libraries
   list          List all available skills
   search        Search ClawHub skills
   update        Update ClawHub-installed skills in the active or shared managed
@@ -812,17 +1018,30 @@ Usage: openclaw tasks [options] [command]
 
   audit             Show stale or broken background tasks and TaskFlows
   cancel            Cancel a running background task
+  dismiss           Dismiss delivery for up to 10 blocked subagent completions
   flow              Inspect durable TaskFlow state under tasks
   list              List tracked background tasks
   maintenance       Preview or apply tasks and TaskFlow maintenance
   notify            Set task notify policy
+  retry             Retry delivery for up to 10 blocked subagent completions
   show              Show one background task by task id, run id, or session key
+```
+
+## `telemetry`
+
+```text
+Usage: openclaw telemetry [options] [command]
+
+  help        Display help for command
+  off         Disable anonymous feature statistics
+  on          Enable anonymous feature statistics
+  show        Preview the daily update request from this CLI process
 ```
 
 ## `terminal`
 
 ```text
-Usage: openclaw tui|terminal [options]
+Usage: openclaw tui|terminal [options] [target]
 ```
 
 ## `transcripts`
@@ -832,14 +1051,20 @@ Usage: openclaw transcripts [options] [command]
 
   help        Display help for command
   list        List stored transcript sessions
-  path        Print a stored transcripts artifact path
-  show        Print a transcript summary markdown file
+  path        Materialize and print a stored transcripts artifact path
+  show        Print and materialize a transcript summary
+```
+
+## `triage`
+
+```text
+Usage: openclaw triage [options]
 ```
 
 ## `tui`
 
 ```text
-Usage: openclaw tui|terminal [options]
+Usage: openclaw tui|terminal [options] [target]
 ```
 
 ## `uninstall`
@@ -853,9 +1078,19 @@ Usage: openclaw uninstall [options]
 ```text
 Usage: openclaw update [options] [command]
 
-  repair                                       Repair post-update doctor and plugin convergence
+  cleanup                                      Retire verified update recovery originals after acknowledging rollback loss
+  repair                                       Reconcile abandoned updates or repair post-update doctor and plugin convergence
   status                                       Show update channel and version status
   wizard                                       Interactive update wizard
+```
+
+## `users`
+
+```text
+Usage: openclaw users [options] [command]
+
+  link-email  Link an email alias to a user profile
+  list        List durable user profiles
 ```
 
 ## `webhooks`
@@ -865,6 +1100,12 @@ Usage: openclaw webhooks [options] [command]
 
   gmail       Gmail Pub/Sub hooks (via gogcli)
   help        Display help for command
+```
+
+## `worker`
+
+```text
+Usage: openclaw worker [options]
 ```
 
 ## `worktrees`
